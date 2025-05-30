@@ -1,0 +1,16 @@
+{
+  "name": "pantry-pal",
+  "main": "expo-router/entry",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "mobile",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "cd mobile && npm run dev",
+    "dev:mobile": "cd mobile && npm run dev",
+    "build:web": "cd mobile && npm run build:web",
+    "lint": "cd mobile && npm run lint"
+  }
+}
