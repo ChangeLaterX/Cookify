@@ -1,0 +1,67 @@
+services:
+  fastapi-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cookify_api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # Supabase Configuration
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+      
+      # FastAPI Configuration
+      - DEBUG=false
+      - APP_NAME=Cookify API
+      - VERSION=0.1.0
+      - LOG_LEVEL=INFO
+      
+      # Security Settings
+      - REQUIRE_EMAIL_VERIFICATION=true
+      - ENABLE_USER_CACHE=true
+      - USER_CACHE_TTL_SECONDS=300
+      
+      # CORS Settings
+      - CORS_ORIGINS=["http://localhost:8000","http://localhost:8000","https://dev.krija.info:8000"]
+      - ENABLE_TRUSTED_HOST_MIDDLEWARE=true
+      - TRUSTED_HOSTS=["localhost","127.0.0.1","krija.info","dev.krija.info"]
+      
+      # Session/Security
+      - SESSION_HTTPS_ONLY=true
+      - ENABLE_ACCESS_LOG=true
+      
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    # Für bessere Sicherheit
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/log/app
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  logs:
+    driver: local
