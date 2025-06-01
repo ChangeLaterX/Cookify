@@ -9,7 +9,7 @@ import secrets
 class Settings(BaseSettings):
     # Application Settings
     app_name: str = "APP API"
-    debug: bool = False  # Default to False for security
+    debug: bool = True  # Enabled for development testing
     docs_url: Optional[str] = "/docs"
     redoc_url: Optional[str] = "/redoc"
     version: str = "0.1.0"
@@ -28,10 +28,11 @@ class Settings(BaseSettings):
     session_secret_key: str = secrets.token_urlsafe(32)
     
     # Authentication Settings
-    require_email_verification: bool = True
+    require_email_verification: bool = False  # Disabled for development testing
     password_min_length: int = 8
     max_login_attempts: int = 5
     lockout_duration_minutes: int = 15
+    frontend_url: str = "http://localhost:3000"  # Default frontend URL
     
     # Cache Settings
     user_cache_ttl_seconds: int = 300  # 5 minutes

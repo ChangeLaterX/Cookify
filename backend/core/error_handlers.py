@@ -6,7 +6,11 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from middleware.request_id import get_request_id
+
+# Function to get request ID
+def get_request_id(request: Request) -> str:
+    """Get request ID from request state."""
+    return getattr(request.state, 'request_id', 'unknown')
 
 from core.exceptions import (
     AuthenticationError,
@@ -21,6 +25,9 @@ logger = logging.getLogger(__name__)
 
 def setup_error_handlers(app: FastAPI) -> None:
     """Setup global error handlers for the application."""
+    
+    # Log that error handlers are being configured
+    logger.info("Configuring error handlers")
     
     @app.exception_handler(AuthenticationError)
     async def authentication_error_handler(request: Request, exc: AuthenticationError):
@@ -98,38 +105,17 @@ def setup_error_handlers(app: FastAPI) -> None:
             status_code=exc.status_code,
             content={
                 "error": "database_error",
-                "message": "A database error occurred. Please try again later.",
+                "message": exc.detail,
                 "request_id": request_id,
                 "status_code": exc.status_code
             }
         )
     
-    @app.exception_handler(RequestValidationError)
-    async def request_validation_error_handler(request: Request, exc: RequestValidationError):
-        """Handle FastAPI request validation errors."""
-        request_id = get_request_id(request)
-        logger.warning(f"Request validation error (Request ID: {request_id}): {exc.errors()}")
-        
-        return JSONResponse(
-            status_code=422,
-            content={
-                "error": "request_validation_error",
-                "message": "Request validation failed",
-                "details": exc.errors(),
-                "request_id": request_id,
-                "status_code": 422
-            }
-        )
-    
     @app.exception_handler(StarletteHTTPException)
     async def http_exception_handler(request: Request, exc: StarletteHTTPException):
-        """Handle general HTTP exceptions."""
+        """Handle HTTP exceptions."""
         request_id = get_request_id(request)
-        
-        if exc.status_code >= 500:
-            logger.error(f"HTTP {exc.status_code} error (Request ID: {request_id}): {exc.detail}")
-        else:
-            logger.warning(f"HTTP {exc.status_code} error (Request ID: {request_id}): {exc.detail}")
+        logger.warning(f"HTTP {exc.status_code} error (Request ID: {request_id}): {exc.detail}")
         
         return JSONResponse(
             status_code=exc.status_code,
@@ -138,12 +124,29 @@ def setup_error_handlers(app: FastAPI) -> None:
                 "message": exc.detail,
                 "request_id": request_id,
                 "status_code": exc.status_code
+            },
+            headers=getattr(exc, "headers", None)
+        )
+
+    @app.exception_handler(RequestValidationError) 
+    async def validation_exception_handler(request: Request, exc: RequestValidationError):
+        """Handle request validation errors."""
+        request_id = get_request_id(request)
+        logger.warning(f"Validation error (Request ID: {request_id}): {str(exc)}")
+        
+        return JSONResponse(
+            status_code=422,
+            content={
+                "error": "validation_error",
+                "message": exc.errors(),
+                "request_id": request_id,
+                "status_code": 422
             }
         )
-    
+
     @app.exception_handler(Exception)
-    async def general_exception_handler(request: Request, exc: Exception):
-        """Handle unexpected exceptions."""
+    async def generic_exception_handler(request: Request, exc: Exception):
+        """Handle all uncaught exceptions."""
         request_id = get_request_id(request)
         logger.exception(f"Unhandled exception (Request ID: {request_id}): {str(exc)}")
         
