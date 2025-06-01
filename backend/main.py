@@ -8,20 +8,21 @@ from typing import Any, Dict
 # Core imports
 from core.config import settings
 from core.logging import setup_logging
-from middleware.auth_content import setup_middleware
-from middleware.request_id import RequestIDMiddleware
-from middleware.rate_limit import RateLimitMiddleware
+# Middleware imports
+from middleware.auth_middleware import AuthContextMiddleware
 
 # Validation framework
 from shared.utils.validation_env import load_validation_config, get_validation_settings
 
 # Domain routers
-from domains.auth.router import router as auth_router
+from domains.auth.routes import router as auth_router
 
 # Setup logging first
 setup_logging()
 logger: logging.Logger = logging.getLogger("app.main")
 
+if settings.debug:
+    print(f"DEBUG MODE ENABLED: {settings.debug}")
 
 def create_application() -> FastAPI:
     """Create and configure the FastAPI application."""
@@ -41,20 +42,17 @@ def create_application() -> FastAPI:
     from core.error_handlers import setup_error_handlers
     setup_error_handlers(application)
     
-    # Add request ID middleware (early in chain)
-    application.add_middleware(RequestIDMiddleware)
+    # Add auth context middleware
+    application.add_middleware(AuthContextMiddleware)
     
     # Add rate limiting (only in production or if enabled)
-    if not settings.debug:
-        application.add_middleware(
-            RateLimitMiddleware,
-            requests_per_minute=100,
-            burst_requests=20,
-            burst_window_seconds=10
-        )
-    
-    # Setup other middleware
-    setup_middleware(application)
+    # if not settings.debug:
+    #     application.add_middleware(
+    #         RateLimitMiddleware,
+    #         requests_per_minute=100,
+    #         burst_requests=20,
+    #         burst_window_seconds=10
+    #     )
     
     # Include routers
     application.include_router(auth_router, prefix="/api")
@@ -139,4 +137,4 @@ async def health_check(request: Request) -> dict[str, Any]:
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)
