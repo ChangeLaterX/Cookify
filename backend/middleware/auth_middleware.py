@@ -46,9 +46,6 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
             "/",
             "/health"
         }
-        
-        # Rate limiting storage (in production use Redis)
-        self.rate_limit_storage: Dict[str, Dict[str, Any]] = {}
     
     async def dispatch(self, request: Request, call_next):
         """
@@ -80,18 +77,6 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
             else:
                 # Try to authenticate user
                 await self._inject_user_context(request)
-            
-            # Apply rate limiting for auth endpoints
-            if request.url.path.startswith("/auth/"):
-                if not await self._check_rate_limit(request, client_ip):
-                    return JSONResponse(
-                        status_code=429,
-                        content={
-                            "error": "Too many requests",
-                            "error_code": "RATE_LIMIT_EXCEEDED",
-                            "retry_after": 60
-                        }
-                    )
             
             # Process request
             response = await call_next(request)
@@ -182,69 +167,6 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
         ]
         
         return any(path.startswith(pattern) for pattern in public_patterns)
-    
-    async def _check_rate_limit(self, request: Request, client_ip: str) -> bool:
-        """
-        Check rate limit for auth endpoints.
-        
-        Args:
-            request: FastAPI request object
-            client_ip: Client IP address
-            
-        Returns:
-            True if request is allowed, False if rate limited
-        """
-        if not settings.is_production:
-            return True  # Skip rate limiting in development
-        
-        current_time = time.time()
-        window_size = 60  # 1 minute window
-        max_requests = 10  # Max 10 auth requests per minute
-        
-        # Clean old entries
-        self._cleanup_rate_limit_storage(current_time, window_size)
-        
-        # Get or create rate limit data for this IP
-        if client_ip not in self.rate_limit_storage:
-            self.rate_limit_storage[client_ip] = {
-                "requests": [],
-                "first_request": current_time
-            }
-        
-        ip_data = self.rate_limit_storage[client_ip]
-        
-        # Remove requests outside the current window
-        ip_data["requests"] = [
-            req_time for req_time in ip_data["requests"] 
-            if current_time - req_time < window_size
-        ]
-        
-        # Check if limit exceeded
-        if len(ip_data["requests"]) >= max_requests:
-            self.logger.warning(f"Rate limit exceeded for IP: {client_ip}")
-            return False
-        
-        # Add current request
-        ip_data["requests"].append(current_time)
-        
-        return True
-    
-    def _cleanup_rate_limit_storage(self, current_time: float, window_size: int) -> None:
-        """
-        Clean up old rate limit data.
-        
-        Args:
-            current_time: Current timestamp
-            window_size: Rate limit window size in seconds
-        """
-        # Remove IPs with no recent requests
-        expired_ips = [
-            ip for ip, data in self.rate_limit_storage.items()
-            if current_time - data.get("first_request", 0) > window_size * 2
-        ]
-        
-        for ip in expired_ips:
-            del self.rate_limit_storage[ip]
     
     def _get_client_ip(self, request: Request) -> str:
         """

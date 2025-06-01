@@ -10,6 +10,7 @@ from core.config import settings
 from core.logging import setup_logging
 # Middleware imports
 from middleware.auth_middleware import AuthContextMiddleware
+from middleware.rate_limiting import AuthRateLimitMiddleware
 
 # Validation framework
 from shared.utils.validation_env import load_validation_config, get_validation_settings
@@ -45,14 +46,8 @@ def create_application() -> FastAPI:
     # Add auth context middleware
     application.add_middleware(AuthContextMiddleware)
     
-    # Add rate limiting (only in production or if enabled)
-    # if not settings.debug:
-    #     application.add_middleware(
-    #         RateLimitMiddleware,
-    #         requests_per_minute=100,
-    #         burst_requests=20,
-    #         burst_window_seconds=10
-    #     )
+    # Add rate limiting for authentication endpoints
+    application.add_middleware(AuthRateLimitMiddleware)
     
     # Include routers
     application.include_router(auth_router, prefix="/api")

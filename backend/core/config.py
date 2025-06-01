@@ -34,6 +34,15 @@ class Settings(BaseSettings):
     lockout_duration_minutes: int = 15
     frontend_url: str = "http://localhost:3000"  # Default frontend URL
     
+    # Rate Limiting Settings
+    rate_limiting_enabled: bool = True
+    rate_limit_login_attempts: int = 5  # Login attempts per window
+    rate_limit_login_window_minutes: int = 15  # Window for login attempts
+    rate_limit_registration_attempts: int = 3  # Registration attempts per window
+    rate_limit_registration_window_minutes: int = 5  # Window for registration attempts
+    rate_limit_password_reset_attempts: int = 3  # Password reset attempts per window
+    rate_limit_password_reset_window_minutes: int = 60  # Window for password reset attempts
+    
     # Cache Settings
     user_cache_ttl_seconds: int = 300  # 5 minutes
     enable_user_cache: bool = True
