@@ -14,7 +14,7 @@ services:
       - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
       
       # FastAPI Configuration
-      - DEBUG=false
+      - DEBUG=true
       - APP_NAME=Cookify API
       - VERSION=0.1.0
       - LOG_LEVEL=INFO
