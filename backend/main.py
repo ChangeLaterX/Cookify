@@ -11,6 +11,7 @@ from core.logging import setup_logging
 # Middleware imports
 from middleware.auth_middleware import AuthContextMiddleware
 from middleware.rate_limiting import AuthRateLimitMiddleware
+from middleware.security_headers import SecurityHeadersMiddleware
 
 # Validation framework
 from shared.utils.validation_env import load_validation_config, get_validation_settings
@@ -43,6 +44,10 @@ def create_application() -> FastAPI:
     from core.error_handlers import setup_error_handlers
     setup_error_handlers(application)
     
+    # Add security headers middleware (should be first for all responses)
+    if settings.security_headers_enabled:
+        application.add_middleware(SecurityHeadersMiddleware)
+    
     # Add auth context middleware
     application.add_middleware(AuthContextMiddleware)
     
@@ -70,6 +75,7 @@ async def on_startup() -> None:
     logger.info(f"Debug mode: {settings.debug}")
     logger.info(f"CORS origins: {settings.cors_origins}")
     logger.info(f"Cache enabled: {settings.enable_user_cache}")
+    logger.info(f"Security headers enabled: {settings.security_headers_enabled}")
     logger.info("Application startup completed")
 
 
