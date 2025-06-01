@@ -31,7 +31,7 @@ def create_application() -> FastAPI:
     application = FastAPI(
         title=settings.app_name,
         debug=settings.debug,
-        description="Enhanced Meal Planning API with professional authentication system",
+        description="",
         version=settings.version,
         docs_url=settings.docs_url,
         redoc_url=settings.redoc_url,
