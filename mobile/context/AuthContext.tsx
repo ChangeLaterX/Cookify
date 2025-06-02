@@ -16,31 +16,63 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Mock user and session for bypassing login
+  const mockUser: User = {
+    id: 'mock-user-id',
+    email: 'test@example.com',
+    created_at: new Date().toISOString(),
+    // Add any other required fields from your User type in mobile/types/supabase.ts
+    // Ensure all non-optional fields from your User type are present
+  };
 
-  useEffect(() => {
-    // Set up listener for auth changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
+  const mockSession: Session = {
+    access_token: 'mock-access-token',
+    token_type: 'bearer',
+    user: {
+      id: mockUser.id,
+      aud: 'authenticated',
+      role: 'authenticated',
+      email: mockUser.email,
+      email_confirmed_at: new Date().toISOString(),
+      phone: '',
+      confirmed_at: new Date().toISOString(),
+      last_sign_in_at: new Date().toISOString(),
+      app_metadata: { provider: 'email', providers: ['email'] },
+      user_metadata: {},
+      created_at: mockUser.created_at,
+      updated_at: new Date().toISOString(),
+      // Add any other required fields from Supabase's User type if your Session type expects them
+    } as any, // Using 'as any' here to simplify mock, ensure it matches Session's user type structure
+    expires_in: 3600,
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+    refresh_token: 'mock-refresh-token',
+  };
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+  const [user, setUser] = useState<User | null>(mockUser);
+  const [session, setSession] = useState<Session | null>(mockSession);
+  const [loading, setLoading] = useState(false); // Start with loading false
 
-    return () => {
-      authListener?.subscription.unsubscribe();
-    };
-  }, []);
+  // useEffect(() => {
+  //   // Set up listener for auth changes
+  //   const { data: authListener } = supabase.auth.onAuthStateChange(
+  //     async (event, currentSession) => {
+  //       setSession(currentSession);
+  //       setUser(currentSession?.user?.email ? (currentSession.user as User) : null);
+  //       setLoading(false);
+  //     }
+  //   );
+  //
+  //   // Get initial session
+  //   supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+  //     setSession(currentSession);
+  //     setUser(currentSession?.user?.email ? (currentSession.user as User) : null);
+  //     setLoading(false);
+  //   });
+  //
+  //   return () => {
+  //     authListener?.subscription.unsubscribe();
+  //   };
+  // }, []);
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);
@@ -51,9 +83,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp = async (email: string, password: string) => {
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    setLoading(false);
-    return { data, error };
+    try {
+      const response = await fetch('http://dev.krija.info:8000/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, user_metadata: {} }),
+      });
+
+      const responseData = await response.json();
+
+      if (response.ok) {
+        // Assuming responseData is { user: ApiUser, session: ApiSession }
+        // And ApiSession contains session.user which is compatible with the User type
+        setSession(responseData.session);
+        setUser(responseData.session.user); // Or responseData.user if that's preferred and compatible
+        setLoading(false);
+        return { data: responseData, error: null };
+      } else {
+        let errorMessage = 'Sign up failed.';
+        if (responseData.detail && Array.isArray(responseData.detail) && responseData.detail.length > 0) {
+          errorMessage = responseData.detail.map((err: any) => err.msg).join('; ');
+        } else if (responseData.message) {
+          errorMessage = responseData.message;
+        } else if (typeof responseData === 'string') { // Fallback for plain text error
+          errorMessage = responseData;
+        }
+        setLoading(false);
+        return { data: null, error: { message: errorMessage } };
+      }
+    } catch (e: any) {
+      console.error('Signup API call error:', e);
+      setLoading(false);
+      return { data: null, error: { message: e.message || 'An unexpected network error occurred.' } };
+    }
   };
 
   const signOut = async () => {
