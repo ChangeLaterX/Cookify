@@ -15,6 +15,7 @@ services:
       
       # FastAPI Configuration
       - DEBUG=true
+      - ENVIRONMENT=development
       - APP_NAME=Cookify API
       - VERSION=0.1.0
       - LOG_LEVEL=INFO

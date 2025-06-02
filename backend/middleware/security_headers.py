@@ -37,12 +37,12 @@ class SecurityHeadersConfig:
     def _get_csp_directives(self) -> Dict[str, str]:
         """Get Content Security Policy directives based on environment."""
         if settings.is_development:
-            # More permissive CSP for development
+            # More permissive CSP for development, including Swagger UI CDN resources
             return {
                 "default-src": "'self'",
-                "script-src": "'self' 'unsafe-inline' 'unsafe-eval' localhost:* 127.0.0.1:*",
-                "style-src": "'self' 'unsafe-inline' fonts.googleapis.com",
-                "font-src": "'self' fonts.gstatic.com",
+                "script-src": "'self' 'unsafe-inline' 'unsafe-eval' localhost:* 127.0.0.1:* https://unpkg.com https://cdn.jsdelivr.net",
+                "style-src": "'self' 'unsafe-inline' fonts.googleapis.com https://unpkg.com https://cdn.jsdelivr.net",
+                "font-src": "'self' fonts.gstatic.com https://unpkg.com https://cdn.jsdelivr.net",
                 "img-src": "'self' data: blob: https:",
                 "connect-src": "'self' localhost:* 127.0.0.1:* ws: wss:",
                 "frame-ancestors": "'none'",
