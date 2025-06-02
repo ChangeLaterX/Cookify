@@ -4,7 +4,9 @@ Test script to check available tables in Supabase
 """
 import sys
 import os
+from typing import Dict, Any
 
+from postgrest.base_request_builder import APIResponse
 from supabase._sync.client import SyncClient
 
 # Add the app directory to Python path
@@ -24,7 +26,7 @@ def test_tables() -> None:
     
     for table in tables:
         try:
-            response = client.table(table).select("*").limit(5).execute()
+            response: APIResponse[Dict[str, Any]] = client.table(table).select("*").limit(5).execute()
             print(f"✅ {table}: {len(response.data)} entries found")
             if response.data:
                 print(f"   First entries: {response.data[:2]}")

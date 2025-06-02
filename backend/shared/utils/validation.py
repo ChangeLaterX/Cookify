@@ -279,67 +279,26 @@ def validate_password_complexity(password: str, min_length: Optional[int] = None
                                 require_lowercase: Optional[bool] = None,
                                 require_digits: Optional[bool] = None,
                                 require_special: Optional[bool] = None,
-                                forbidden_patterns: Optional[List[str]] = None) -> Tuple[bool, List[str]]:
+                                forbidden_patterns: Optional[List[str]] = None,
+                                user_info: Optional[Dict[str, Any]] = None) -> Tuple[bool, List[str]]:
     """
-    Comprehensive password complexity validation using centralized configuration.
+    Enhanced password complexity validation with security strengthening.
     
-    Parameters can override the default configuration values.
+    This function now uses the enhanced password security module that cannot be bypassed
+    and includes checks for common passwords and dictionary attacks.
+    
+    Parameters are deprecated - the new system enforces strong defaults.
     
     Returns:
         Tuple of (is_valid, list_of_error_messages)
     """
-    # Use configuration defaults if not provided
-    config = validation_config.password
-    min_length = min_length if min_length is not None else config.min_length
-    require_uppercase = require_uppercase if require_uppercase is not None else config.require_uppercase
-    require_lowercase = require_lowercase if require_lowercase is not None else config.require_lowercase
-    require_digits = require_digits if require_digits is not None else config.require_digits
-    require_special = require_special if require_special is not None else config.require_special
-    forbidden_patterns = forbidden_patterns if forbidden_patterns is not None else config.forbidden_patterns
+    # Import the enhanced validator
+    from .password_security import validate_password_strength
     
-    errors = []
+    # Use the new enhanced validation that cannot be bypassed
+    is_valid, error_messages = validate_password_strength(password, user_info)
     
-    if not isinstance(password, str):
-        return False, ["Password must be a string"]
-    
-    if not password.strip():
-        return False, ["Password cannot be empty or just whitespace"]
-    
-    # Length check
-    if len(password) < min_length:
-        errors.append(f"Password must be at least {min_length} characters long")
-    
-    if len(password) > config.max_length:
-        errors.append(f"Password must not exceed {config.max_length} characters")
-    
-    # Character requirements
-    if require_uppercase and not any(c.isupper() for c in password):
-        errors.append("Password must contain at least one uppercase letter")
-    
-    if require_lowercase and not any(c.islower() for c in password):
-        errors.append("Password must contain at least one lowercase letter")
-    
-    if require_digits and not any(c.isdigit() for c in password):
-        errors.append("Password must contain at least one digit")
-    
-    if require_special and not any(c in string.punctuation for c in password):
-        errors.append("Password must contain at least one special character")
-    
-    # Check for forbidden patterns
-    for pattern in forbidden_patterns:
-        if re.search(pattern, password.lower()):
-            errors.append(f"Password contains forbidden pattern")
-    
-    # Check for too many repeated characters
-    char_counts: dict[str, int] = {}
-    for char in password.lower():
-        char_counts[char] = char_counts.get(char, 0) + 1
-    
-    max_repeated = max(char_counts.values()) if char_counts else 0
-    if max_repeated > len(password) * config.max_repeated_chars_ratio:
-        errors.append("Password has too many repeated characters")
-    
-    return len(errors) == 0, errors
+    return is_valid, error_messages
 
 
 def validate_input_length(value: str, min_length: int = 0, max_length: int = 1000, field_name: str = "Input") -> bool:

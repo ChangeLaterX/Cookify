@@ -64,6 +64,17 @@ class Settings(BaseSettings):
     log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     enable_access_log: bool = True
     
+    # Security Headers Settings
+    # Enable or disable security headers middleware.
+    # When enabled, the application will enforce security headers such as HSTS, CSP, etc.,
+    # to enhance security in production environments.
+    security_headers_enabled: bool = True
+    hsts_max_age: int = 31536000  # 1 year in seconds
+    hsts_include_subdomains: bool = True
+    hsts_preload: bool = False  # Can be enabled in production
+    csp_report_uri: Optional[str] = None  # For CSP violation reporting
+    custom_security_headers: Optional[dict] = None  # Additional custom headers
+    
     @property
     def supabase_url(self) -> str:
         """Get the Supabase URL."""

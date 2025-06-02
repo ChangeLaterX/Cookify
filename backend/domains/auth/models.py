@@ -2,13 +2,25 @@
 SQLAlchemy Models for Authentication Domain.
 Maps to existing Supabase auth.users table (READ-ONLY).
 """
-from sqlalchemy import Column, String, DateTime, Boolean, Text, ForeignKey
+
+from sqlalchemy import (
+    Column,
+    ColumnElement,
+    String,
+    DateTime,
+    Boolean,
+    Text,
+    ForeignKey,
+    Index,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime
-from typing import Optional
+from typing import Any, Literal, Optional
 import uuid
+
+from sqlalchemy.orm.relationships import Relationship
 
 # Create base class for models
 Base = declarative_base()
@@ -19,12 +31,13 @@ class User(Base):
     SQLAlchemy model mapping to Supabase auth.users table.
     READ-ONLY - User creation happens through Supabase Auth API only.
     """
+
     __tablename__ = "users"
     __table_args__ = {"schema": "auth"}
-    
+
     # Primary key - UUID from Supabase
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    
+
     # Core user fields from Supabase auth.users
     email = Column(String(255), unique=True, nullable=False, index=True)
     encrypted_password = Column(String(255), nullable=True)  # Handled by Supabase
@@ -42,7 +55,9 @@ class User(Base):
     raw_user_meta_data = Column(Text, nullable=True)
     is_super_admin = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    updated_at = Column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
     phone = Column(String(15), nullable=True)
     phone_confirmed_at = Column(DateTime, nullable=True)
     phone_change = Column(String(15), nullable=True)
@@ -56,23 +71,30 @@ class User(Base):
     reauthentication_sent_at = Column(DateTime, nullable=True)
     is_sso_user = Column(Boolean, default=False)
     deleted_at = Column(DateTime, nullable=True)
-    
+
     # Relationship to user profile
-    profile = relationship("UserProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
-    
+    profile: Relationship[Any] = relationship(
+        "UserProfile",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+
     def is_active(self) -> bool:
         """Check if user is active (confirmed and not banned)."""
         # Convert SQLAlchemy expressions to Python booleans for type safety
-        email_confirmed = self.email_confirmed_at is not None
-        not_deleted = self.deleted_at is None
-        not_banned = self.banned_until is None or self.banned_until < datetime.utcnow()
-        
-        return email_confirmed and not_deleted and not_banned
-    
+        email_confirmed: bool = self.email_confirmed_at is not None
+        not_deleted: bool = self.deleted_at is None
+        not_banned: bool = (
+            self.banned_until is None or self.banned_until < datetime.utcnow()
+        )
+
+        return bool(email_confirmed and not_deleted and not_banned)
+
     def is_verified(self) -> bool:
         """Check if user email is verified."""
         return self.email_confirmed_at is not None
-    
+
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email})>"
 
@@ -82,35 +104,44 @@ class UserProfile(Base):
     Extended user profile data stored in our application schema.
     Links to Supabase auth.users via user_id foreign key.
     """
-    __tablename__ = "user_profiles"
-    
+
+    __tablename__: str = "user_profiles"
+
     # Primary key
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    
+
     # Foreign key to auth.users.id
-    user_id = Column(UUID(as_uuid=True), ForeignKey("auth.users.id"), unique=True, nullable=False, index=True)
-    
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("auth.users.id"),
+        unique=True,
+        nullable=False,
+        index=True,
+    )
+
     # Profile fields
     display_name = Column(String(100), nullable=True)
     first_name = Column(String(50), nullable=True)
     last_name = Column(String(50), nullable=True)
     avatar_url = Column(String(255), nullable=True)
     bio = Column(Text, nullable=True)
-    
+
     # Preferences as JSON text (could be upgraded to JSONB later)
     preferences = Column(Text, nullable=True)  # JSON string for user preferences
-    
+
     # App-specific fields
     timezone = Column(String(50), default="UTC")
     language = Column(String(10), default="en")
-    
+
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    
+    updated_at = Column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
+
     # Relationship back to user
     user = relationship("User", back_populates="profile")
-    
+
     def __repr__(self) -> str:
         return f"<UserProfile(id={self.id}, user_id={self.user_id}, display_name={self.display_name})>"
 
