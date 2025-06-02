@@ -2,6 +2,7 @@
 Main FastAPI application with enhanced architecture.
 """
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 import logging
 from typing import Any, Dict
 
@@ -43,6 +44,15 @@ def create_application() -> FastAPI:
     # Setup error handlers
     from core.error_handlers import setup_error_handlers
     setup_error_handlers(application)
+    
+    # Add CORS middleware (should be early in the stack)
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins_safe,
+        allow_credentials=settings.cors_allow_credentials,
+        allow_methods=settings.cors_allow_methods,
+        allow_headers=settings.cors_allow_headers,
+    )
     
     # Add security headers middleware (should be first for all responses)
     if settings.security_headers_enabled:
