@@ -4,7 +4,7 @@ import { Link, useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Mail, Lock, Eye, EyeOff, User } from 'lucide-react-native';
-import { isValidEmail, isStrongPassword } from 'shared';
+import { isValidEmail, isStrongPassword } from '../../../shared/src/utils/validationUtils';
 
 export default function SignupScreen() {
   const { colors } = useTheme();

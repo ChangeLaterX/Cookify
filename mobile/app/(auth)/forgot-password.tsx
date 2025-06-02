@@ -4,7 +4,7 @@ import { Link, useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Mail, ArrowLeft } from 'lucide-react-native';
-import { isValidEmail } from 'shared';
+import { isValidEmail } from '../../../shared/src/utils/validationUtils';
 
 export default function ForgotPasswordScreen() {
   const { colors } = useTheme();
