@@ -1,3 +1,4 @@
+import 'react-native-url-polyfill/auto'; // Must be at the top
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';

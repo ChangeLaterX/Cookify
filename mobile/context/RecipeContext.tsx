@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { supabase } from '@/utils/supabase';
-import { Recipe } from '@/types/supabase';
+// import { supabase } from '@/utils/supabase'; // Supabase client removed
+import { Recipe } from '@/types/api'; // Assuming this type matches your backend structure for now
 import { usePantry } from './PantryContext';
+import { API_BASE_URL } from '@env';
 
 interface RecipeContextType {
   recipes: Recipe[];
@@ -37,16 +38,18 @@ export const RecipeProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
       
-      const { data, error } = await supabase
-        .from('recipes')
-        .select(`
-          *,
-          ingredients:recipe_ingredients(*)
-        `);
-      
-      if (error) throw error;
-      
-      setRecipes(data || []);
+      // TODO: Replace with API call to your Python backend
+      // Example:
+      // const response = await fetch(`${API_BASE_URL}/recipes`, {
+      //   headers: {
+      //     // Add Authorization header if needed
+      //   },
+      // });
+      // if (!response.ok) throw new Error('Failed to fetch recipes');
+      // const data = await response.json();
+      // setRecipes(data || []);
+      console.warn('fetchRecipes: API call not implemented');
+      setRecipes([]); // Placeholder
     } catch (err: any) {
       setError(err.message);
       console.error('Error fetching recipes:', err.message);

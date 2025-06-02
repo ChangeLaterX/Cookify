@@ -1,12 +1,37 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-import { supabase } from '@/utils/supabase';
-import { User } from '@/types/supabase';
-import { Session } from '@supabase/supabase-js';
+// import { supabase } from '@/utils/supabase'; // Supabase client removed
+import { User } from '@/types/api';
+// import { Session } from '@supabase/supabase-js'; // Supabase Session type removed
 import { API_BASE_URL } from '@env';
+
+// Define a minimal local Session type to match the mockSession structure
+interface MockSessionUser {
+  id: string;
+  aud: string;
+  role: string;
+  email: string;
+  email_confirmed_at: string;
+  phone: string;
+  confirmed_at: string;
+  last_sign_in_at: string;
+  app_metadata: { provider: string; providers: string[] };
+  user_metadata: object;
+  created_at: string;
+  updated_at: string;
+}
+
+interface LocalSession {
+  access_token: string;
+  token_type: string;
+  user: MockSessionUser; // Use the locally defined user type for the mock
+  expires_in: number;
+  expires_at: number;
+  refresh_token: string;
+}
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
+  session: LocalSession | null; // Use local Session type
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any | null }>;
   signUp: (email: string, password: string) => Promise<{ error: any | null, data: any | null }>;
@@ -26,7 +51,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Ensure all non-optional fields from your User type are present
   };
 
-  const mockSession: Session = {
+  const mockSession: LocalSession = { // Use local Session type
     access_token: 'mock-access-token',
     token_type: 'bearer',
     user: {
@@ -50,7 +75,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const [user, setUser] = useState<User | null>(mockUser);
-  const [session, setSession] = useState<Session | null>(mockSession);
+  const [session, setSession] = useState<LocalSession | null>(mockSession); // Use local Session type
   const [loading, setLoading] = useState(false); // Start with loading false
 
   // useEffect(() => {
@@ -77,9 +102,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    console.warn('signIn function is not implemented for custom backend yet.');
+    // TODO: Implement signIn with your custom backend
     setLoading(false);
-    return { error };
+    return { error: { message: 'Sign in not implemented' } };
   };
 
   const signUp = async (email: string, password: string) => {
@@ -122,12 +148,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    console.warn('signOut function is not implemented for custom backend yet.');
+    // TODO: Implement signOut with your custom backend
+    // For now, to make the mock login bypass work with a sign out button:
+    setUser(null);
+    setSession(null);
+    // This will likely redirect to auth screens if your root layout handles it.
   };
 
   const resetPassword = async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
-    return { error };
+    console.warn('resetPassword function is not implemented for custom backend yet.');
+    // TODO: Implement resetPassword with your custom backend
+    return { error: { message: 'Reset password not implemented' } };
   };
 
   const value = {

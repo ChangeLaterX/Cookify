@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { supabase } from '@/utils/supabase';
-import { PantryItem } from '@/types/supabase';
+// import { supabase } from '@/utils/supabase'; // Supabase client removed
+import { PantryItem } from '@/types/api'; // Assuming this type matches your backend structure for now
 import { useAuth } from './AuthContext';
+import { API_BASE_URL } from '@env';
 
 interface PantryContextType {
   items: PantryItem[];
@@ -39,15 +40,19 @@ export const PantryProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
       
-      const { data, error } = await supabase
-        .from('pantry_items')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('expiration_date', { ascending: true });
-      
-      if (error) throw error;
-      
-      setItems(data || []);
+      // TODO: Replace with API call to your Python backend
+      // Example:
+      // const response = await fetch(`${API_BASE_URL}/pantry`, {
+      //   headers: {
+      //     // Add Authorization header if needed, e.g.,
+      //     // 'Authorization': `Bearer ${session?.access_token}`,
+      //   },
+      // });
+      // if (!response.ok) throw new Error('Failed to fetch pantry items');
+      // const data = await response.json();
+      // setItems(data || []);
+      console.warn('fetchItems: API call not implemented');
+      setItems([]); // Placeholder
     } catch (err: any) {
       setError(err.message);
       console.error('Error fetching pantry items:', err.message);
@@ -63,14 +68,20 @@ export const PantryProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
       
-      const { data, error } = await supabase
-        .from('pantry_items')
-        .insert([{ ...item, user_id: user.id }])
-        .select();
-      
-      if (error) throw error;
-      
-      setItems(prev => [...prev, data[0]]);
+      // TODO: Replace with API call to your Python backend
+      // Example:
+      // const response = await fetch(`${API_BASE_URL}/pantry`, {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     // 'Authorization': `Bearer ${session?.access_token}`,
+      //   },
+      //   body: JSON.stringify({ ...item, user_id: user.id }) // Adjust payload as needed
+      // });
+      // if (!response.ok) throw new Error('Failed to add pantry item');
+      // const newItem = await response.json();
+      // setItems(prev => [...prev, newItem]);
+      console.warn('addItem: API call not implemented');
     } catch (err: any) {
       setError(err.message);
       console.error('Error adding pantry item:', err.message);
@@ -86,17 +97,21 @@ export const PantryProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
       
-      const { error } = await supabase
-        .from('pantry_items')
-        .update(item)
-        .eq('id', id)
-        .eq('user_id', user.id);
-      
-      if (error) throw error;
-      
-      setItems(prev => 
-        prev.map(i => (i.id === id ? { ...i, ...item } : i))
-      );
+      // TODO: Replace with API call to your Python backend
+      // Example:
+      // const response = await fetch(`${API_BASE_URL}/pantry/${id}`, {
+      //   method: 'PUT',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     // 'Authorization': `Bearer ${session?.access_token}`,
+      //   },
+      //   body: JSON.stringify(item)
+      // });
+      // if (!response.ok) throw new Error('Failed to update pantry item');
+      // setItems(prev =>
+      //   prev.map(i => (i.id === id ? { ...i, ...item } : i))
+      // );
+      console.warn('updateItem: API call not implemented');
     } catch (err: any) {
       setError(err.message);
       console.error('Error updating pantry item:', err.message);
@@ -112,15 +127,17 @@ export const PantryProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
       
-      const { error } = await supabase
-        .from('pantry_items')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', user.id);
-      
-      if (error) throw error;
-      
-      setItems(prev => prev.filter(i => i.id !== id));
+      // TODO: Replace with API call to your Python backend
+      // Example:
+      // const response = await fetch(`${API_BASE_URL}/pantry/${id}`, {
+      //   method: 'DELETE',
+      //   headers: {
+      //     // 'Authorization': `Bearer ${session?.access_token}`,
+      //   },
+      // });
+      // if (!response.ok) throw new Error('Failed to delete pantry item');
+      // setItems(prev => prev.filter(i => i.id !== id));
+      console.warn('deleteItem: API call not implemented');
     } catch (err: any) {
       setError(err.message);
       console.error('Error deleting pantry item:', err.message);
