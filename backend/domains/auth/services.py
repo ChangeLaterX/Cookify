@@ -6,7 +6,7 @@ Handles business logic for user authentication and profile management.
 import logging
 import json
 from typing import Optional, Dict, Any, Tuple
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
 from fastapi import HTTPException, status
@@ -132,7 +132,7 @@ class AuthService:
                     refresh_token="",
                     token_type="bearer",
                     expires_in=0,
-                    expires_at=datetime.utcnow(),
+                    expires_at=datetime.now(timezone.utc),
                 )
 
             session = auth_response.session

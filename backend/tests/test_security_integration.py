@@ -7,22 +7,27 @@ import subprocess
 import time
 import signal
 import os
+import logging
 from typing import Dict, Any
+
+# Configure logger
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger: logging.Logger = logging.getLogger(__name__)
 
 # Test configuration
 TEST_HOST = "localhost"
-TEST_PORT = 8003
-BASE_URL = f"http://{TEST_HOST}:{TEST_PORT}"
+TEST_PORT = 8000
+BASE_URL: str = f"http://{TEST_HOST}:{TEST_PORT}"
 
 class SecurityHeadersIntegrationTest:
     """Integration test for security headers using real HTTP requests."""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.server_process = None
     
     def start_server(self):
         """Start the FastAPI server for testing."""
-        cmd = [
+        cmd= [
             "python", "-m", "uvicorn", 
             "main:app", 
             "--host", "0.0.0.0", 
@@ -33,21 +38,21 @@ class SecurityHeadersIntegrationTest:
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            cwd="/Users/jannis/Developer/Cookify/backend"
+            cwd=os.path.join(os.path.dirname(__file__), "../..")
         )
         
         # Wait for server to start
         max_retries = 10
-        for i in range(max_retries):
+        for attempt in range(max_retries):
             try:
                 response = requests.get(f"{BASE_URL}/", timeout=1)
                 if response.status_code == 200:
-                    print(f"✅ Server started successfully on {BASE_URL}")
+                    logger.info(f"✅ Server started successfully on {BASE_URL}")
                     return True
             except requests.exceptions.RequestException:
                 time.sleep(1)
         
-        print("❌ Failed to start server")
+        logger.error("❌ Failed to start server")
         return False
     
     def stop_server(self):
@@ -55,7 +60,7 @@ class SecurityHeadersIntegrationTest:
         if self.server_process:
             self.server_process.terminate()
             self.server_process.wait()
-            print("🛑 Server stopped")
+            logger.info("🛑 Server stopped")
     
     def test_basic_security_headers(self) -> Dict[str, Any]:
         """Test basic security headers from Issue 2."""
@@ -141,44 +146,49 @@ class SecurityHeadersIntegrationTest:
 
 def run_integration_test():
     """Run the complete integration test suite."""
-    print("🔒 Security Headers Integration Test")
-    print("=" * 50)
+    logger.info("🔒 Security Headers Integration Test")
+    logger.info("=" * 50)
     
     test = SecurityHeadersIntegrationTest()
     
     try:
         # Start server
         if not test.start_server():
-            print("❌ Cannot start server, aborting tests")
+            logger.error("❌ Cannot start server, aborting tests")
             return
         
-        print("\n📋 Testing Basic Security Headers (Issue 2 Requirements):")
+        logger.info("\n📋 Testing Basic Security Headers (Issue 2 Requirements):")
         basic_results = test.test_basic_security_headers()
         for header, result in basic_results.items():
-            print(f"  {header}: {result['status']}")
+            logger.info(f"  {header}: {result['status']}")
             if 'value' in result:
-                print(f"    Value: {result['value']}")
+                logger.info(f"    Value: {result['value']}")
         
-        print("\n📋 Testing Additional Security Headers:")
+        logger.info("\n📋 Testing Additional Security Headers:")
         additional_results = test.test_additional_security_headers()
         for header, result in additional_results.items():
-            print(f"  {header}: {result['status']}")
+            logger.info(f"  {header}: {result['status']}")
         
-        print("\n📋 Testing HSTS Configuration:")
+        logger.info("\n📋 Testing HSTS Configuration:")
         hsts_results = test.test_hsts_in_development()
         for test_name, result in hsts_results.items():
-            print(f"  {test_name}: {result['status']} - {result['reason']}")
+            logger.info(f"  {test_name}: {result['status']} - {result['reason']}")
         
-        print("\n📋 Testing Multiple Endpoints:")
+        logger.info("\n📋 Testing Multiple Endpoints:")
         endpoint_results = test.test_all_endpoints()
         for endpoint, result in endpoint_results.items():
-            print(f"  {endpoint}: {result['status']}")
+            logger.info(f"  {endpoint}: {result['status']}")
             if 'headers_count' in result:
-                print(f"    Security headers: {result['headers_count']}")
+                logger.info(f"    Security headers: {result['headers_count']}")
         
         # Summary
         all_basic_passed = all(r['status'] == '✅ PASS' for r in basic_results.values())
-        print(f"\n🎯 Issue 2 Requirements: {'✅ ALL PASSED' if all_basic_passed else '❌ SOME FAILED'}")
+        logger.info(f"\n🎯 Issue 2 Requirements: {'✅ ALL PASSED' if all_basic_passed else '❌ SOME FAILED'}")
+        
+        if not all_basic_passed:
+            logger.error("❌ Integration test failed. Exiting with error.")
+            import sys
+            sys.exit(1)
         
     finally:
         test.stop_server()

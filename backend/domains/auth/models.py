@@ -80,16 +80,16 @@ class User(Base):
         cascade="all, delete-orphan",
     )
 
-    def is_active(self) -> ColumnElement[bool] | bool:
+    def is_active(self) -> bool:
         """Check if user is active (confirmed and not banned)."""
         # Convert SQLAlchemy expressions to Python booleans for type safety
         email_confirmed: bool = self.email_confirmed_at is not None
         not_deleted: bool = self.deleted_at is None
-        not_banned: ColumnElement[bool] | Literal[True] = (
+        not_banned: bool = (
             self.banned_until is None or self.banned_until < datetime.utcnow()
         )
 
-        return email_confirmed and not_deleted and not_banned
+        return bool(email_confirmed and not_deleted and not_banned)
 
     def is_verified(self) -> bool:
         """Check if user email is verified."""

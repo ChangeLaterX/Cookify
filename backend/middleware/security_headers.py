@@ -176,12 +176,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
             
             # Remove server information safely
-            try:
-                if "Server" in response.headers:
-                    del response.headers["Server"]
-            except (KeyError, AttributeError):
-                # Server header doesn't exist or can't be removed
-                pass
+            response.headers.pop("Server", None)
         except Exception as e:
             logger.error(f"Error adding security headers: {e}")
             logger.error(f"Response type: {type(response)}")

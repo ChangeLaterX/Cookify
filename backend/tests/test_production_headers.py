@@ -6,29 +6,30 @@ import sys
 import subprocess
 import time
 import requests
+import pathlib
 
 # Set environment variables for production mode
 os.environ['ENVIRONMENT'] = 'production'
 os.environ['DEBUG'] = 'false'
 
-def test_production_headers():
+def test_production_headers() -> None:
     """Test security headers in production configuration."""
     print("🏭 Testing Security Headers in Production Mode")
     print("=" * 50)
     
     # Start server with production config
-    cmd = [
+    cmd: list[str] = [
         "python", "-m", "uvicorn", 
         "main:app", 
         "--host", "0.0.0.0", 
-        "--port", "8004"
+        "--port", "8000"
     ]
     
     server_process = subprocess.Popen(
         cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        cwd="/Users/jannis/Developer/Cookify/backend",
+        cwd=str(pathlib.Path(__file__).resolve().parent.parent),
         env=os.environ.copy()
     )
     
@@ -37,34 +38,24 @@ def test_production_headers():
         time.sleep(3)
         
         # Test production headers
-        response = requests.get("http://localhost:8004/", timeout=5)
+        response = requests.get("http://localhost:8000/", timeout=5)
         headers = response.headers
-        
-        print("📋 Production Security Headers:")
         
         # Basic headers
         basic_headers = ['x-content-type-options', 'x-frame-options', 'x-xss-protection', 'content-security-policy']
         for header in basic_headers:
-            if header in headers:
-                print(f"  ✅ {header}: {headers[header]}")
-            else:
-                print(f"  ❌ {header}: MISSING")
+            assert header in headers, f"Header {header} is missing"
         
         # Check HSTS behavior
         if 'strict-transport-security' in headers:
-            print(f"  ⚠️  strict-transport-security: {headers['strict-transport-security']}")
-            print("      Note: HSTS should only be enabled over HTTPS in production")
+            assert headers['strict-transport-security'], "HSTS header should not be empty"
         else:
-            print("  ✅ strict-transport-security: Correctly not set (HTTP connection)")
+            assert 'strict-transport-security' not in headers, "HSTS header should not be set for HTTP connections"
         
         # Check CSP differences
         csp = headers.get('content-security-policy', '')
-        print(f"\n🔒 Content Security Policy:")
-        print(f"  Length: {len(csp)} characters")
-        if 'unsafe-inline' in csp:
-            print("  ⚠️  Contains 'unsafe-inline' (development-friendly CSP)")
-        else:
-            print("  ✅ No 'unsafe-inline' (production-strict CSP)")
+        assert len(csp) > 0, "Content Security Policy header is missing"
+        assert 'unsafe-inline' not in csp, "CSP contains 'unsafe-inline', which is not production-safe"
         
     except Exception as e:
         print(f"❌ Error testing production headers: {e}")
@@ -75,4 +66,5 @@ def test_production_headers():
         print("\n🛑 Production test server stopped")
 
 if __name__ == "__main__":
-    test_production_headers()
+    import pytest
+    pytest.main([__file__])
