@@ -2,22 +2,29 @@ import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useFonts } from 'expo-font';
+import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
+import { Poppins_600SemiBold, Poppins_700Bold } from '@expo-google-fonts/poppins';
+import { AuthProvider } from '@/context/AuthContext';
+import { PantryProvider } from '@/context/PantryContext';
+import { RecipeProvider } from '@/context/RecipeContext';
+import { ShoppingListProvider } from '@/context/ShoppingListContext';
 import { SplashScreen } from 'expo-router';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { PantryProvider } from '@/contexts/PantryContext';
-import { ThemeProvider } from '@/contexts/ThemeContext';
 
-// Prevent splash screen from auto-hiding
+// Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   useFrameworkReady();
-  
+
   const [fontsLoaded, fontError] = useFonts({
-    'Poppins-Regular': require('@/assets/fonts/Poppins-Regular.ttf'),
-    'Poppins-Medium': require('@/assets/fonts/Poppins-Medium.ttf'),
-    'Poppins-Bold': require('@/assets/fonts/Poppins-Bold.ttf'),
+    'Inter-Regular': Inter_400Regular,
+    'Inter-Medium': Inter_500Medium,
+    'Inter-SemiBold': Inter_600SemiBold,
+    'Inter-Bold': Inter_700Bold,
+    'Poppins-SemiBold': Poppins_600SemiBold,
+    'Poppins-Bold': Poppins_700Bold,
   });
 
   // Hide splash screen once fonts are loaded
@@ -31,19 +38,23 @@ export default function RootLayout() {
   if (!fontsLoaded && !fontError) {
     return null;
   }
-
+  
   return (
-    <ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
         <PantryProvider>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
-          </Stack>
-          <StatusBar style="auto" />
+          <RecipeProvider>
+            <ShoppingListProvider>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="+not-found" options={{ headerShown: false }} />
+              </Stack>
+              <StatusBar style="auto" />
+            </ShoppingListProvider>
+          </RecipeProvider>
         </PantryProvider>
       </AuthProvider>
-    </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

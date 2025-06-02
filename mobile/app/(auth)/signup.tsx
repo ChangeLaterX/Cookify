@@ -1,36 +1,23 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Image, ActivityIndicator } from 'react-native';
-import { Link, useRouter } from 'expo-router';
-import { useAuth } from '@/contexts/AuthContext';
-import { useTheme } from '@/contexts/ThemeContext';
-import { Mail, Lock, Eye, EyeOff, User } from 'lucide-react-native';
-import { isValidEmail, isStrongPassword } from 'shared';
+import { View, Text, StyleSheet, Image, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { Link, router } from 'expo-router';
+import { useAuth } from '@/context/AuthContext';
+import Input from '@/components/ui/Input';
+import Button from '@/components/ui/Button';
+import Colors from '@/constants/Colors';
+import { Mail, Lock, User, AlertCircle } from 'lucide-react-native';
 
 export default function SignupScreen() {
-  const { colors } = useTheme();
   const { signUp, loading } = useAuth();
-  const router = useRouter();
-  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSignup = async () => {
+  const handleSignUp = async () => {
     // Validation
     if (!email || !password || !confirmPassword) {
-      setError('Please fill out all fields');
-      return;
-    }
-    
-    if (!isValidEmail(email)) {
-      setError('Please enter a valid email address');
-      return;
-    }
-    
-    if (!isStrongPassword(password)) {
-      setError('Password must be at least 8 characters with uppercase, lowercase, and numbers');
+      setError('Please fill in all fields');
       return;
     }
     
@@ -39,141 +26,104 @@ export default function SignupScreen() {
       return;
     }
     
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+    
     try {
-      setError(null);
-      const success = await signUp(email, password);
-      if (success) {
-        router.replace('/(tabs)');
+      const { error: signUpError, data } = await signUp(email, password);
+      
+      if (signUpError) {
+        setError(signUpError.message);
+      } else {
+        // Show confirmation message
+        setError(null);
+        alert('Sign-up successful! Check your email for verification link.');
+        router.replace('/(auth)/login');
       }
-    } catch (err: any) {
-      setError(err?.message || 'Failed to create account');
-      console.error(err);
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.');
+      console.error('Signup error:', err);
     }
   };
 
-  const dynamicStyles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    inputContainer: {
-      borderColor: colors.border,
-      backgroundColor: colors.card,
-    },
-    inputText: {
-      color: colors.text,
-    },
-    button: {
-      backgroundColor: colors.primary,
-    },
-    buttonText: {
-      color: colors.white,
-    },
-    linkText: {
-      color: colors.primary,
-    },
-    errorText: {
-      color: colors.error,
-    },
-    titleText: {
-      color: colors.text,
-    },
-    subtitleText: {
-      color: colors.textSecondary,
-    },
-  });
-
   return (
     <KeyboardAvoidingView
+      style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={[styles.container, dynamicStyles.container]}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.logoContainer}>
-          <Image
-            source={require('@/assets/images/logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </View>
+        <View style={styles.container}>
+          <View style={styles.logoContainer}>
+            <Image
+              source={{ uri: 'https://images.pexels.com/photos/616404/pexels-photo-616404.jpeg' }}
+              style={styles.logoBackground}
+            />
+            <View style={styles.logoOverlay} />
+            <View style={styles.brandContainer}>
+              <Text style={styles.logoText}>Cookify</Text>
+              <Text style={styles.tagline}>Join our community today</Text>
+            </View>
+          </View>
 
-        <Text style={[styles.title, dynamicStyles.titleText]}>Create Account</Text>
-        <Text style={[styles.subtitle, dynamicStyles.subtitleText]}>
-          Sign up to start tracking your pantry
-        </Text>
+          <View style={styles.formContainer}>
+            <Text style={styles.welcomeText}>Create Account</Text>
+            <Text style={styles.subtitle}>Sign up to start managing your pantry</Text>
 
-        {error && (
-          <Text style={[styles.errorMessage, dynamicStyles.errorText]}>{error}</Text>
-        )}
+            {error && (
+              <View style={styles.errorContainer}>
+                <AlertCircle size={18} color={Colors.error.main} />
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            )}
 
-        <View style={styles.formContainer}>
-          <View style={[styles.inputWrapper, dynamicStyles.inputContainer]}>
-            <Mail size={20} color={colors.textSecondary} />
-            <TextInput
-              style={[styles.input, dynamicStyles.inputText]}
-              placeholder="Email"
-              placeholderTextColor={colors.textSecondary}
+            <Input
+              label="Email Address"
+              placeholder="Enter your email"
+              keyboardType="email-address"
               value={email}
               onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
+              leftIcon={<Mail size={20} color={Colors.neutral[500]} />}
+              containerStyle={styles.inputContainer}
             />
-          </View>
 
-          <View style={[styles.inputWrapper, dynamicStyles.inputContainer]}>
-            <Lock size={20} color={colors.textSecondary} />
-            <TextInput
-              style={[styles.input, dynamicStyles.inputText]}
-              placeholder="Password"
-              placeholderTextColor={colors.textSecondary}
+            <Input
+              label="Password"
+              placeholder="Create a password"
+              secureTextEntry
               value={password}
               onChangeText={setPassword}
-              secureTextEntry={!showPassword}
+              leftIcon={<Lock size={20} color={Colors.neutral[500]} />}
+              hint="Must be at least 6 characters"
+              containerStyle={styles.inputContainer}
             />
-            <TouchableOpacity
-              onPress={() => setShowPassword(!showPassword)}
-              style={styles.eyeIcon}
-            >
-              {showPassword ? (
-                <EyeOff size={20} color={colors.textSecondary} />
-              ) : (
-                <Eye size={20} color={colors.textSecondary} />
-              )}
-            </TouchableOpacity>
-          </View>
-
-          <View style={[styles.inputWrapper, dynamicStyles.inputContainer]}>
-            <Lock size={20} color={colors.textSecondary} />
-            <TextInput
-              style={[styles.input, dynamicStyles.inputText]}
-              placeholder="Confirm Password"
-              placeholderTextColor={colors.textSecondary}
+            
+            <Input
+              label="Confirm Password"
+              placeholder="Confirm your password"
+              secureTextEntry
               value={confirmPassword}
               onChangeText={setConfirmPassword}
-              secureTextEntry={!showPassword}
+              leftIcon={<Lock size={20} color={Colors.neutral[500]} />}
+              containerStyle={styles.inputContainer}
             />
+
+            <Button
+              title="Create Account"
+              onPress={handleSignUp}
+              loading={loading}
+              fullWidth
+              style={styles.signupButton}
+            />
+
+            <View style={styles.loginContainer}>
+              <Text style={styles.haveAccountText}>Already have an account? </Text>
+              <Link href="/(auth)/login" asChild>
+                <Text style={styles.loginLink}>Sign In</Text>
+              </Link>
+            </View>
           </View>
-
-          <TouchableOpacity
-            style={[styles.button, dynamicStyles.button, loading && styles.disabledButton]}
-            onPress={handleSignup}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color={colors.white} />
-            ) : (
-              <Text style={[styles.buttonText, dynamicStyles.buttonText]}>Sign Up</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.footer}>
-          <Text style={dynamicStyles.subtitleText}>Already have an account? </Text>
-          <Link href="/login" asChild>
-            <TouchableOpacity>
-              <Text style={dynamicStyles.linkText}>Sign In</Text>
-            </TouchableOpacity>
-          </Link>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -181,78 +131,90 @@ export default function SignupScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   scrollContainer: {
     flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
   },
   logoContainer: {
-    alignItems: 'center',
-    marginTop: 60,
-    marginBottom: 40,
+    height: 200,
+    position: 'relative',
+    justifyContent: 'flex-end',
   },
-  logo: {
-    width: 120,
-    height: 120,
-  },
-  title: {
-    fontSize: 28,
-    fontFamily: 'Poppins-Bold',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    marginBottom: 32,
-    fontFamily: 'Poppins-Regular',
-  },
-  formContainer: {
+  logoBackground: {
+    ...StyleSheet.absoluteFillObject,
+    height: 200,
     width: '100%',
   },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 12,
-    marginBottom: 16,
-    paddingHorizontal: 16,
-    height: 56,
+  logoOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
-  input: {
-    flex: 1,
-    paddingLeft: 12,
-    height: '100%',
-    fontFamily: 'Poppins-Regular',
+  brandContainer: {
+    padding: 24,
   },
-  eyeIcon: {
-    padding: 8,
-  },
-  button: {
-    height: 56,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-    marginTop: 8,
-  },
-  disabledButton: {
-    opacity: 0.7,
-  },
-  buttonText: {
-    fontSize: 16,
+  logoText: {
     fontFamily: 'Poppins-Bold',
+    fontSize: 36,
+    color: 'white',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 5,
   },
-  footer: {
+  tagline: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 16,
+    color: 'white',
+    marginTop: 4,
+  },
+  formContainer: {
+    padding: 24,
+  },
+  welcomeText: {
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 24,
+    marginBottom: 8,
+    color: Colors.neutral[800],
+  },
+  subtitle: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    color: Colors.neutral[600],
+    marginBottom: 24,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.error.light,
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  errorText: {
+    fontFamily: 'Inter-Regular',
+    marginLeft: 8,
+    color: Colors.error.main,
+    flex: 1,
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  signupButton: {
+    marginTop: 8,
+    marginBottom: 24,
+  },
+  loginContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 'auto',
-    paddingVertical: 16,
   },
-  errorMessage: {
-    marginBottom: 16,
-    fontFamily: 'Poppins-Medium',
-    textAlign: 'center',
+  haveAccountText: {
+    fontFamily: 'Inter-Regular',
+    color: Colors.neutral[600],
+  },
+  loginLink: {
+    fontFamily: 'Inter-SemiBold',
+    color: Colors.primary[600],
   },
 });

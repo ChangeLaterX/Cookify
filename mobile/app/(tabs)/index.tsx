@@ -1,244 +1,353 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
-import { useTheme } from '@/contexts/ThemeContext';
-import { usePantry } from '@/contexts/PantryContext';
-import { getExpirationStatus } from 'shared';
-import { Bell, ShoppingCart, UtensilsCrossed } from 'lucide-react-native';
-import { PantryItem } from 'shared';
-import { Link } from 'expo-router';
-import ExpiringItemCard from '@/components/pantry/ExpiringItemCard';
-import DashboardCard from '@/components/dashboard/DashboardCard';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { useAuth } from '@/context/AuthContext';
+import { usePantry } from '@/context/PantryContext';
+import { useRecipes } from '@/context/RecipeContext';
+import Colors from '@/constants/Colors';
+import ExpirationAlert from '@/components/ExpirationAlert';
+import RecipeCard from '@/components/RecipeCard';
+import { Bell, Plus, ShoppingCart } from 'lucide-react-native';
+import Button from '@/components/ui/Button';
 
-export default function DashboardScreen() {
-  const { colors } = useTheme();
-  const { pantryItems, fetchPantryItems, loading } = usePantry();
-  const [refreshing, setRefreshing] = useState(false);
+export default function HomeScreen() {
+  const { user } = useAuth();
+  const { items: pantryItems, getExpiringItems } = usePantry();
+  const { suggestedRecipes } = useRecipes();
 
-  // Get expiring items (expiring within 3 days)
-  const expiringItems = pantryItems.filter(
-    item => getExpirationStatus(item.expirationDate) === 'expiring-soon'
-  );
+  const expiringItems = getExpiringItems();
 
-  // Get expired items
-  const expiredItems = pantryItems.filter(
-    item => getExpirationStatus(item.expirationDate) === 'expired'
-  );
-
-  // Get low stock items (quantity <= 1)
-  const lowStockItems = pantryItems.filter(item => item.quantity <= 1);
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await fetchPantryItems();
-    setRefreshing(false);
-  };
-
-  const dynamicStyles = StyleSheet.create({
-    container: {
-      backgroundColor: colors.background,
-    },
-    welcomeText: {
-      color: colors.text,
-    },
-    subtitleText: {
-      color: colors.textSecondary,
-    },
-    sectionTitle: {
-      color: colors.text,
-    },
-    card: {
-      backgroundColor: colors.card,
-      borderColor: colors.border,
-    },
-    cardTitle: {
-      color: colors.text,
-    },
-    cardSubtitle: {
-      color: colors.textSecondary,
-    },
-    warningText: {
-      color: colors.warning,
-    },
-    dangerText: {
-      color: colors.error,
-    },
-    actionButton: {
-      backgroundColor: colors.primary,
-    },
-    actionButtonText: {
-      color: colors.white,
-    },
-  });
+  if (!user) {
+    return null;
+  }
 
   return (
-    <ScrollView 
-      style={[styles.container, dynamicStyles.container]}
-      contentContainerStyle={styles.contentContainer}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-    >
-      <View style={styles.welcomeSection}>
-        <Text style={[styles.welcomeText, dynamicStyles.welcomeText]}>Hello!</Text>
-        <Text style={[styles.subtitle, dynamicStyles.subtitleText]}>
-          Here's what's happening in your pantry
-        </Text>
-      </View>
-
-      <View style={styles.alertsSection}>
-        <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>Alerts</Text>
-        
-        <View style={styles.cardGrid}>
-          <DashboardCard
-            title="Expiring Soon"
-            count={expiringItems.length}
-            icon={<Bell size={24} color={colors.warning} />}
-            color={colors.warningLight}
-            route="/pantry?filter=expiring"
-          />
-          
-          <DashboardCard
-            title="Expired Items"
-            count={expiredItems.length}
-            icon={<Bell size={24} color={colors.error} />}
-            color={colors.errorLight}
-            route="/pantry?filter=expired"
-          />
-          
-          <DashboardCard
-            title="Low Stock"
-            count={lowStockItems.length}
-            icon={<ShoppingCart size={24} color={colors.primary} />}
-            color={colors.primaryLight}
-            route="/pantry?filter=low-stock"
-          />
-          
-          <DashboardCard
-            title="Recipe Ideas"
-            subtitle="Based on your pantry"
-            icon={<UtensilsCrossed size={24} color={colors.secondary} />}
-            color={colors.secondaryLight}
-            route="/recipes"
-          />
-        </View>
-      </View>
-
-      {expiringItems.length > 0 && (
-        <View style={styles.expiringSection}>
-          <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
-            Expiring Soon
-          </Text>
-          
-          <View style={styles.expiringList}>
-            {expiringItems.slice(0, 3).map(item => (
-              <ExpiringItemCard key={item.id} item={item} />
-            ))}
-            
-            {expiringItems.length > 3 && (
-              <Link href="/pantry?filter=expiring\" asChild>
-                <TouchableOpacity style={[styles.viewAllButton, dynamicStyles.actionButton]}>
-                  <Text style={[styles.viewAllButtonText, dynamicStyles.actionButtonText]}>
-                    View All ({expiringItems.length})
-                  </Text>
-                </TouchableOpacity>
-              </Link>
+    <SafeAreaView style={styles.container}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.greeting}>Hello,</Text>
+            <Text style={styles.username}>{user.email?.split('@')[0] || 'Chef'}</Text>
+          </View>
+          <Pressable
+            style={styles.notificationButton}
+            onPress={() => router.push('/(tabs)/alerts')}
+          >
+            {expiringItems.length > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{expiringItems.length}</Text>
+              </View>
             )}
+            <Bell size={24} color={Colors.neutral[800]} />
+          </Pressable>
+        </View>
+
+        <View style={styles.quickActionsContainer}>
+          <Pressable
+            style={styles.quickActionButton}
+            onPress={() => router.push('/(tabs)/pantry/add')}
+          >
+            <Plus size={24} color="white" />
+            <Text style={styles.quickActionText}>Add Item</Text>
+          </Pressable>
+          
+          <Pressable
+            style={[styles.quickActionButton, { backgroundColor: Colors.secondary[500] }]}
+            onPress={() => router.push('/(tabs)/shopping-list')}
+          >
+            <ShoppingCart size={24} color="white" />
+            <Text style={styles.quickActionText}>Shopping List</Text>
+          </Pressable>
+          
+          <Pressable
+            style={[styles.quickActionButton, { backgroundColor: Colors.accent[500] }]}
+            onPress={() => router.push('/(tabs)/scan-receipt')}
+          >
+            <View style={styles.cameraIcon}>
+              <Text style={styles.cameraIconText}>📷</Text>
+            </View>
+            <Text style={styles.quickActionText}>Scan Receipt</Text>
+          </Pressable>
+        </View>
+
+        {/* Expiration Alerts */}
+        {expiringItems.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Expiration Alerts</Text>
+              <Pressable onPress={() => router.push('/(tabs)/alerts')}>
+                <Text style={styles.seeAllText}>See all</Text>
+              </Pressable>
+            </View>
+            
+            <View style={styles.expirationAlerts}>
+              {expiringItems.slice(0, 3).map((item) => (
+                <ExpirationAlert 
+                  key={item.id} 
+                  item={item} 
+                  onPress={() => router.push(`/(tabs)/pantry/${item.id}`)} 
+                />
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Recipe Suggestions */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Recipe Suggestions</Text>
+            <Pressable onPress={() => router.push('/(tabs)/recipes')}>
+              <Text style={styles.seeAllText}>See all</Text>
+            </Pressable>
+          </View>
+          
+          {suggestedRecipes.length > 0 ? (
+            <View style={styles.recipesContainer}>
+              {suggestedRecipes.slice(0, 3).map((recipe) => (
+                <RecipeCard 
+                  key={recipe.id} 
+                  recipe={recipe}
+                  onPress={() => router.push(`/(tabs)/recipes/${recipe.id}`)}
+                />
+              ))}
+            </View>
+          ) : (
+            <View style={styles.emptyRecipesContainer}>
+              <Image
+                source={{ uri: 'https://images.pexels.com/photos/1640774/pexels-photo-1640774.jpeg' }}
+                style={styles.emptyRecipesImage}
+              />
+              <Text style={styles.emptyRecipesTitle}>No recipe suggestions yet</Text>
+              <Text style={styles.emptyRecipesText}>
+                Add more items to your pantry to get personalized recipe recommendations.
+              </Text>
+              <Button
+                title="Add Pantry Items"
+                onPress={() => router.push('/(tabs)/pantry/add')}
+                style={styles.emptyRecipesButton}
+              />
+            </View>
+          )}
+        </View>
+
+        {/* Pantry Summary */}
+        <View style={[styles.section, styles.pantryStatsSection]}>
+          <Text style={styles.sectionTitle}>Pantry Summary</Text>
+          
+          <View style={styles.statsContainer}>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{pantryItems.length}</Text>
+              <Text style={styles.statLabel}>Total Items</Text>
+            </View>
+            
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{expiringItems.length}</Text>
+              <Text style={styles.statLabel}>Expiring Soon</Text>
+            </View>
+            
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{Object.keys(
+                pantryItems.reduce((acc, item) => {
+                  acc[item.category] = true;
+                  return acc;
+                }, {} as Record<string, boolean>)
+              ).length}</Text>
+              <Text style={styles.statLabel}>Categories</Text>
+            </View>
           </View>
         </View>
-      )}
-
-      <View style={styles.actionsSection}>
-        <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>
-          Quick Actions
-        </Text>
-        
-        <View style={styles.actionButtons}>
-          <Link href="/pantry/add" asChild>
-            <TouchableOpacity style={[styles.actionButton, dynamicStyles.actionButton]}>
-              <Text style={[styles.actionButtonText, dynamicStyles.actionButtonText]}>
-                Add Pantry Item
-              </Text>
-            </TouchableOpacity>
-          </Link>
-          
-          <Link href="/shopping/create" asChild>
-            <TouchableOpacity style={[styles.actionButton, dynamicStyles.actionButton]}>
-              <Text style={[styles.actionButtonText, dynamicStyles.actionButtonText]}>
-                Create Shopping List
-              </Text>
-            </TouchableOpacity>
-          </Link>
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.neutral[50],
   },
-  contentContainer: {
-    paddingHorizontal: 16,
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
     paddingBottom: 32,
   },
-  welcomeSection: {
-    marginTop: 16,
-    marginBottom: 24,
-  },
-  welcomeText: {
-    fontSize: 28,
-    fontFamily: 'Poppins-Bold',
-  },
-  subtitle: {
-    fontSize: 16,
-    fontFamily: 'Poppins-Regular',
-    marginTop: 4,
-  },
-  alertsSection: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontFamily: 'Poppins-Bold',
-    marginBottom: 12,
-  },
-  cardGrid: {
+  header: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 20,
   },
-  expiringSection: {
+  greeting: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    color: Colors.neutral[600],
+  },
+  username: {
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 24,
+    color: Colors.neutral[800],
+  },
+  notificationButton: {
+    position: 'relative',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.neutral[100],
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: Colors.error.main,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  badgeText: {
+    fontFamily: 'Inter-Bold',
+    color: 'white',
+    fontSize: 10,
+    paddingHorizontal: 4,
+  },
+  quickActionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
     marginBottom: 24,
   },
-  expiringList: {
-    gap: 12,
-  },
-  viewAllButton: {
-    padding: 12,
-    borderRadius: 8,
+  quickActionButton: {
+    flex: 1,
+    backgroundColor: Colors.primary[500],
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 8,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  quickActionText: {
+    fontFamily: 'Inter-Medium',
+    color: 'white',
     marginTop: 8,
+    fontSize: 12,
+    textAlign: 'center',
   },
-  viewAllButtonText: {
-    fontFamily: 'Poppins-Medium',
-    fontSize: 14,
+  cameraIcon: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  actionsSection: {
+  cameraIconText: {
+    fontSize: 24,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
     marginBottom: 16,
   },
-  actionButtons: {
-    gap: 12,
+  sectionTitle: {
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 18,
+    color: Colors.neutral[800],
   },
-  actionButton: {
-    padding: 16,
+  seeAllText: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 14,
+    color: Colors.primary[600],
+  },
+  expirationAlerts: {
+    paddingHorizontal: 24,
+  },
+  recipesContainer: {
+    paddingHorizontal: 24,
+  },
+  emptyRecipesContainer: {
+    backgroundColor: 'white',
     borderRadius: 12,
+    padding: 24,
+    margin: 24,
     alignItems: 'center',
-    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  actionButtonText: {
+  emptyRecipesImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    marginBottom: 16,
+  },
+  emptyRecipesTitle: {
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 18,
+    color: Colors.neutral[800],
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptyRecipesText: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    color: Colors.neutral[600],
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  emptyRecipesButton: {
+    minWidth: 180,
+  },
+  pantryStatsSection: {
+    paddingHorizontal: 24,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 4,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  statNumber: {
     fontFamily: 'Poppins-Bold',
-    fontSize: 16,
+    fontSize: 24,
+    color: Colors.primary[500],
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 12,
+    color: Colors.neutral[600],
+    textAlign: 'center',
   },
 });

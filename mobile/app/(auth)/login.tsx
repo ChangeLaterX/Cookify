@@ -1,157 +1,107 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Image, ActivityIndicator } from 'react-native';
-import { Link, useRouter } from 'expo-router';
-import { useAuth } from '@/contexts/AuthContext';
-import { useTheme } from '@/contexts/ThemeContext';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
+import { View, Text, StyleSheet, Image, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { Link, router } from 'expo-router';
+import { useAuth } from '@/context/AuthContext';
+import Input from '@/components/ui/Input';
+import Button from '@/components/ui/Button';
+import Colors from '@/constants/Colors';
+import { Mail, Lock, AlertCircle } from 'lucide-react-native';
 
 export default function LoginScreen() {
-  const { colors } = useTheme();
   const { signIn, loading } = useAuth();
-  const router = useRouter();
-  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async () => {
     if (!email || !password) {
-      setError('Please enter your email and password');
+      setError('Please enter both email and password');
       return;
     }
-    
+
     try {
-      setError(null);
-      const success = await signIn(email, password);
-      if (success) {
-        router.replace('/(tabs)');
+      const { error: signInError } = await signIn(email, password);
+      
+      if (signInError) {
+        setError(signInError.message);
+      } else {
+        // Successfully logged in, will be redirected by root index
       }
     } catch (err) {
-      setError('Invalid email or password');
-      console.error(err);
+      setError('An unexpected error occurred. Please try again.');
+      console.error('Login error:', err);
     }
   };
 
-  const dynamicStyles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    inputContainer: {
-      borderColor: colors.border,
-      backgroundColor: colors.card,
-    },
-    inputText: {
-      color: colors.text,
-    },
-    button: {
-      backgroundColor: colors.primary,
-    },
-    buttonText: {
-      color: colors.white,
-    },
-    linkText: {
-      color: colors.primary,
-    },
-    errorText: {
-      color: colors.error,
-    },
-    titleText: {
-      color: colors.text,
-    },
-    subtitleText: {
-      color: colors.textSecondary,
-    },
-  });
-
   return (
     <KeyboardAvoidingView
+      style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={[styles.container, dynamicStyles.container]}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.logoContainer}>
-          <Image
-            source={require('@/assets/images/logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </View>
+        <View style={styles.container}>
+          <View style={styles.logoContainer}>
+            <Image
+              source={{ uri: 'https://images.pexels.com/photos/1640774/pexels-photo-1640774.jpeg' }}
+              style={styles.logoBackground}
+            />
+            <View style={styles.logoOverlay} />
+            <View style={styles.brandContainer}>
+              <Text style={styles.logoText}>Cookify</Text>
+              <Text style={styles.tagline}>Smart pantry. Zero waste.</Text>
+            </View>
+          </View>
 
-        <Text style={[styles.title, dynamicStyles.titleText]}>Welcome Back!</Text>
-        <Text style={[styles.subtitle, dynamicStyles.subtitleText]}>
-          Sign in to manage your pantry and discover recipes
-        </Text>
+          <View style={styles.formContainer}>
+            <Text style={styles.welcomeText}>Welcome Back</Text>
+            <Text style={styles.subtitle}>Sign in to continue to your account</Text>
 
-        {error && (
-          <Text style={[styles.errorMessage, dynamicStyles.errorText]}>{error}</Text>
-        )}
+            {error && (
+              <View style={styles.errorContainer}>
+                <AlertCircle size={18} color={Colors.error.main} />
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            )}
 
-        <View style={styles.formContainer}>
-          <View style={[styles.inputWrapper, dynamicStyles.inputContainer]}>
-            <Mail size={20} color={colors.textSecondary} />
-            <TextInput
-              style={[styles.input, dynamicStyles.inputText]}
-              placeholder="Email"
-              placeholderTextColor={colors.textSecondary}
+            <Input
+              label="Email Address"
+              placeholder="Enter your email"
+              keyboardType="email-address"
               value={email}
               onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
+              leftIcon={<Mail size={20} color={Colors.neutral[500]} />}
+              containerStyle={styles.inputContainer}
             />
-          </View>
 
-          <View style={[styles.inputWrapper, dynamicStyles.inputContainer]}>
-            <Lock size={20} color={colors.textSecondary} />
-            <TextInput
-              style={[styles.input, dynamicStyles.inputText]}
-              placeholder="Password"
-              placeholderTextColor={colors.textSecondary}
+            <Input
+              label="Password"
+              placeholder="Enter your password"
+              secureTextEntry
               value={password}
               onChangeText={setPassword}
-              secureTextEntry={!showPassword}
+              leftIcon={<Lock size={20} color={Colors.neutral[500]} />}
+              containerStyle={styles.inputContainer}
             />
-            <TouchableOpacity
-              onPress={() => setShowPassword(!showPassword)}
-              style={styles.eyeIcon}
-            >
-              {showPassword ? (
-                <EyeOff size={20} color={colors.textSecondary} />
-              ) : (
-                <Eye size={20} color={colors.textSecondary} />
-              )}
-            </TouchableOpacity>
+
+            <Link href="/(auth)/forgot-password" asChild>
+              <Text style={styles.forgotPassword}>Forgot Password?</Text>
+            </Link>
+
+            <Button
+              title="Sign In"
+              onPress={handleLogin}
+              loading={loading}
+              fullWidth
+              style={styles.loginButton}
+            />
+
+            <View style={styles.signupContainer}>
+              <Text style={styles.noAccountText}>Don't have an account? </Text>
+              <Link href="/(auth)/signup" asChild>
+                <Text style={styles.signupLink}>Sign Up</Text>
+              </Link>
+            </View>
           </View>
-
-          <Link href="/forgot-password" asChild>
-            <TouchableOpacity style={styles.forgotPassword}>
-              <Text style={[styles.forgotPasswordText, dynamicStyles.linkText]}>
-                Forgot Password?
-              </Text>
-            </TouchableOpacity>
-          </Link>
-
-          <TouchableOpacity
-            style={[styles.button, dynamicStyles.button, loading && styles.disabledButton]}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color={colors.white} />
-            ) : (
-              <Text style={[styles.buttonText, dynamicStyles.buttonText]}>Sign In</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.footer}>
-          <Text style={dynamicStyles.subtitleText}>Don't have an account? </Text>
-          <Link href="/signup" asChild>
-            <TouchableOpacity>
-              <Text style={dynamicStyles.linkText}>Sign Up</Text>
-            </TouchableOpacity>
-          </Link>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -159,84 +109,95 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   scrollContainer: {
     flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
   },
   logoContainer: {
-    alignItems: 'center',
-    marginTop: 60,
-    marginBottom: 40,
+    height: 250,
+    position: 'relative',
+    justifyContent: 'flex-end',
   },
-  logo: {
-    width: 120,
-    height: 120,
-  },
-  title: {
-    fontSize: 28,
-    fontFamily: 'Poppins-Bold',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    marginBottom: 32,
-    fontFamily: 'Poppins-Regular',
-  },
-  formContainer: {
+  logoBackground: {
+    ...StyleSheet.absoluteFillObject,
+    height: 250,
     width: '100%',
   },
-  inputWrapper: {
+  logoOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  brandContainer: {
+    padding: 24,
+  },
+  logoText: {
+    fontFamily: 'Poppins-Bold',
+    fontSize: 36,
+    color: 'white',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 5,
+  },
+  tagline: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 16,
+    color: 'white',
+    marginTop: 4,
+  },
+  formContainer: {
+    padding: 24,
+  },
+  welcomeText: {
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 24,
+    marginBottom: 8,
+    color: Colors.neutral[800],
+  },
+  subtitle: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    color: Colors.neutral[600],
+    marginBottom: 24,
+  },
+  errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 12,
+    backgroundColor: Colors.error.light,
+    padding: 12,
+    borderRadius: 8,
     marginBottom: 16,
-    paddingHorizontal: 16,
-    height: 56,
   },
-  input: {
+  errorText: {
+    fontFamily: 'Inter-Regular',
+    marginLeft: 8,
+    color: Colors.error.main,
     flex: 1,
-    paddingLeft: 12,
-    height: '100%',
-    fontFamily: 'Poppins-Regular',
   },
-  eyeIcon: {
-    padding: 8,
+  inputContainer: {
+    marginBottom: 16,
   },
   forgotPassword: {
-    alignSelf: 'flex-end',
+    fontFamily: 'Inter-Medium',
+    color: Colors.primary[600],
+    textAlign: 'right',
     marginBottom: 24,
   },
-  forgotPasswordText: {
-    fontFamily: 'Poppins-Medium',
-  },
-  button: {
-    height: 56,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+  loginButton: {
     marginBottom: 24,
   },
-  disabledButton: {
-    opacity: 0.7,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontFamily: 'Poppins-Bold',
-  },
-  footer: {
+  signupContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 'auto',
-    paddingVertical: 16,
   },
-  errorMessage: {
-    marginBottom: 16,
-    fontFamily: 'Poppins-Medium',
-    textAlign: 'center',
+  noAccountText: {
+    fontFamily: 'Inter-Regular',
+    color: Colors.neutral[600],
+  },
+  signupLink: {
+    fontFamily: 'Inter-SemiBold',
+    color: Colors.primary[600],
   },
 });
