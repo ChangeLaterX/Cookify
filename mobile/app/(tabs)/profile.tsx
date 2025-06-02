@@ -4,10 +4,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
 import Colors from '@/constants/Colors';
-import { LogOut, Settings, ShieldCheck, CameraIcon, Info, HelpCircle } from 'lucide-react-native';
+import { LogOut, Settings, ShieldCheck, CameraIcon, Info, HelpCircle, Bell } from 'lucide-react-native';
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
+  const { router } = require('expo-router'); // Using require here to avoid top-level import issues if any with router
 
   const handleSignOut = () => {
     Alert.alert(
@@ -72,6 +73,17 @@ export default function ProfileScreen() {
               style={styles.settingButton}
               textStyle={styles.settingButtonText}
               onPress={() => Alert.alert('Coming Soon', 'This feature will be available soon!')}
+            />
+            
+            <View style={styles.divider} />
+
+            <Button
+              title="Notifications"
+              leftIcon={<Bell size={20} color={Colors.neutral[600]} />}
+              variant="text"
+              style={styles.settingButton}
+              textStyle={styles.settingButtonText}
+              onPress={() => router.push('/(tabs)/alerts')}
             />
           </View>
         </View>

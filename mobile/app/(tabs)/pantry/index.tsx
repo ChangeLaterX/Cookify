@@ -7,7 +7,7 @@ import Colors from '@/constants/Colors';
 import PantryItemCard from '@/components/PantryItem';
 import EmptyState from '@/components/EmptyState';
 import { PantryItem } from '@/types/supabase';
-import { Plus, Search, Package, Filter } from 'lucide-react-native';
+import { Plus, Search, Package, Filter, ScanLine } from 'lucide-react-native';
 
 export default function PantryScreen() {
   const { items, loading, fetchItems } = usePantry();
@@ -42,12 +42,20 @@ export default function PantryScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>My Pantry</Text>
         
-        <Pressable 
-          style={styles.addButton}
-          onPress={() => router.push('/(tabs)/pantry/add')}
-        >
-          <Plus size={24} color="white" />
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable
+            style={styles.actionButton}
+            onPress={() => router.push('/(tabs)/scan-receipt')}
+          >
+            <ScanLine size={24} color={Colors.primary[600]} />
+          </Pressable>
+          <Pressable
+            style={[styles.actionButton, styles.addButton]}
+            onPress={() => router.push('/(tabs)/pantry/add')}
+          >
+            <Plus size={24} color="white" />
+          </Pressable>
+        </View>
       </View>
       
       <View style={styles.searchContainer}>
@@ -141,14 +149,25 @@ const styles = StyleSheet.create({
     fontSize: 28,
     color: Colors.neutral[800],
   },
-  addButton: {
-    backgroundColor: Colors.primary[500],
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 2,
+    marginLeft: 12, // Add some space between buttons
+    // Common styling for action buttons (e.g., border for scan button)
+    borderWidth: 1,
+    borderColor: Colors.neutral[300], // Light border for scan button
+  },
+  addButton: {
+    backgroundColor: Colors.primary[500],
+    borderColor: Colors.primary[500], // Ensure border matches for consistency or remove if not needed
+    elevation: 2, // Keep elevation for the add button
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,

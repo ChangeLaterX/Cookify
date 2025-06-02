@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import Colors from '@/constants/Colors';
-import { Home, ShoppingBasket, UtensilsCrossed, Bell, User } from 'lucide-react-native';
+import { Home, ShoppingBasket, UtensilsCrossed, Bell, User, ClipboardList } from 'lucide-react-native';
 import { useAuth } from '@/context/AuthContext';
 
 export default function TabLayout() {
@@ -33,29 +33,29 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="pantry"
+        name="pantry/index" // Explicitly target pantry/index.tsx
         options={{
-          title: 'Pantry',
+          title: 'Pantry', // Set the desired title
           tabBarIcon: ({ color, size }) => (
             <ShoppingBasket size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="recipes"
+        name="recipes/index" // Explicitly target recipes/index.tsx
         options={{
-          title: 'Recipes',
+          title: 'Recipes', // Set the desired title
           tabBarIcon: ({ color, size }) => (
             <UtensilsCrossed size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="alerts"
+        name="shopping-list"
         options={{
-          title: 'Alerts',
+          title: 'Shopping List',
           tabBarIcon: ({ color, size }) => (
-            <Bell size={size} color={color} />
+            <ClipboardList size={size} color={color} />
           ),
         }}
       />
@@ -68,6 +68,15 @@ export default function TabLayout() {
           ),
         }}
       />
+      {/* Screens that are part of the (tabs) group but not actual tabs */}
+      <Tabs.Screen name="alerts" options={{ href: null }} />
+      <Tabs.Screen name="scan-receipt" options={{ href: null }} />
+      {/* Pantry sub-screens */}
+      <Tabs.Screen name="pantry/add" options={{ href: null }} />
+      <Tabs.Screen name="pantry/[id]" options={{ href: null }} />
+      <Tabs.Screen name="pantry/edit/[id]" options={{ href: null }} />
+      {/* Recipes sub-screens */}
+      <Tabs.Screen name="recipes/[id]" options={{ href: null }} />
     </Tabs>
   );
 }
