@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect, useContext, ReactNode } from
 import { supabase } from '@/utils/supabase';
 import { User } from '@/types/supabase';
 import { Session } from '@supabase/supabase-js';
+import { API_BASE_URL } from '@env';
 
 interface AuthContextType {
   user: User | null;
@@ -84,7 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signUp = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const response = await fetch('http://dev.krija.info:8000/api/auth/signup', {
+      const response = await fetch(`${API_BASE_URL}/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
