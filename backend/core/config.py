@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     frontend_url: str = "http://localhost:3000"  # Default frontend URL
     
     # Rate Limiting Settings
-    rate_limiting_enabled: bool = True
+    rate_limiting_enabled: bool = True  # Base setting, overridden by rate_limiting_enabled_safe property
     rate_limit_login_attempts: int = 5  # Login attempts per window
     rate_limit_login_window_minutes: int = 15  # Window for login attempts
     rate_limit_registration_attempts: int = 3  # Registration attempts per window
@@ -94,6 +94,13 @@ class Settings(BaseSettings):
     def is_development(self) -> bool:
         """Check if the application is running in development mode."""
         return self.environment.lower() in ("development", "dev") and self.debug
+    
+    @property
+    def rate_limiting_enabled_safe(self) -> bool:
+        """Get rate limiting setting with debug mode awareness."""
+        if self.debug:
+            return False  # Disable rate limiting in debug mode
+        return self.rate_limiting_enabled
     
     @property
     def cors_origins_safe(self) -> List[str]:

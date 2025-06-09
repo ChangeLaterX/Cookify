@@ -10,4 +10,7 @@ itsdangerous==2.2.0
 passlib[bcrypt]==1.7.4
 python-jose[cryptography]==3.3.0
 sqlalchemy==2.0.23
-alembic==1.13.0
+alembic==1.13.0pytest>=7.4.0
+pytest-asyncio>=0.21.0
+httpx>=0.24.0
+pytest-mock>=3.11.0

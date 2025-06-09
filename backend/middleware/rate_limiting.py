@@ -126,7 +126,16 @@ class AuthRateLimitMiddleware(BaseHTTPMiddleware):
             Response from downstream handler or rate limit error
         """
         # Skip rate limiting if disabled (but allow testing in development)
-        if not settings.rate_limiting_enabled:
+        rate_limiting_enabled = settings.rate_limiting_enabled_safe
+        debug_mode = settings.debug
+        
+        # Debug logging
+        if debug_mode:
+            self.logger.info(f"Rate limiting check - debug: {debug_mode}, enabled: {rate_limiting_enabled}, path: {request.url.path}")
+        
+        if not rate_limiting_enabled:
+            if debug_mode:
+                self.logger.info("Rate limiting disabled - allowing request through")
             return await call_next(request)
         
         # Check if this is an auth endpoint that needs rate limiting
