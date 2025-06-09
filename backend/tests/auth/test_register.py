@@ -1,9 +1,7 @@
 """
 Tests for /auth/register endpoint.
 """
-
 import pytest
-from fastapi.testclient import TestClient
 from httpx import AsyncClient
 
 
@@ -43,8 +41,8 @@ class TestRegisterEndpoint:
 
         assert response.status_code == 409
         data = response.json()
-        assert "detail" in data
-        assert "error" in data["detail"]
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_register_invalid_email(self, async_client: AsyncClient):
@@ -59,7 +57,8 @@ class TestRegisterEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_register_weak_password(self, async_client: AsyncClient):
@@ -74,7 +73,8 @@ class TestRegisterEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_register_missing_required_fields(self, async_client: AsyncClient):
@@ -88,7 +88,8 @@ class TestRegisterEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_register_without_username(self, async_client: AsyncClient):
@@ -111,7 +112,8 @@ class TestRegisterEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_register_password_too_long(self, async_client: AsyncClient):
@@ -126,4 +128,5 @@ class TestRegisterEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)

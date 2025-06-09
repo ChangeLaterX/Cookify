@@ -38,7 +38,8 @@ class TestLoginEndpoint:
 
         assert response.status_code == 401
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
         assert "error" in data["detail"]
 
     @pytest.mark.asyncio
@@ -53,7 +54,8 @@ class TestLoginEndpoint:
 
         assert response.status_code == 401
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
         assert "error" in data["detail"]
 
     @pytest.mark.asyncio
@@ -68,7 +70,8 @@ class TestLoginEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_login_missing_email(self, async_client: AsyncClient):
@@ -81,7 +84,8 @@ class TestLoginEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_login_missing_password(self, async_client: AsyncClient):
@@ -94,7 +98,8 @@ class TestLoginEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_login_empty_body(self, async_client: AsyncClient):
@@ -103,7 +108,8 @@ class TestLoginEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_login_password_too_short(self, async_client: AsyncClient):
@@ -117,7 +123,8 @@ class TestLoginEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_login_password_too_long(self, async_client: AsyncClient):
@@ -131,4 +138,5 @@ class TestLoginEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)

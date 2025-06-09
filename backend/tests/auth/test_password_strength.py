@@ -120,7 +120,8 @@ class TestPasswordStrengthEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_password_strength_empty_password(self, async_client: AsyncClient):
@@ -178,4 +179,5 @@ class TestPasswordStrengthEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)

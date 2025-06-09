@@ -45,7 +45,8 @@ class TestMeEndpoint:
 
         assert response.status_code in [401, 403]
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_get_me_expired_token(self, async_client: AsyncClient, auth_headers):

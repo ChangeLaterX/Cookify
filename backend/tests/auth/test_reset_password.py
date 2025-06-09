@@ -41,7 +41,8 @@ class TestResetPasswordEndpoint:
 
         assert response.status_code == 400
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
         assert "error" in data["detail"]
 
     @pytest.mark.asyncio
@@ -56,7 +57,8 @@ class TestResetPasswordEndpoint:
 
         assert response.status_code == 400
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_reset_password_weak_password(self, async_client: AsyncClient):
@@ -70,7 +72,8 @@ class TestResetPasswordEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_reset_password_missing_token(self, async_client: AsyncClient):
@@ -83,7 +86,8 @@ class TestResetPasswordEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_reset_password_missing_password(self, async_client: AsyncClient):
@@ -96,7 +100,8 @@ class TestResetPasswordEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_reset_password_empty_token(self, async_client: AsyncClient):
@@ -110,7 +115,8 @@ class TestResetPasswordEndpoint:
 
         assert response.status_code == 400
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_reset_password_empty_body(self, async_client: AsyncClient):
@@ -119,7 +125,8 @@ class TestResetPasswordEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_reset_password_password_too_long(self, async_client: AsyncClient):
@@ -133,4 +140,5 @@ class TestResetPasswordEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)

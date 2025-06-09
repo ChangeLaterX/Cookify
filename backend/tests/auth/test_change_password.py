@@ -51,7 +51,8 @@ class TestChangePasswordEndpoint:
 
         assert response.status_code == 400
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
         assert "error" in data["detail"]
 
     @pytest.mark.asyncio
@@ -70,7 +71,8 @@ class TestChangePasswordEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_change_password_invalid_token(self, async_client: AsyncClient, auth_headers):
@@ -112,7 +114,8 @@ class TestChangePasswordEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_change_password_missing_new_password(self, async_client: AsyncClient, test_user_credentials, auth_headers):
@@ -129,7 +132,8 @@ class TestChangePasswordEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_change_password_same_old_new_password(self, async_client: AsyncClient, test_user_credentials, auth_headers):
@@ -159,4 +163,5 @@ class TestChangePasswordEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)

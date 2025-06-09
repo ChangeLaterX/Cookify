@@ -51,7 +51,8 @@ class TestForgotPasswordEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_forgot_password_missing_email(self, async_client: AsyncClient):
@@ -62,7 +63,8 @@ class TestForgotPasswordEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_forgot_password_empty_email(self, async_client: AsyncClient):
@@ -75,7 +77,8 @@ class TestForgotPasswordEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_forgot_password_empty_body(self, async_client: AsyncClient):
@@ -84,7 +87,8 @@ class TestForgotPasswordEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_forgot_password_multiple_requests(self, async_client: AsyncClient, test_user_credentials):

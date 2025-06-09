@@ -39,7 +39,8 @@ class TestVerifyEmailEndpoint:
 
         assert response.status_code == 400
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
         assert "error" in data["detail"]
 
     @pytest.mark.asyncio
@@ -53,7 +54,8 @@ class TestVerifyEmailEndpoint:
 
         assert response.status_code == 400
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_verify_email_missing_token(self, async_client: AsyncClient):
@@ -64,7 +66,8 @@ class TestVerifyEmailEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_verify_email_empty_token(self, async_client: AsyncClient):
@@ -77,7 +80,8 @@ class TestVerifyEmailEndpoint:
 
         assert response.status_code == 400
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_verify_email_empty_body(self, async_client: AsyncClient):
@@ -86,7 +90,8 @@ class TestVerifyEmailEndpoint:
 
         assert response.status_code == 422
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_verify_email_malformed_token(self, async_client: AsyncClient):
@@ -99,7 +104,8 @@ class TestVerifyEmailEndpoint:
 
         assert response.status_code == 400
         data = response.json()
-        assert "detail" in data
+        assert "message" in data
+        assert isinstance(data["message"], list)
 
     @pytest.mark.asyncio
     async def test_verify_email_already_verified(self, async_client: AsyncClient):

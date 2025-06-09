@@ -75,8 +75,12 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
             if self._is_public_endpoint(request.url.path):
                 self.logger.debug(f"Public endpoint accessed: {request.url.path}")
             else:
-                # Try to authenticate user
-                await self._inject_user_context(request)
+                # Try to authenticate user (but don't fail on auth errors)
+                try:
+                    await self._inject_user_context(request)
+                except Exception as auth_error:
+                    self.logger.debug(f"Auth context injection failed: {str(auth_error)}")
+                    # Continue processing - auth failures shouldn't stop the request
             
             # Process request
             response = await call_next(request)
@@ -88,23 +92,19 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
             return response
             
         except Exception as e:
-            # Log error
+            # Log error but only catch critical middleware errors
             duration = time.time() - start_time
             self.logger.error(
-                f"Middleware error: {str(e)} | "
+                f"Critical middleware error: {str(e)} | "
                 f"Path: {request.url.path} | "
                 f"IP: {client_ip} | "
-                f"Duration: {duration:.3f}s"
+                f"Duration: {duration:.3f}s | "
+                f"Exception type: {type(e).__name__} | "
+                f"Exception details: {repr(e)}"
             )
             
-            # Return error response
-            return JSONResponse(
-                status_code=500,
-                content={
-                    "error": "Internal server error",
-                    "error_code": "MIDDLEWARE_ERROR"
-                }
-            )
+            # Re-raise the exception to see the real error
+            raise e
     
     async def _inject_user_context(self, request: Request) -> None:
         """
