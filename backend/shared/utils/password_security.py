@@ -6,6 +6,7 @@ Provides comprehensive password validation, common password detection, and passw
 import hashlib
 import re
 import string
+import math
 import ipaddress
 from typing import Any, Dict, List, Optional, Set, Union, Tuple
 from urllib.parse import urlparse
@@ -22,8 +23,21 @@ class PasswordStrength(IntEnum):
     FAIR = 2
     GOOD = 3
     STRONG = 4
-    VERY_STRONG = 5
-
+    VE    def _calculate_strength(self, score: int, error_count: int) -> PasswordStrength:
+        """Calculate password strength based on score with reasonable thresholds."""
+        # Base strength on score, with some consideration for critical errors
+        if score >= 90:
+            return PasswordStrength.VERY_STRONG
+        elif score >= 75:
+            return PasswordStrength.STRONG
+        elif score >= 60:
+            return PasswordStrength.GOOD
+        elif score >= 45:
+            return PasswordStrength.FAIR
+        elif score >= 25:
+            return PasswordStrength.WEAK
+        else:
+            return PasswordStrength.VERY_WEAK
 
 @dataclass
 class PasswordAnalysis:
@@ -524,6 +538,7 @@ class PasswordComplexityValidator:
         if len(user_id) >= 4 and user_id in password:
             violations.append("Password contains user ID information")
         
+                
         return violations
     
     def _calculate_entropy(self, password: str) -> float:
