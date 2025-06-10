@@ -88,44 +88,46 @@ class InputValidationConfig:
 
 class ValidationConfigManager:
     """Centralized manager for all validation configurations."""
-    
-    def __init__(self):
+
+    def __init__(self) -> None:
         self.password = PasswordValidationConfig()
         self.metadata = MetadataValidationConfig()
         self.phone = PhoneValidationConfig()
         self.url = URLValidationConfig()
         self.input = InputValidationConfig()
-    
-    def update_password_config(self, **kwargs):
+
+        self._configured: bool = False
+
+    def update_password_config(self, **kwargs) -> None:
         """Update password validation configuration."""
         for key, value in kwargs.items():
             if hasattr(self.password, key):
                 setattr(self.password, key, value)
-    
-    def update_metadata_config(self, **kwargs):
+
+    def update_metadata_config(self, **kwargs) -> None:
         """Update metadata validation configuration."""
         for key, value in kwargs.items():
             if hasattr(self.metadata, key):
                 setattr(self.metadata, key, value)
-    
-    def update_phone_config(self, **kwargs):
+
+    def update_phone_config(self, **kwargs) -> None:
         """Update phone validation configuration."""
         for key, value in kwargs.items():
             if hasattr(self.phone, key):
                 setattr(self.phone, key, value)
-    
-    def update_url_config(self, **kwargs):
+
+    def update_url_config(self, **kwargs) -> None:
         """Update URL validation configuration."""
         for key, value in kwargs.items():
             if hasattr(self.url, key):
                 setattr(self.url, key, value)
-    
-    def update_input_config(self, **kwargs):
+
+    def update_input_config(self, **kwargs) -> None:
         """Update input validation configuration."""
         for key, value in kwargs.items():
             if hasattr(self.input, key):
                 setattr(self.input, key, value)
-    
+
     def get_config_summary(self) -> Dict[str, Any]:
         """Get a summary of all validation configurations."""
         return {

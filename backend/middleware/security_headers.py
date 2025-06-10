@@ -18,13 +18,13 @@ class SecurityHeadersConfig:
     
     def __init__(self):
         # Basic security headers - always applied
-        self.x_content_type_options = "nosniff"
-        self.x_frame_options = "DENY"
-        self.x_xss_protection = "1; mode=block"
-        self.referrer_policy = "strict-origin-when-cross-origin"
+        self.x_content_type_options = settings.security_content_type_options
+        self.x_frame_options = settings.security_frame_options
+        self.x_xss_protection = settings.security_xss_protection
+        self.referrer_policy = settings.security_referrer_policy
         
         # HSTS - only in production or when explicitly enabled
-        self.hsts_max_age = 31536000  # 1 year
+        self.hsts_max_age = settings.hsts_max_age or settings.security_hsts_max_age_default
         self.hsts_include_subdomains = True
         self.hsts_preload = False  # Can be enabled per environment
         
@@ -39,28 +39,28 @@ class SecurityHeadersConfig:
         if settings.is_development:
             # More permissive CSP for development, including Swagger UI CDN resources
             return {
-                "default-src": "'self'",
-                "script-src": "'self' 'unsafe-inline' 'unsafe-eval' localhost:* 127.0.0.1:* https://unpkg.com https://cdn.jsdelivr.net",
-                "style-src": "'self' 'unsafe-inline' fonts.googleapis.com https://unpkg.com https://cdn.jsdelivr.net",
-                "font-src": "'self' fonts.gstatic.com https://unpkg.com https://cdn.jsdelivr.net",
-                "img-src": "'self' data: blob: https:",
-                "connect-src": "'self' localhost:* 127.0.0.1:* ws: wss:",
-                "frame-ancestors": "'none'",
-                "base-uri": "'self'",
-                "form-action": "'self'"
+                "default-src": settings.csp_default_src,
+                "script-src": settings.csp_script_src_dev,
+                "style-src": settings.csp_style_src_dev,
+                "font-src": settings.csp_font_src_dev,
+                "img-src": settings.csp_img_src,
+                "connect-src": settings.csp_connect_src_dev,
+                "frame-ancestors": settings.csp_frame_ancestors,
+                "base-uri": settings.csp_base_uri,
+                "form-action": settings.csp_form_action
             }
         else:
             # Strict CSP for production
             return {
-                "default-src": "'self'",
-                "script-src": "'self'",
-                "style-src": "'self' 'unsafe-inline'",  # Allow inline styles for better UX
-                "font-src": "'self'",
-                "img-src": "'self' data: blob:",
-                "connect-src": "'self'",
-                "frame-ancestors": "'none'",
-                "base-uri": "'self'",
-                "form-action": "'self'",
+                "default-src": settings.csp_default_src,
+                "script-src": settings.csp_script_src_prod,
+                "style-src": settings.csp_style_src_prod,  # Allow inline styles for better UX
+                "font-src": settings.csp_font_src_prod,
+                "img-src": settings.csp_img_src,
+                "connect-src": settings.csp_connect_src_prod,
+                "frame-ancestors": settings.csp_frame_ancestors,
+                "base-uri": settings.csp_base_uri,
+                "form-action": settings.csp_form_action,
                 "upgrade-insecure-requests": ""
             }
     
@@ -68,19 +68,19 @@ class SecurityHeadersConfig:
         """Get Permissions Policy header value."""
         # Disable potentially dangerous features
         policies = [
-            "camera=()",
-            "microphone=()",
-            "geolocation=()",
-            "payment=()",
-            "usb=()",
-            "magnetometer=()",
-            "gyroscope=()",
-            "accelerometer=()",
-            "ambient-light-sensor=()",
-            "autoplay=()",
-            "encrypted-media=()",
-            "fullscreen=(self)",
-            "picture-in-picture=()"
+            f"camera={settings.permissions_policy_camera}",
+            f"microphone={settings.permissions_policy_microphone}",
+            f"geolocation={settings.permissions_policy_geolocation}",
+            f"payment={settings.permissions_policy_payment}",
+            f"usb={settings.permissions_policy_usb}",
+            f"magnetometer={settings.permissions_policy_magnetometer}",
+            f"gyroscope={settings.permissions_policy_gyroscope}",
+            f"accelerometer={settings.permissions_policy_accelerometer}",
+            f"ambient-light-sensor={settings.permissions_policy_ambient_light}",
+            f"autoplay={settings.permissions_policy_autoplay}",
+            f"encrypted-media={settings.permissions_policy_encrypted_media}",
+            f"fullscreen={settings.permissions_policy_fullscreen}",
+            f"picture-in-picture={settings.permissions_policy_picture_in_picture}"
         ]
         return ", ".join(policies)
     

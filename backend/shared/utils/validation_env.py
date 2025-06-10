@@ -63,4 +63,4 @@ if not hasattr(validation_config, '_configured'):
     validation_config._configured = True
 
 
-__all__ = ['load_validation_config', 'get_validation_settings']
+__all__: list[str] = ['load_validation_config', 'get_validation_settings']

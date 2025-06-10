@@ -3,17 +3,12 @@ Enhanced Password Security Module
 Provides comprehensive password validation, common password detection, and password history management.
 """
 
-import hashlib
 import re
 import string
-import math
-import ipaddress
-from typing import Any, Dict, List, Optional, Set, Union, Tuple
-from urllib.parse import urlparse
-from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple
 from dataclasses import dataclass
 from enum import IntEnum
-import json
+from core.config import settings
 
 
 class PasswordStrength(IntEnum):
@@ -23,18 +18,24 @@ class PasswordStrength(IntEnum):
     FAIR = 2
     GOOD = 3
     STRONG = 4
-    VE    def _calculate_strength(self, score: int, error_count: int) -> PasswordStrength:
+    VERY_STRONG = 5
+
+
+class PasswordAnalyzer:
+    """Enhanced password analyzer with comprehensive security features."""
+    
+    def _calculate_strength(self, score: int, error_count: int) -> PasswordStrength:
         """Calculate password strength based on score with reasonable thresholds."""
         # Base strength on score, with some consideration for critical errors
-        if score >= 90:
+        if score >= settings.password_strength_very_strong_threshold:
             return PasswordStrength.VERY_STRONG
-        elif score >= 75:
+        elif score >= settings.password_strength_strong_threshold:
             return PasswordStrength.STRONG
-        elif score >= 60:
+        elif score >= settings.password_strength_good_threshold:
             return PasswordStrength.GOOD
-        elif score >= 45:
+        elif score >= settings.password_strength_fair_threshold:
             return PasswordStrength.FAIR
-        elif score >= 25:
+        elif score >= settings.password_strength_weak_threshold:
             return PasswordStrength.WEAK
         else:
             return PasswordStrength.VERY_WEAK
@@ -43,7 +44,7 @@ class PasswordStrength(IntEnum):
 class PasswordAnalysis:
     """Detailed password analysis result."""
     strength: PasswordStrength
-    score: int  # 0-100
+    score: int
     is_valid: bool
     errors: List[str]
     warnings: List[str]
@@ -54,127 +55,41 @@ class PasswordAnalysis:
 class CommonPasswordsValidator:
     """Validates passwords against common password lists."""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self._common_passwords: Set[str] = set()
         self._load_common_passwords()
     
-    def _load_common_passwords(self):
+    def _load_common_passwords(self) -> None:
         """Load common passwords from built-in list."""
-        # Extended list of most common passwords (top 500+ for better protection)
-        common_passwords = [
-            # Top 100 most common passwords
-            "123456", "password", "123456789", "12345678", "12345", "1234567",
-            "1234567890", "qwerty", "abc123", "million2", "000000", "1234",
-            "iloveyou", "aaron431", "password1", "qqww1122", "123", "omgpop",
-            "123321", "654321", "qwertyuiop", "qwerty123", "123abc", "123qwe",
-            "admin", "password123", "1q2w3e4r", "1qaz2wsx", "welcome", "monkey",
-            "dragon", "letmein", "baseball", "1234qwer", "sunshine", "princess",
-            "football", "charlie", "aa123456", "donald", "password12", "qwerty1",
-            "starwars", "klaster", "112233", "samsung", "freedom", "superman",
-            "qazwsxedc", "zxcvbnm", "hello", "liverpool", "buster", "soccer",
-            "jordan23", "asdfgh", "master", "hannah", "andrew", "martin",
-            "shadow", "mickey", "qwerty12", "robert", "jennifer", "thomas",
-            "tigger", "computer", "chelsea", "arsenal", "123654", "daniel",
-            "ferrari", "jasmine", "jonathan", "amanda", "melissa", "alexander",
-            "cookie", "starwars1", "orange", "hunter", "harley", "matthew",
-            "121212", "secret", "hockey", "dallas", "taylor", "batman",
-            "london", "jessica", "yellow", "basketball", "phoenix", "patrick",
-            "ranger", "michael", "sebastian", "purple", "michelle", "flower",
-            "lovely", "player", "nicole", "mercedes", "princess1", "eagles",
-            "charles", "winners", "golden", "swimming", "nintendo", "maggie",
-            
-            # Additional common passwords and patterns
-            "trustno1", "login", "login123", "test", "test123", "testing",
-            "guest", "guest123", "user", "user123", "demo", "demo123",
-            "temp", "temp123", "sample", "sample123", "example", "example123",
-            "changeme", "newpassword", "mypassword", "default", "administrator",
-            "root", "toor", "pass", "pass123", "passw0rd", "p@ssw0rd",
-            "p@ssword", "letmein123", "welcome123", "welcome1", "qwerty12345",
-            "asdfghjkl", "zxcvbnm123", "poiuytrewq", "mnbvcxz", "lkjhgfdsa",
-            "1qaz2wsx3edc", "qwertzuiop", "azerty", "azerty123", "qwertz",
-            "uiophjklnm", "asdfasdf", "qwerty1234", "12341234", "abcdabcd",
-            "passwordpassword", "123password", "password321", "myname123",
-            "lastname", "firstname", "birthday", "anniversary", "mother",
-            "father", "family", "love", "loveyou", "iloveu", "lover",
-            "summer", "winter", "spring", "autumn", "monday", "friday",
-            "weekend", "holiday", "christmas", "newyear", "valentine",
-            "company", "work", "office", "business", "money", "dollar",
-            "super", "awesome", "amazing", "fantastic", "wonderful", "beautiful",
-            "smart", "intelligent", "genius", "winner", "champion", "success",
-            "lucky", "fortune", "magic", "power", "strong", "force",
-            "apple", "google", "microsoft", "facebook", "twitter", "instagram",
-            "linkedin", "youtube", "amazon", "netflix", "spotify", "gmail",
-            "email", "internet", "website", "online", "digital", "computer",
-            "laptop", "mobile", "phone", "device", "technology", "software",
-            "ninja", "warrior", "samurai", "knight", "king", "queen",
-            "prince", "princess", "angel", "devil", "god", "heaven",
-            "earth", "world", "universe", "galaxy", "star", "moon",
-            "sun", "light", "dark", "black", "white", "red", "blue",
-            "green", "yellow", "orange", "purple", "pink", "silver", "gold"
-        ]
+        # Use common passwords from centralized configuration
+        common_passwords = settings.common_password_dictionary
         
         # Add comprehensive variations and patterns for dictionary attack protection
-        for password in common_passwords:
+        for password in settings.common_password_dictionary:
             base_password = password.lower()
             self._common_passwords.add(base_password)
             
             # Common number/symbol variations
-            variations = [
-                password + "!",
-                password + "1",
-                password + "12",
-                password + "123",
-                password + "1234",
-                password + "@",
-                password + "#",
-                password + "$",
-                password + ".",
-                password + "?",
-                "!" + password,
-                "1" + password,
-                "@" + password,
-                password.capitalize(),
-                password.upper(),
-                password + "0",
-                password + "00",
-                password + "01",
-                password + "02",
-                password + "99",
-                password + "2024",
-                password + "2025",
-                password + "2026",
-                password + "21",
-                password + "22",
-                password + "23",
-                password + "24",
-                password + "25",
-            ]
+            for suffix in settings.common_password_suffix_list:
+                self._common_passwords.add(password + suffix)
+            
+            for prefix in settings.common_password_prefix_list:
+                self._common_passwords.add(prefix + password)
+            
+            for year in settings.common_password_year_list:
+                self._common_passwords.add(password + year)
             
             # L33t speak variations
-            leet_map = {
-                'a': ['4', '@'], 'e': ['3'], 'i': ['1', '!'], 'o': ['0'],
-                's': ['5', '$'], 't': ['7'], 'l': ['1'], 'g': ['9']
-            }
-            
             leet_password = password.lower()
-            for char, replacements in leet_map.items():
+            for char, replacements in settings.leet_speak_substitutions.items():
                 for replacement in replacements:
                     if char in leet_password:
-                        variations.append(leet_password.replace(char, replacement))
-            
-            # Add all variations
-            for variation in variations:
-                if len(variation) >= 4:  # Only add meaningful variations
-                    self._common_passwords.add(variation.lower())
+                        leet_variation = leet_password.replace(char, replacement)
+                        if len(leet_variation) >= settings.common_password_min_variation_length:
+                            self._common_passwords.add(leet_variation.lower())
                     
-        # Add common substitution patterns
-        common_substitutions = [
-            ("password", "p4ssw0rd"), ("password", "passw0rd"), ("password", "p@ssword"),
-            ("admin", "4dmin"), ("admin", "@dmin"), ("welcome", "w3lcome"),
-            ("hello", "h3llo"), ("love", "l0ve"), ("money", "m0ney")
-        ]
-        
-        for original, substituted in common_substitutions:
+        # Add common substitution patterns from settings
+        for original, substituted in settings.common_password_substitutions:
             self._common_passwords.add(substituted.lower())
     
     def is_common_password(self, password: str) -> bool:
@@ -188,20 +103,20 @@ class CommonPasswordsValidator:
         # Check for simple transformations that users commonly make
         # Remove common prefixes/suffixes
         password_clean = password_lower
-        for prefix in ['my', 'the', 'new', 'old']:
+        for prefix in settings.common_password_prefix_list:
             if password_clean.startswith(prefix):
                 password_clean = password_clean[len(prefix):]
                 if password_clean in self._common_passwords:
                     return True
                     
-        for suffix in ['123', '1', '!', '?', '.', '@', '#', '$', '0', '00']:
+        for suffix in settings.common_password_suffix_list:
             if password_lower.endswith(suffix):
                 password_clean = password_lower[:-len(suffix)]
                 if password_clean in self._common_passwords:
                     return True
         
         # Check for number/year insertions
-        for year in ['2024', '2025', '2026', '21', '22', '23', '24', '25']:
+        for year in settings.common_password_year_list:
             if year in password_lower:
                 password_clean = password_lower.replace(year, '')
                 if password_clean in self._common_passwords:
@@ -235,14 +150,12 @@ class CommonPasswordsValidator:
                     patterns.append(f"Contains repeated pattern: '{pattern}'")
         
         # Check for simple incrementing patterns
-        incremental_patterns = ['0123', '1234', '2345', '3456', '4567', '5678', '6789', '9876', '8765', '7654', '6543', '5432', '4321', '3210']
-        for pattern in incremental_patterns:
+        for pattern in settings.incremental_pattern_list:
             if pattern in password_lower:
                 patterns.append(f"Contains incremental pattern: '{pattern}'")
         
         # Check for alternating patterns
-        alternating_patterns = ['0101', '1010', '1212', '2121', 'abab', 'baba']
-        for pattern in alternating_patterns:
+        for pattern in settings.alternating_pattern_list:
             if pattern in password_lower:
                 patterns.append(f"Contains alternating pattern: '{pattern}'")
         
@@ -277,30 +190,22 @@ class PasswordComplexityValidator:
     def __init__(self):
         self.common_passwords = CommonPasswordsValidator()
         
-        # Minimum requirements (balanced security and usability)
-        self.MIN_LENGTH = 8  # Standard minimum length for good security
-        self.MAX_LENGTH = 128
-        self.MIN_UNIQUE_CHARS = 6  # Reasonable variety requirement
-        self.MAX_REPEATED_CHAR_RATIO = 0.4  # Allow some repetition for usability
+        # Minimum requirements from settings
+        self.MIN_LENGTH = settings.password_min_length
+        self.MAX_LENGTH = settings.password_max_length
+        self.MIN_UNIQUE_CHARS = settings.password_min_unique_chars
+        self.MAX_REPEATED_CHAR_RATIO = settings.password_max_repeated_char_ratio
         
-        # Character set requirements (enforce good practices)
-        self.REQUIRE_UPPERCASE = True
-        self.REQUIRE_LOWERCASE = True  
-        self.REQUIRE_DIGITS = True
-        self.REQUIRE_SPECIAL = True
-        self.MIN_CHAR_TYPES = 3  # Require at least 3 out of 4 character types
-        self.MIN_ENTROPY_SCORE = 35  # Reasonable entropy requirement
+        # Character set requirements from settings
+        self.REQUIRE_UPPERCASE = settings.password_require_uppercase
+        self.REQUIRE_LOWERCASE = settings.password_require_lowercase  
+        self.REQUIRE_DIGITS = settings.password_require_digits
+        self.REQUIRE_SPECIAL = settings.password_require_special
+        self.MIN_CHAR_TYPES = settings.password_min_char_types
+        self.MIN_ENTROPY_SCORE = settings.password_min_entropy_score
         
-        # Security patterns (focused on truly problematic patterns)
-        self.forbidden_patterns = [
-            r'(.)\1{3,}',           # 4+ repeated characters (e.g., aaaa)
-            r'(0123|1234|2345|3456|4567|5678|6789|9876|8765|7654|6543|5432|4321|3210)',  # Long sequential numbers (4+ chars)
-            r'(abcd|bcde|cdef|defg|efgh|fghi|ghij|hijk|ijkl|jklm|klmn|lmno|mnop|nopq|opqr|pqrs|qrst|rstu|stuv|tuvw|uvwx|vwxy|wxyz)',  # Long sequential letters (4+ chars)
-            r'(qwer|wert|erty|rtyu|tyui|yuio|uiop|asdf|sdfg|dfgh|fghj|ghjk|hjkl|zxcv|xcvb|cvbn|vbnm)',  # Long keyboard patterns (4+ chars)
-            r'^(password|admin|user|guest|login|welcome|secret|temp|test|demo)$',  # Full word matches only
-            r'^(123|abc|qwe|asd|zxc)$',  # Simple pattern starts only if entire password
-            r'^(password123|admin123|welcome123|letmein|qwerty123)$',  # Common combinations as full password only
-        ]
+        # Security patterns from settings
+        self.forbidden_patterns = settings.password_forbidden_patterns
     
     def analyze_password(self, password: str, user_info: Optional[Dict[str, Any]] = None) -> PasswordAnalysis:
         """
@@ -348,7 +253,7 @@ class PasswordComplexityValidator:
         has_upper = any(c.isupper() for c in password)
         has_lower = any(c.islower() for c in password)
         has_digit = any(c.isdigit() for c in password)
-        has_special = any(c in string.punctuation for c in password)
+        has_special = any(c in settings.password_special_chars for c in password)
         
         meets_requirements['uppercase'] = has_upper
         meets_requirements['lowercase'] = has_lower
@@ -368,7 +273,7 @@ class PasswordComplexityValidator:
             if not has_digit:
                 missing_types.append("digits (0-9)")
             if not has_special:
-                missing_types.append("special characters (!@#$%^&*)")
+                missing_types.append(f"special characters ({settings.password_special_chars})")
             
             errors.append(f"Password must contain at least {self.MIN_CHAR_TYPES} character types. Missing: {', '.join(missing_types[:4-self.MIN_CHAR_TYPES+1])}")
             suggestions.append("Add more character variety for better security")
@@ -464,19 +369,19 @@ class PasswordComplexityValidator:
             score += 10
         
         # Additional security bonuses
-        if len(password) >= 16:
+        if len(password) >= settings.password_recommended_min_length:
             score += 10
-        if len(password) >= 20:
+        if len(password) >= settings.password_bonus_min_length:
             score += 5
-        if char_types == 4 and len(password) >= 16:
+        if char_types == 4 and len(password) >= settings.password_recommended_min_length:
             score += 10
-        if unique_chars >= 12:
+        if unique_chars >= settings.password_min_unique_chars_bonus:
             score += 5
         
         # Calculate final score (0-100)
         score = min(100, max(0, score))
         
-        # Determine strength level (STRICTER REQUIREMENTS)
+        # Determine strength level (using settings thresholds)
         strength = self._calculate_strength(score, len(errors))
         
         # Password is valid if core requirements are met (length, character types, not too repetitive)
@@ -494,8 +399,8 @@ class PasswordComplexityValidator:
         if is_valid:
             if score < 80:
                 warnings.append("Consider making your password even stronger")
-            if len(password) < 16:
-                warnings.append("Passwords 16+ characters provide better security")
+            if len(password) < settings.password_recommended_min_length:
+                warnings.append(f"Passwords {settings.password_recommended_min_length}+ characters provide better security")
         
         return PasswordAnalysis(
             strength=strength,
@@ -517,7 +422,7 @@ class PasswordComplexityValidator:
         if email:
             email_parts = email.lower().split('@')[0].split('.')
             for part in email_parts:
-                if len(part) >= 3 and part in password_lower:
+                if len(part) >= settings.validation_email_min_length and part in password_lower:
                     violations.append("Password contains parts of your email address")
                     break
         
@@ -525,7 +430,7 @@ class PasswordComplexityValidator:
         names_to_check = []
         for field in ['first_name', 'last_name', 'display_name', 'username']:
             value = user_info.get(field, '')
-            if value and len(value) >= 3:
+            if value and len(value) >= settings.validation_name_min_length:
                 names_to_check.append(value.lower())
         
         for name in names_to_check:
@@ -535,7 +440,7 @@ class PasswordComplexityValidator:
         
         # Check user ID patterns
         user_id = str(user_info.get('user_id', ''))
-        if len(user_id) >= 4 and user_id in password:
+        if len(user_id) >= settings.validation_user_id_min_length and user_id in password:
             violations.append("Password contains user ID information")
         
                 
@@ -549,13 +454,13 @@ class PasswordComplexityValidator:
         # Determine character space
         char_space = 0
         if any(c.islower() for c in password):
-            char_space += 26  # lowercase letters
+            char_space += settings.entropy_lowercase_chars  # lowercase letters
         if any(c.isupper() for c in password):
-            char_space += 26  # uppercase letters
+            char_space += settings.entropy_uppercase_chars  # uppercase letters
         if any(c.isdigit() for c in password):
-            char_space += 10  # digits
-        if any(c in string.punctuation for c in password):
-            char_space += len(string.punctuation)  # special characters
+            char_space += settings.entropy_digit_chars  # digits
+        if any(c in settings.password_special_chars for c in password):
+            char_space += len(settings.password_special_chars)  # special characters
         
         # Calculate entropy: log2(char_space^length)
         import math
@@ -573,17 +478,17 @@ class PasswordComplexityValidator:
         return entropy
     
     def _calculate_strength(self, score: int, error_count: int) -> PasswordStrength:
-        """Calculate password strength based on score with reasonable thresholds."""
+        """Calculate password strength based on score with thresholds from settings."""
         # Base strength on score, with some consideration for critical errors
-        if score >= 90:
+        if score >= settings.password_strength_very_strong_threshold:
             return PasswordStrength.VERY_STRONG
-        elif score >= 75:
+        elif score >= settings.password_strength_strong_threshold:
             return PasswordStrength.STRONG
-        elif score >= 60:
+        elif score >= settings.password_strength_good_threshold:
             return PasswordStrength.GOOD
-        elif score >= 45:
+        elif score >= settings.password_strength_fair_threshold:
             return PasswordStrength.FAIR
-        elif score >= 25:
+        elif score >= settings.password_strength_weak_threshold:
             return PasswordStrength.WEAK
         else:
             return PasswordStrength.VERY_WEAK

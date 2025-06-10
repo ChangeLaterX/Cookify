@@ -11,18 +11,18 @@ from urllib.parse import urlparse
 from email_validator import validate_email, EmailNotValidError
 
 # Import centralized configuration
-from .validation_config import validation_config
+from core.config import settings
 
 
 def is_valid_email(email: str) -> bool:
     """Validate email address format."""
     try:
-        # Additional length and character validation
-        if not email or len(email) > 320 or len(email) < 3:
+        # Additional length and character validation from settings
+        if not email or len(email) > settings.email_max_length or len(email) < settings.email_min_length:
             return False
         
-        # Check for dangerous characters
-        if any(char in email for char in ['<', '>', '"', "'", '&']):
+        # Check for dangerous characters from settings
+        if any(char in email for char in settings.email_dangerous_chars):
             return False
             
         # Use email_validator but allow test domains
@@ -34,11 +34,11 @@ def is_valid_email(email: str) -> bool:
 
 def is_valid_uuid(uuid_string: str) -> bool:
     """Validate UUID format."""
-    if not uuid_string or len(uuid_string) != 36:
+    if not uuid_string or len(uuid_string) != settings.uuid_length:
         return False
         
     uuid_pattern = re.compile(
-        r'^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+        settings.uuid_pattern,
         re.IGNORECASE
     )
     return bool(uuid_pattern.match(uuid_string))
@@ -61,12 +61,11 @@ def sanitize_string(text: str, max_length: Optional[int] = None, allow_html: Opt
         return ""
     
     # Use configuration defaults if not provided
-    config = validation_config.input
-    max_length = max_length if max_length is not None else config.max_string_length
-    allow_html = allow_html if allow_html is not None else not config.html_escape_by_default
+    max_length = max_length if max_length is not None else settings.input_max_string_length
+    allow_html = allow_html if allow_html is not None else not settings.input_html_escape_by_default
     
     # Remove leading/trailing whitespace if configured
-    if config.strip_whitespace:
+    if settings.input_strip_whitespace:
         sanitized = text.strip()
     else:
         sanitized = text
@@ -76,9 +75,9 @@ def sanitize_string(text: str, max_length: Optional[int] = None, allow_html: Opt
         sanitized = html.escape(sanitized)
     
     # Remove dangerous characters if configured
-    if config.forbidden_control_chars:
+    if settings.input_forbidden_control_chars:
         sanitized = sanitized.replace('\x00', '')  # Remove null bytes
-        sanitized = re.sub(r'[\x01-\x08\x0b\x0c\x0e-\x1f\x7f]', '', sanitized)  # Remove control characters
+        sanitized = re.sub(settings.control_chars_pattern, '', sanitized)  # Remove control characters
     
     # Truncate if max_length is specified
     if max_length and len(sanitized) > max_length:
@@ -95,15 +94,14 @@ def sanitize_url(url: str, allowed_schemes: Optional[List[str]] = None,
         return ""
     
     # Use configuration defaults if not provided
-    config = validation_config.url
-    allowed_schemes = allowed_schemes if allowed_schemes is not None else config.allowed_schemes
-    allowed_domains = allowed_domains if allowed_domains is not None else config.allowed_domains
-    allow_localhost = allow_localhost if allow_localhost is not None else config.allow_localhost
+    allowed_schemes = allowed_schemes if allowed_schemes is not None else settings.url_allowed_schemes
+    allowed_domains = allowed_domains if allowed_domains is not None else settings.url_allowed_domains
+    allow_localhost = allow_localhost if allow_localhost is not None else settings.url_allow_localhost
     
     url = url.strip()
     
     # Check maximum URL length
-    if len(url) > config.max_url_length:
+    if len(url) > settings.url_max_url_length:
         return ""
     
     # Parse URL
@@ -150,10 +148,8 @@ def sanitize_url(url: str, allowed_schemes: Optional[List[str]] = None,
         if not domain_allowed:
             return ""
     
-    # Additional hostname validation
-    hostname_pattern = re.compile(
-        r'^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$'
-    )
+    # Additional hostname validation using settings pattern
+    hostname_pattern = re.compile(settings.hostname_validation_pattern)
     if not hostname_pattern.match(hostname) and not allow_localhost:
         return ""
     
@@ -179,14 +175,13 @@ def validate_phone_number(phone: str, strict_international: Optional[bool] = Non
         return False
     
     # Use configuration default if not provided
-    config = validation_config.phone
-    strict_international = strict_international if strict_international is not None else config.strict_international
+    strict_international = strict_international if strict_international is not None else settings.phone_strict_international
     
     # Remove all non-digit characters except +
     cleaned = re.sub(r'[^\d+]', '', phone)
     
     # Basic length validation
-    if len(cleaned) < config.min_length or len(cleaned) > config.max_length + 1:  # +1 for the + sign
+    if len(cleaned) < settings.phone_min_length or len(cleaned) > settings.phone_max_length + 1:  # +1 for the + sign
         return False
     
     if strict_international:
@@ -217,7 +212,7 @@ def sanitize_metadata_key(key: str, max_length: Optional[int] = None) -> str:
         return ""
     
     # Use configuration default if not provided
-    max_length = max_length if max_length is not None else validation_config.metadata.max_key_length
+    max_length = max_length if max_length is not None else settings.validation_metadata_max_key_length
     
     # Only allow alphanumeric characters, underscores, and hyphens
     sanitized = re.sub(r'[^a-zA-Z0-9_-]', '', key)
@@ -242,7 +237,7 @@ def validate_metadata_size(metadata: Dict[str, Any], max_total_size: Optional[in
         return False
     
     # Use configuration default if not provided
-    max_total_size = max_total_size if max_total_size is not None else validation_config.metadata.max_total_size_bytes
+    max_total_size = max_total_size if max_total_size is not None else settings.validation_metadata_max_total_size
     
     try:
         total_size = len(str(metadata).encode('utf-8'))
@@ -254,7 +249,7 @@ def validate_metadata_size(metadata: Dict[str, Any], max_total_size: Optional[in
 def sanitize_metadata_value(value: Any, max_string_length: Optional[int] = None) -> Any:
     """Sanitize metadata values recursively."""
     # Use configuration default if not provided
-    max_string_length = max_string_length if max_string_length is not None else validation_config.metadata.max_string_value_length
+    max_string_length = max_string_length if max_string_length is not None else settings.metadata_max_string_value_length
     
     if isinstance(value, str):
         return sanitize_string(value, max_length=max_string_length)
@@ -265,7 +260,7 @@ def sanitize_metadata_value(value: Any, max_string_length: Optional[int] = None)
             if sanitize_metadata_key(k)  # Only include valid keys
         }
     elif isinstance(value, list):
-        max_items = validation_config.metadata.max_list_items
+        max_items = settings.metadata_max_list_items
         return [sanitize_metadata_value(item, max_string_length) for item in value[:max_items]]
     elif isinstance(value, (int, float, bool)) or value is None:
         return value
@@ -335,7 +330,7 @@ def sanitize_filename(filename: str, max_length: Optional[int] = None) -> str:
         return ""
     
     # Use configuration default if not provided
-    max_length = max_length if max_length is not None else validation_config.input.max_filename_length
+    max_length = max_length if max_length is not None else settings.input_max_filename_length
     
     # Remove path separators and dangerous characters
     sanitized = re.sub(r'[<>:"|?*\\/]', '', filename)
@@ -363,7 +358,7 @@ def sanitize_filename(filename: str, max_length: Optional[int] = None) -> str:
 def validate_json_structure(data: Any, max_depth: Optional[int] = None, current_depth: int = 0) -> bool:
     """Validate JSON structure depth to prevent deeply nested objects."""
     # Use configuration default if not provided
-    max_depth = max_depth if max_depth is not None else validation_config.input.max_json_depth
+    max_depth = max_depth if max_depth is not None else settings.input_max_json_depth
     
     if current_depth > max_depth:
         return False
@@ -391,7 +386,7 @@ def validate_ip_address(ip_str: str, allow_private: bool = False) -> bool:
 def validate_user_input(value: str, max_length: Optional[int] = None, allow_html: Optional[bool] = None) -> str:
     """Validate and sanitize general user input."""
     # Use configuration defaults if not provided
-    max_length = max_length if max_length is not None else validation_config.input.max_string_length
+    max_length = max_length if max_length is not None else settings.input_max_string_length
     
     sanitized = sanitize_string(value, max_length=max_length, allow_html=allow_html)
     if not sanitized.strip():
@@ -405,7 +400,7 @@ def validate_search_query(query: str, max_length: Optional[int] = None) -> str:
         raise ValueError("Search query must be a string")
     
     # Use configuration default if not provided
-    max_length = max_length if max_length is not None else validation_config.input.max_search_query_length
+    max_length = max_length if max_length is not None else settings.input_max_search_query_length
     
     # Remove excessive whitespace
     sanitized = re.sub(r'\s+', ' ', query.strip())

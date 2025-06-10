@@ -23,7 +23,8 @@ from .validation import (
     validate_json_structure,
     validate_ip_address
 )
-from .validation_config import validation_config
+# Import centralized settings
+from core.config import settings
 
 
 class ValidationService:
@@ -79,8 +80,8 @@ class ValidationService:
             if not validate_metadata_size(metadata):
                 errors.append("User metadata too large")
             else:
-                # Check for forbidden keys
-                forbidden_keys = validation_config.metadata.forbidden_keys
+                # Check for forbidden keys from settings
+                forbidden_keys = settings.metadata_forbidden_keys
                 for key in metadata.keys():
                     if key.lower() in forbidden_keys:
                         errors.append(f"Metadata cannot contain sensitive field: {key}")
@@ -130,7 +131,7 @@ class ValidationService:
             if not validate_metadata_size(metadata):
                 errors.append("User metadata too large")
             else:
-                forbidden_keys = validation_config.metadata.forbidden_keys
+                forbidden_keys = settings.metadata_forbidden_keys
                 for key in metadata.keys():
                     if key.lower() in forbidden_keys:
                         errors.append(f"Metadata cannot contain sensitive field: {key}")
