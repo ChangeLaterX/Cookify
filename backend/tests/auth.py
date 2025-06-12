@@ -30,6 +30,11 @@ from domains.auth.schemas import (
 )
 from domains.auth.models import User, UserProfile
 from main import app
+import logging
+
+# Configure logging
+logger: logging.Logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 # ============================================================================
@@ -1179,19 +1184,19 @@ if __name__ == "__main__":
         cmd.extend(["-m", "email_verification"])
     elif "--performance" in sys.argv:
         cmd.extend(["-m", "slow"])
-    
-    print("🚀 Starting Auth Tests...")
-    print(f"📅 Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("=" * 60)
-    
+
+    logger.info("🚀 Starting Auth Tests...")
+    logger.info(f"📅 Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    logger.info("=" * 60)
+
     result = subprocess.run(cmd)
-    
-    print("=" * 60)
-    print(f"📅 Completed at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    
+
+    logger.info("=" * 60)
+    logger.info(f"📅 Completed at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
     if result.returncode == 0:
-        print("✅ All tests passed successfully!")
+        logger.info("✅ All tests passed successfully!")
     else:
-        print("❌ Some tests failed!")
+        logger.info("❌ Some tests failed!")
     
     sys.exit(result.returncode)

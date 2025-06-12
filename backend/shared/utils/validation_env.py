@@ -5,12 +5,17 @@ This module configures the validation framework based on the application environ
 
 import os
 from typing import Optional
+import logging
 from .validation_config import (
     validation_config,
     configure_for_production,
     configure_for_development,
     configure_for_testing
 )
+
+# Configure logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 def load_validation_config(environment: Optional[str] = None) -> None:
@@ -28,19 +33,19 @@ def load_validation_config(environment: Optional[str] = None) -> None:
     
     if environment == 'production':
         configure_for_production()
-        print(f"🔒 Validation configured for PRODUCTION environment")
+        logger.info("🔒 Validation configured for PRODUCTION environment")
     elif environment == 'testing':
         configure_for_testing()
-        print(f"🧪 Validation configured for TESTING environment")
+        logger.info("🧪 Validation configured for TESTING environment")
     else:  # development or any other environment
         configure_for_development()
-        print(f"🛠️ Validation configured for DEVELOPMENT environment")
+        logger.info("🛠️ Validation configured for DEVELOPMENT environment")
     
     # Log configuration summary
     config_summary = validation_config.get_config_summary()
-    print(f"   Password min length: {config_summary['password']['min_length']}")
-    print(f"   Metadata max size: {config_summary['metadata']['max_size_kb']}KB")
-    print(f"   URL localhost allowed: {config_summary['url']['allow_localhost']}")
+    logger.info(f"   Password min length: {config_summary['password']['min_length']}")
+    logger.info(f"   Metadata max size: {config_summary['metadata']['max_size_kb']}KB")
+    logger.info(f"   URL localhost allowed: {config_summary['url']['allow_localhost']}")
 
 
 def get_validation_settings() -> dict:

@@ -26,7 +26,7 @@ setup_logging()
 logger: logging.Logger = logging.getLogger("app.main")
 
 if settings.debug:
-    print(f"DEBUG MODE ENABLED: {settings.debug}")
+    logger.info(f"DEBUG MODE ENABLED: {settings.debug}")
 
 def create_application() -> FastAPI:
     """Create and configure the FastAPI application."""

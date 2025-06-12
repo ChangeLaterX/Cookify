@@ -9,6 +9,11 @@ import subprocess
 import argparse
 from datetime import datetime
 from pathlib import Path
+import logging
+
+# Configure logging
+logger: logging.Logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 class CookifyTestRunner:
@@ -62,34 +67,34 @@ class CookifyTestRunner:
     
     def _print_header(self, test_description, cmd):
         """Print test header."""
-        print(f"🎯 Focus: {test_description}")
-        print(f"🚀 Starting {test_description}...")
-        print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        print("=" * 70)
+        logger.info(f"🎯 Focus: {test_description}")
+        logger.info(f"🚀 Starting {test_description}...")
+        logger.info(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        logger.info("=" * 70)
         
         cmd_str = " ".join(cmd)
-        print(f"📝 Execution: {cmd_str}")
-        print("=" * 70)
+        logger.info(f"📝 Execution: {cmd_str}")
+        logger.info("=" * 70)
     
     def _print_footer(self, return_code, coverage=False):
         """Print test footer with results."""
-        print("=" * 70)
+        logger.info("=" * 70)
         if self.end_time:
-            print(f"📅 Finished: {self.end_time.strftime('%Y-%m-%d %H:%M:%S')}")
-        
+            logger.info(f"📅 Finished: {self.end_time.strftime('%Y-%m-%d %H:%M:%S')}")
+
         if return_code == 0:
-            print("✅ All Auth Tests passed successfully!")
+            logger.info("✅ All Auth Tests passed successfully!")
             if coverage:
-                print("📊 Coverage report available at: htmlcov/index.html")
-            print("\n🎯 Test Categories:")
-            print("  • Unit Tests: AuthService, Schemas, Models")
-            print("  • Email Verification: Registration → Verification → Login")
-            print("  • Integration: API Routes and Endpoints")
-            print("  • Security: SQL Injection, XSS, Rate Limiting")
-            print("  • Performance: Response Times, Memory, Concurrency")
+                logger.info("📊 Coverage report available at: htmlcov/index.html")
+            logger.info("\n🎯 Test Categories:")
+            logger.info("  • Unit Tests: AuthService, Schemas, Models")
+            logger.info("  • Email Verification: Registration → Verification → Login")
+            logger.info("  • Integration: API Routes and Endpoints")
+            logger.info("  • Security: SQL Injection, XSS, Rate Limiting")
+            logger.info("  • Performance: Response Times, Memory, Concurrency")
         else:
-            print("❌ Some tests failed!")
-            print("💡 Tip: Check the output above for details.")
+            logger.info("❌ Some tests failed!")
+            logger.info(f"💡 Tip: Check the output above for details.")
     
     def run_all_auth_tests(self, **kwargs):
         """Execute all Authentication Tests.
@@ -479,9 +484,9 @@ Direct Method Calls (programmatic):
     
     # Check if --auth was specified
     if not args.auth:
-        print("❌ Error: --auth parameter required!")
-        print("💡 Usage: python test_runner.py --auth")
-        print("📖 For help: python test_runner.py --help")
+        logger.info("❌ Error: --auth parameter required!")
+        logger.info("💡 Usage: python test_runner.py --auth")
+        logger.info("📖 For help: python test_runner.py --help")
         return 1
     
     # Create Test Runner
