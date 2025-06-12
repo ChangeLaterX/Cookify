@@ -44,7 +44,7 @@ Manages ingredient master data including nutritional information and pricing.
 
 **Endpoints:**
 - `GET /api/ingredients/master` - List all ingredients
-- `GET /api/ingredients/master/{id}` - Get specific ingredient
+- `GET /api/ingredients/master/{ingredient_id}` - Get specific ingredient
 - `POST /api/ingredients/master` - Create ingredient (auth required)
 - `PUT /api/ingredients/master/{id}` - Update ingredient (auth required)
 - `DELETE /api/ingredients/master/{id}` - Delete ingredient (admin only)

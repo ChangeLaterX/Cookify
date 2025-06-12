@@ -57,10 +57,9 @@ def get_validation_settings() -> dict:
     }
 
 
-# Auto-configure on import if not already configured
+# Ensure validation is explicitly configured by the caller
 if not hasattr(validation_config, '_configured'):
-    load_validation_config()
-    validation_config._configured = True
+    validation_config._configured = False
 
 
 __all__: list[str] = ['load_validation_config', 'get_validation_settings']

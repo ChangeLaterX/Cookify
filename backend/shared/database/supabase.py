@@ -5,14 +5,14 @@ from uuid import UUID
 
 
 class SupabaseService:
-    """Service-Klasse für Supabase-Operationen."""
+    """Service class for Supabase operations."""
     
     def __init__(self):
         self._client: Optional[Client] = None
     
     @property
     def client(self) -> Client:
-        """Lazy Loading des Supabase-Clients."""
+        """Lazy loading of the Supabase client."""
         if self._client is None:
             self._client = create_client(
                 settings.supabase_url,
@@ -21,19 +21,19 @@ class SupabaseService:
         return self._client
     
     def get_client(self) -> Client:
-        """Gibt den Supabase-Client zurück."""
+        """Returns the Supabase client."""
         return self.client
     
     # Ingredient Master Table Methods
     def get_ingredient_master(self, ingredient_id: Optional[UUID] = None):
-        """Ruft Zutaten aus der ingredient_master Tabelle ab."""
+        """Retrieves ingredients from the ingredient_master table."""
         query = self.client.table("ingredient_master")
         if ingredient_id:
             return query.eq("ingredient_id", str(ingredient_id)).execute()
         return query.select("*").execute()
     
     def search_ingredients(self, search_term: str):
-        """Sucht Zutaten basierend auf Namen."""
+        """Searches ingredients based on name."""
         return (self.client.table("ingredient_master")
                 .select("*")
                 .ilike("name", f"%{search_term}%")
@@ -41,25 +41,25 @@ class SupabaseService:
     
     # Pantry Items Methods
     def get_pantry_items(self, user_id: UUID):
-        """Ruft Vorratskammer-Items für einen Benutzer ab."""
+        """Retrieves pantry items for a user."""
         return (self.client.table("pantry_items")
                 .select("*")
                 .eq("user_id", str(user_id))
                 .execute())
     
     def add_pantry_item(self, item_data: Dict[str, Any]):
-        """Fügt ein Item zur Vorratskammer hinzu."""
+        """Adds an item to the pantry."""
         return self.client.table("pantry_items").insert(item_data).execute()
     
     def update_pantry_item(self, item_id: UUID, update_data: Dict[str, Any]):
-        """Aktualisiert ein Vorratskammer-Item."""
+        """Updates a pantry item."""
         return (self.client.table("pantry_items")
                 .update(update_data)
                 .eq("id", str(item_id))
                 .execute())
     
     def delete_pantry_item(self, item_id: UUID):
-        """Löscht ein Vorratskammer-Item."""
+        """Deletes a pantry item."""
         return (self.client.table("pantry_items")
                 .delete()
                 .eq("id", str(item_id))
@@ -67,7 +67,7 @@ class SupabaseService:
     
     # Recipes Methods
     def get_recipes(self, limit: int = 50, offset: int = 0):
-        """Ruft Rezepte ab."""
+        """Retrieves recipes."""
         return (self.client.table("recipes")
                 .select("*")
                 .limit(limit)
@@ -75,7 +75,7 @@ class SupabaseService:
                 .execute())
     
     def get_recipe_by_id(self, recipe_id: UUID):
-        """Ruft ein Rezept anhand der ID ab."""
+        """Retrieves a recipe by ID."""
         return (self.client.table("recipes")
                 .select("*")
                 .eq("id", str(recipe_id))
@@ -83,44 +83,44 @@ class SupabaseService:
                 .execute())
     
     def search_recipes(self, search_term: str):
-        """Sucht Rezepte basierend auf Titel oder Beschreibung."""
+        """Searches recipes based on title or description."""
         return (self.client.table("recipes")
                 .select("*")
                 .or_(f"title.ilike.%{search_term}%,description.ilike.%{search_term}%")
                 .execute())
     
     def add_recipe(self, recipe_data: Dict[str, Any]):
-        """Fügt ein neues Rezept hinzu."""
+        """Adds a new recipe."""
         return self.client.table("recipes").insert(recipe_data).execute()
     
     # Preferences Methods
     def get_user_preferences(self, user_id: UUID):
-        """Ruft Benutzereinstellungen ab."""
+        """Retrieves user preferences."""
         return (self.client.table("preferences")
                 .select("*")
                 .eq("user_id", str(user_id))
                 .execute())
     
     def upsert_preferences(self, preferences_data: Dict[str, Any]):
-        """Erstellt oder aktualisiert Benutzereinstellungen."""
+        """Creates or updates user preferences."""
         return self.client.table("preferences").upsert(preferences_data).execute()
     
     # Saved Recipes Methods
     def get_saved_recipes(self, user_id: UUID):
-        """Ruft gespeicherte Rezepte für einen Benutzer ab."""
+        """Retrieves saved recipes for a user."""
         return (self.client.table("saved_recipes")
                 .select("*, recipes(*)")
                 .eq("user_id", str(user_id))
                 .execute())
     
     def save_recipe(self, user_id: UUID, recipe_id: UUID):
-        """Speichert ein Rezept für einen Benutzer."""
+        """Saves a recipe for a user."""
         return (self.client.table("saved_recipes")
                 .insert({"user_id": str(user_id), "recipe_id": str(recipe_id)})
                 .execute())
     
     def unsave_recipe(self, user_id: UUID, recipe_id: UUID):
-        """Entfernt ein gespeichertes Rezept."""
+        """Removes a saved recipe."""
         return (self.client.table("saved_recipes")
                 .delete()
                 .eq("user_id", str(user_id))
@@ -129,7 +129,7 @@ class SupabaseService:
     
     # Meal Plans Methods
     def get_meal_plans(self, user_id: UUID):
-        """Ruft Meal Plans für einen Benutzer ab."""
+        """Retrieves meal plans for a user."""
         return (self.client.table("meal_plans")
                 .select("*")
                 .eq("user_id", str(user_id))
@@ -137,7 +137,7 @@ class SupabaseService:
                 .execute())
     
     def get_meal_plan_by_week(self, user_id: UUID, week_start_date: str):
-        """Ruft Meal Plan für eine bestimmte Woche ab."""
+        """Retrieves meal plan for a specific week."""
         return (self.client.table("meal_plans")
                 .select("*")
                 .eq("user_id", str(user_id))
@@ -145,11 +145,11 @@ class SupabaseService:
                 .execute())
     
     def create_meal_plan(self, meal_plan_data: Dict[str, Any]):
-        """Erstellt einen neuen Meal Plan."""
+        """Creates a new meal plan."""
         return self.client.table("meal_plans").insert(meal_plan_data).execute()
     
     def update_meal_plan(self, plan_id: UUID, update_data: Dict[str, Any]):
-        """Aktualisiert einen Meal Plan."""
+        """Updates a meal plan."""
         return (self.client.table("meal_plans")
                 .update(update_data)
                 .eq("id", str(plan_id))
@@ -157,7 +157,7 @@ class SupabaseService:
     
     # Shopping Lists Methods
     def get_shopping_lists(self, user_id: UUID):
-        """Ruft Einkaufslisten für einen Benutzer ab."""
+        """Retrieves shopping lists for a user."""
         return (self.client.table("shopping_lists")
                 .select("*")
                 .eq("user_id", str(user_id))
@@ -165,32 +165,32 @@ class SupabaseService:
                 .execute())
     
     def get_shopping_list_by_plan(self, plan_id: UUID):
-        """Ruft Einkaufsliste für einen bestimmten Meal Plan ab."""
+        """Retrieves shopping list for a specific meal plan."""
         return (self.client.table("shopping_lists")
                 .select("*")
                 .eq("plan_id", str(plan_id))
                 .execute())
     
     def create_shopping_list(self, shopping_list_data: Dict[str, Any]):
-        """Erstellt eine neue Einkaufsliste."""
+        """Creates a new shopping list."""
         return self.client.table("shopping_lists").insert(shopping_list_data).execute()
     
     def update_shopping_list(self, list_id: UUID, update_data: Dict[str, Any]):
-        """Aktualisiert eine Einkaufsliste."""
+        """Updates a shopping list."""
         return (self.client.table("shopping_lists")
                 .update(update_data)
                 .eq("id", str(list_id))
                 .execute())
     
     def delete_shopping_list(self, list_id: UUID):
-        """Löscht eine Einkaufsliste."""
+        """Deletes a shopping list."""
         return (self.client.table("shopping_lists")
                 .delete()
                 .eq("id", str(list_id))
                 .execute())
 
 
-# Globale Service-Instanz
+# Global service instance
 supabase_service = SupabaseService()
 
 # Convenience function for backward compatibility

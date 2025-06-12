@@ -10,8 +10,8 @@ services:
       - .env
     environment:
       # Supabase Configuration
-      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
-      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
       
       # FastAPI Configuration
       - DEBUG=true
@@ -51,7 +51,7 @@ services:
         reservations:
           memory: 512M
           cpus: '0.5'
-    # Für bessere Sicherheit
+    # For better security
     security_opt:
       - no-new-privileges:true
     read_only: true

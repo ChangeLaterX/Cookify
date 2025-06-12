@@ -475,6 +475,8 @@ Search ingredients by name using case-insensitive partial matching.
 ```
 
 **Error (422 - Validation Error):**
+
+_Validation errors return a special response format where `detail` is an array of validation issues, unlike the common error response format._
 ```json
 {
   "detail": [
