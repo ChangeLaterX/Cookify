@@ -50,6 +50,21 @@ class AuthProvider(str, Enum):
 
 
 # Base Models
+class IngredientMasterBase(BaseModel):
+    """Basis-Schema für IngredientMaster-Daten."""
+    name: str
+    calories_per_100g: float
+    proteins_per_100g: float
+    fat_per_100g: float
+    carbs_per_100g: float
+    price_per_100g_cents: int
+
+
+class IngredientMaster(IngredientMasterBase):
+    """Schema für IngredientMaster-Daten aus der Datenbank."""
+    ingredient_id: UUID
+
+
 class UserBase(BaseModel):
     """Basis-Schema für User-Daten."""
     email: str
@@ -67,13 +82,13 @@ class User(UserBase):
 
 class PreferencesBase(BaseModel):
     """Basis-Schema für Preferences-Daten."""
-    diet_type: DietType
-    disliked_items: List[str] = []
-    cuisine_preferences: List[str] = []
-    goal: Goal
-    allergies: List[str] = []
-    calorie_target: int
-    preferred_meal_times: Dict[str, str] = {}
+    diet_type: str
+    disliked_items: Optional[Dict[str, Any]] = None
+    cuisine_preferences: Optional[Dict[str, Any]] = None
+    goal: Optional[str] = None
+    allergies: Optional[Dict[str, Any]] = None
+    calorie_target: Optional[int] = None
+    preferred_meal_times: Optional[Dict[str, Any]] = None
 
 
 class Preferences(PreferencesBase):
@@ -86,8 +101,8 @@ class PantryItemBase(BaseModel):
     """Basis-Schema für PantryItem-Daten."""
     name: str
     quantity: float
-    unit: Unit
-    category: str
+    unit: str
+    category: Optional[str] = None
     expiry_date: Optional[date] = None
 
 
@@ -100,19 +115,19 @@ class PantryItem(PantryItemBase):
 
 class RecipeBase(BaseModel):
     """Basis-Schema für Recipe-Daten."""
-    source: RecipeSource
+    source: str
     source_url: Optional[str] = None
     title: str
-    description: str
+    description: Optional[str] = None
     image_url: Optional[str] = None
-    ingredients: List[Dict[str, Any]]
+    ingredients: Dict[str, Any]  # JSONB field
     instructions: str
-    estimated_time: int
-    difficulty: Difficulty
+    estimated_time: Optional[int] = None
+    difficulty: Optional[str] = None
     calories: Optional[int] = None
     user_generated: bool = False
-    tags: List[str] = []
-    nutrition: Dict[str, Any] = {}
+    tags: Optional[str] = None
+    nutrition: Optional[Dict[str, Any]] = None  # JSONB field
 
 
 class Recipe(RecipeBase):
@@ -129,13 +144,13 @@ class SavedRecipeBase(BaseModel):
 
 class SavedRecipe(SavedRecipeBase):
     """Schema für SavedRecipe-Daten aus der Datenbank."""
-    saved_at: datetime
+    created_at: datetime
 
 
 class MealPlanBase(BaseModel):
     """Basis-Schema für MealPlan-Daten."""
     week_start_date: date
-    meals: List[Dict[str, Any]]
+    meals: Optional[Dict[str, Any]] = None  # JSONB field
     budget_allocated: Optional[float] = None
     notes: Optional[str] = None
 
@@ -149,13 +164,13 @@ class MealPlan(MealPlanBase):
 
 class ShoppingListBase(BaseModel):
     """Basis-Schema für ShoppingList-Daten."""
-    items: List[Dict[str, Any]]
+    items: Optional[Dict[str, Any]] = None  # JSONB field
 
 
 class ShoppingList(ShoppingListBase):
     """Schema für ShoppingList-Daten aus der Datenbank."""
     id: UUID
-    user_id: UUID
+    user_id: Optional[UUID] = None
     plan_id: Optional[UUID] = None
     created_at: datetime
 

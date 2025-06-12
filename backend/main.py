@@ -19,6 +19,7 @@ from shared.utils.validation_env import load_validation_config, get_validation_s
 
 # Domain routers
 from domains.auth.routes import router as auth_router
+from domains.ingredients.routes import router as ingredients_router
 
 # Setup logging first
 setup_logging()
@@ -66,6 +67,7 @@ def create_application() -> FastAPI:
     
     # Include routers
     application.include_router(auth_router, prefix="/api")
+    application.include_router(ingredients_router, prefix="/api")
     
     # Add startup and shutdown events
     application.add_event_handler("startup", on_startup)
@@ -139,6 +141,7 @@ async def health_check(request: Request) -> dict[str, Any]:
         "validation": get_validation_settings(),
         "endpoints": {
             "auth": "/api/auth",
+            "ingredients": "/api/ingredients",
             "docs": settings.docs_url,
             "redoc": settings.redoc_url,
         },
@@ -148,4 +151,4 @@ async def health_check(request: Request) -> dict[str, Any]:
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
