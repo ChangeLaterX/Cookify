@@ -6,10 +6,10 @@ echo "🛑 Stopping Cookify Backend..."
 
 cd "$(dirname "$0")"
 
-# Stoppe und entferne Container
+# Stop and remove containers
 docker-compose down
 
-echo "✅ Cookify Backend gestoppt!"
+echo "✅ Cookify Backend stopped!"
 echo ""
-echo "📊 Verbleibende Container:"
+echo "📊 Remaining containers:"
 docker ps --filter "name=cookify"

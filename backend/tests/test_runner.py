@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 🧪 Cookify Test Runner
-Einfaches Skript zum Ausführen von Tests mit einem Befehl.
+A simple script to execute tests with a single command.
 """
 
 import sys
@@ -9,32 +9,38 @@ import subprocess
 import argparse
 from datetime import datetime
 from pathlib import Path
+import logging
+
+# Configure logging
+logger: logging.Logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 class CookifyTestRunner:
-    """Cookify Test Runner mit separaten Methoden für jede Test-Kategorie."""
+    """Cookify Test Runner with separate methods for each test category."""
     
     def __init__(self):
         self.base_path = Path(__file__).parent
-        self.test_file = "tests/test_auth_complete.py"
+        self.test_file = None  # Default to None, will be set dynamically
         self.start_time = None
         self.end_time = None
     
-    def _build_base_command(self, verbose=True, coverage=False, marker=None, extra_args=None):
-        """Erstelle den Basis-pytest-Befehl."""
+    def _build_base_command(self, verbose=True, coverage=False, marker=None, extra_args=None, test_path=None):
+        """Build the base pytest command."""
+        test_path = test_path or self.test_file or "tests/**/*.py"  # Default to glob pattern
         cmd = [
             "python", "-m", "pytest", 
-            self.test_file,
+            test_path,
             "-v" if verbose else "-q",
             "--tb=short",
             "--color=yes"
         ]
         
-        # Marker hinzufügen
+        # Add marker
         if marker:
             cmd.extend(["-m", marker])
         
-        # Coverage hinzufügen
+        # Add coverage
         if coverage:
             cmd.extend([
                 "--cov=domains.auth",
@@ -42,14 +48,14 @@ class CookifyTestRunner:
                 "--cov-report=html"
             ])
         
-        # Zusätzliche Argumente
+        # Additional arguments
         if extra_args:
             cmd.extend(extra_args)
         
         return cmd
     
     def _execute_tests(self, cmd, test_description, coverage=False):
-        """Führe Tests aus und zeige Ergebnisse an."""
+        """Execute tests and show results."""
         self._print_header(test_description, cmd)
         
         self.start_time = datetime.now()
@@ -60,58 +66,58 @@ class CookifyTestRunner:
         return result.returncode
     
     def _print_header(self, test_description, cmd):
-        """Drucke Test-Header."""
-        print(f"🎯 Fokus: {test_description}")
-        print("🚀 Starte Cookify Auth Tests...")
-        print(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        print("=" * 70)
+        """Print test header."""
+        logger.info(f"🎯 Focus: {test_description}")
+        logger.info(f"🚀 Starting {test_description}...")
+        logger.info(f"📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        logger.info("=" * 70)
         
         cmd_str = " ".join(cmd)
-        print(f"📝 Ausführung: {cmd_str}")
-        print("=" * 70)
+        logger.info(f"📝 Execution: {cmd_str}")
+        logger.info("=" * 70)
     
     def _print_footer(self, return_code, coverage=False):
-        """Drucke Test-Footer mit Ergebnissen."""
-        print("=" * 70)
+        """Print test footer with results."""
+        logger.info("=" * 70)
         if self.end_time:
-            print(f"📅 Beendet: {self.end_time.strftime('%Y-%m-%d %H:%M:%S')}")
-        
+            logger.info(f"📅 Finished: {self.end_time.strftime('%Y-%m-%d %H:%M:%S')}")
+
         if return_code == 0:
-            print("✅ Alle Auth-Tests erfolgreich bestanden!")
+            logger.info("✅ All Auth Tests passed successfully!")
             if coverage:
-                print("📊 Coverage-Report verfügbar unter: htmlcov/index.html")
-            print("\n🎯 Test-Kategorien:")
-            print("  • Unit Tests: AuthService, Schemas, Models")
-            print("  • Email Verification: Registrierung → Verifikation → Login")
-            print("  • Integration: API Routes und Endpoints")
-            print("  • Security: SQL Injection, XSS, Rate Limiting")
-            print("  • Performance: Response Times, Memory, Concurrency")
+                logger.info("📊 Coverage report available at: htmlcov/index.html")
+            logger.info("\n🎯 Test Categories:")
+            logger.info("  • Unit Tests: AuthService, Schemas, Models")
+            logger.info("  • Email Verification: Registration → Verification → Login")
+            logger.info("  • Integration: API Routes and Endpoints")
+            logger.info("  • Security: SQL Injection, XSS, Rate Limiting")
+            logger.info("  • Performance: Response Times, Memory, Concurrency")
         else:
-            print("❌ Einige Tests sind fehlgeschlagen!")
-            print("💡 Tipp: Überprüfe die Ausgabe oben für Details.")
+            logger.info("❌ Some tests failed!")
+            logger.info(f"💡 Tip: Check the output above for details.")
     
     def run_all_auth_tests(self, **kwargs):
-        """Führe alle Authentication Tests aus.
+        """Execute all Authentication Tests.
         
         Args:
-            verbose (bool): Verbose Ausgabe (default: True)
+            verbose (bool): Verbose output (default: True)
             coverage (bool): Coverage Report (default: False)
-            extra_args (list): Zusätzliche pytest Argumente
+            extra_args (list): Additional pytest arguments
         """
         verbose = kwargs.get('verbose', True)
         coverage = kwargs.get('coverage', False)
         extra_args = kwargs.get('extra_args', [])
         
         cmd = self._build_base_command(verbose=verbose, coverage=coverage, extra_args=extra_args)
-        return self._execute_tests(cmd, "Alle Auth-Tests", coverage)
+        return self._execute_tests(cmd, "All Auth Tests", coverage)
     
     def run_email_verification_tests(self, **kwargs):
-        """Führe nur Email-Verifikation Tests aus.
+        """Run only Email Verification Tests.
         
         Args:
-            verbose (bool): Verbose Ausgabe (default: True)
+            verbose (bool): Verbose output (default: True)
             coverage (bool): Coverage Report (default: False)
-            extra_args (list): Zusätzliche pytest Argumente
+            extra_args (list): Additional pytest arguments
         """
         verbose = kwargs.get('verbose', True)
         coverage = kwargs.get('coverage', False)
@@ -123,15 +129,15 @@ class CookifyTestRunner:
             marker="email_verification",
             extra_args=extra_args
         )
-        return self._execute_tests(cmd, "Email-Verifikation Tests", coverage)
+        return self._execute_tests(cmd, "Email Verification Tests", coverage)
     
     def run_unit_tests(self, **kwargs):
-        """Führe nur Unit Tests aus.
+        """Run only Unit Tests.
         
         Args:
-            verbose (bool): Verbose Ausgabe (default: True)
+            verbose (bool): Verbose output (default: True)
             coverage (bool): Coverage Report (default: False)
-            extra_args (list): Zusätzliche pytest Argumente
+            extra_args (list): Additional pytest arguments
         """
         verbose = kwargs.get('verbose', True)
         coverage = kwargs.get('coverage', False)
@@ -146,12 +152,12 @@ class CookifyTestRunner:
         return self._execute_tests(cmd, "Unit Tests", coverage)
     
     def run_integration_tests(self, **kwargs):
-        """Führe nur Integration Tests aus.
+        """Run only Integration Tests.
         
         Args:
-            verbose (bool): Verbose Ausgabe (default: True)
+            verbose (bool): Verbose output (default: True)
             coverage (bool): Coverage Report (default: False)
-            extra_args (list): Zusätzliche pytest Argumente
+            extra_args (list): Additional pytest arguments
         """
         verbose = kwargs.get('verbose', True)
         coverage = kwargs.get('coverage', False)
@@ -166,12 +172,12 @@ class CookifyTestRunner:
         return self._execute_tests(cmd, "Integration Tests", coverage)
     
     def run_security_tests(self, **kwargs):
-        """Führe nur Security Tests aus.
+        """Run only Security Tests.
         
         Args:
-            verbose (bool): Verbose Ausgabe (default: True)
+            verbose (bool): Verbose output (default: True)
             coverage (bool): Coverage Report (default: False)
-            extra_args (list): Zusätzliche pytest Argumente
+            extra_args (list): Additional pytest arguments
         """
         verbose = kwargs.get('verbose', True)
         coverage = kwargs.get('coverage', False)
@@ -186,12 +192,12 @@ class CookifyTestRunner:
         return self._execute_tests(cmd, "Security Tests", coverage)
     
     def run_performance_tests(self, **kwargs):
-        """Führe nur Performance Tests aus.
+        """Run only Performance Tests.
         
         Args:
-            verbose (bool): Verbose Ausgabe (default: True)
+            verbose (bool): Verbose output (default: True)
             coverage (bool): Coverage Report (default: False)
-            extra_args (list): Zusätzliche pytest Argumente
+            extra_args (list): Additional pytest arguments
         """
         verbose = kwargs.get('verbose', True)
         coverage = kwargs.get('coverage', False)
@@ -206,13 +212,13 @@ class CookifyTestRunner:
         return self._execute_tests(cmd, "Performance Tests", coverage)
     
     def run_custom_tests(self, marker=None, **kwargs):
-        """Führe Tests mit benutzerdefinierten Parametern aus.
+        """Execute tests with custom parameters.
         
         Args:
-            marker (str): Pytest Marker (z.B. "email_verification", "unit")
-            verbose (bool): Verbose Ausgabe (default: True)
+            marker (str): Pytest marker (e.g. "email_verification", "unit")
+            verbose (bool): Verbose output (default: True)
             coverage (bool): Coverage Report (default: False)
-            extra_args (list): Zusätzliche pytest Argumente
+            extra_args (list): Additional pytest arguments
         """
         verbose = kwargs.get('verbose', True)
         coverage = kwargs.get('coverage', False)
@@ -229,11 +235,11 @@ class CookifyTestRunner:
         return self._execute_tests(cmd, description, coverage)
     
     # =============================================================================
-    # AUTH ENDPOINT-SPEZIFISCHE TESTS
+    # AUTH ENDPOINT-SPECIFIC TESTS
     # =============================================================================
     
     def run_login_tests(self, **kwargs):
-        """Führe nur Login-bezogene Tests aus.
+        """Execute only Login-related tests.
         
         Tests: authenticate_user, login endpoints, invalid credentials
         """
@@ -241,7 +247,7 @@ class CookifyTestRunner:
         coverage = kwargs.get('coverage', False)
         extra_args = kwargs.get('extra_args', [])
         
-        # Spezifische Test-Namen für Login-Funktionalität
+        # Specific test names for login functionality
         login_tests = [
             "test_authenticate_user_success",
             "test_login_endpoint_success", 
@@ -249,13 +255,13 @@ class CookifyTestRunner:
             "test_login_before_email_verification"
         ]
         
-        # Test-spezifische Argumente hinzufügen
+        # Add test-specific arguments
         test_args = []
         for test in login_tests:
             test_args.extend(["-k", test])
         
-        # Verbinde alle Test-Namen mit OR
-        test_filter = " or ".join([f"test_name.endswith('{test}')" for test in login_tests])
+        # Connect all test names with OR
+        test_filter = " or ".join(login_tests)
         extra_args.extend(["-k", test_filter])
         
         cmd = self._build_base_command(
@@ -266,7 +272,7 @@ class CookifyTestRunner:
         return self._execute_tests(cmd, "Login Tests", coverage)
     
     def run_register_tests(self, **kwargs):
-        """Führe nur Registrierungs-bezogene Tests aus.
+        """Execute only Registration-related tests.
         
         Tests: register_user, registration endpoints
         """
@@ -285,7 +291,7 @@ class CookifyTestRunner:
         return self._execute_tests(cmd, "Registration Tests", coverage)
     
     def run_verify_tests(self, **kwargs):
-        """Führe nur Email-Verifikations-bezogene Tests aus.
+        """Execute only Email Verification-related tests.
         
         Tests: verify_email, verification endpoints, resend verification
         """
@@ -304,7 +310,7 @@ class CookifyTestRunner:
         return self._execute_tests(cmd, "Email Verification Tests", coverage)
     
     def run_password_tests(self, **kwargs):
-        """Führe nur Password-bezogene Tests aus.
+        """Execute only Password-related tests.
         
         Tests: password reset, password security, password validation
         """
@@ -323,7 +329,7 @@ class CookifyTestRunner:
         return self._execute_tests(cmd, "Password Tests", coverage)
     
     def run_token_tests(self, **kwargs):
-        """Führe nur Token-bezogene Tests aus.
+        """Execute only Token-related tests.
         
         Tests: token generation, token validation, refresh tokens
         """
@@ -342,7 +348,7 @@ class CookifyTestRunner:
         return self._execute_tests(cmd, "Token Tests", coverage)
     
     def run_logout_tests(self, **kwargs):
-        """Führe nur Logout-bezogene Tests aus.
+        """Execute only Logout-related tests.
         
         Tests: logout functionality, session cleanup
         """
@@ -361,7 +367,7 @@ class CookifyTestRunner:
         return self._execute_tests(cmd, "Logout Tests", coverage)
     
     def run_schema_tests(self, **kwargs):
-        """Führe nur Schema-Validierungs Tests aus.
+        """Execute only Schema Validation tests.
         
         Tests: Pydantic schema validation, input validation
         """
@@ -380,7 +386,7 @@ class CookifyTestRunner:
         return self._execute_tests(cmd, "Schema Validation Tests", coverage)
     
     def run_endpoint_tests(self, **kwargs):
-        """Führe nur API Endpoint Tests aus.
+        """Execute only API Endpoint tests.
         
         Tests: HTTP endpoints, route testing
         """
@@ -401,102 +407,108 @@ class CookifyTestRunner:
 
 def main():
     parser = argparse.ArgumentParser(
-        description='🧪 Cookify Test Runner - Einfache Test-Ausführung',
+        description='🧪 Cookify Test Runner - Simple Test Execution',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Beispiele:
-  python test_runner.py --auth                    # Alle Auth-Tests
-  python test_runner.py --auth --coverage         # Mit Coverage-Report
-  python test_runner.py --auth --email            # Nur Email-Verifikation
-  python test_runner.py --auth --unit             # Nur Unit Tests
-  python test_runner.py --auth --security         # Nur Security Tests
+Examples:
+  python test_runner.py --auth                    # All Auth Tests
+  python test_runner.py --auth --coverage         # With Coverage Report
+  python test_runner.py --auth --email            # Only Email Verification
+  python test_runner.py --auth --unit             # Only Unit Tests
+  python test_runner.py --auth --security         # Only Security Tests
   
-Endpoint-spezifische Tests:
-  python test_runner.py --auth --login            # Nur Login Tests
-  python test_runner.py --auth --register         # Nur Registration Tests
-  python test_runner.py --auth --verify           # Nur Email-Verifikation Tests
-  python test_runner.py --auth --password         # Nur Password Tests
-  python test_runner.py --auth --token            # Nur Token Tests
-  python test_runner.py --auth --logout           # Nur Logout Tests
-  python test_runner.py --auth --schema           # Nur Schema Tests
-  python test_runner.py --auth --endpoint         # Nur API Endpoint Tests
+Endpoint-specific Tests:
+  python test_runner.py --auth --login            # Only Login Tests
+  python test_runner.py --auth --register         # Only Registration Tests
+  python test_runner.py --auth --verify           # Only Email Verification Tests
+  python test_runner.py --auth --password         # Only Password Tests
+  python test_runner.py --auth --token            # Only Token Tests
+  python test_runner.py --auth --logout           # Only Logout Tests
+  python test_runner.py --auth --schema           # Only Schema Tests
+  python test_runner.py --auth --endpoint         # Only API Endpoint Tests
   
-Direkte Methoden-Aufrufe (programmatisch):
+Direct Method Calls (programmatic):
   runner = CookifyTestRunner()
   runner.run_email_verification_tests(verbose=True, coverage=True)
   runner.run_login_tests(extra_args=["--maxfail=1"])
         """
     )
     
-    # Haupt-Optionen
+    # Main Options
+    parser.add_argument('--test-path', type=str, 
+                       help='📂 Path to specific tests or test directory (e.g. tests/test_auth.py)')
     parser.add_argument('--auth', action='store_true', 
-                       help='🎯 Alle Authentication Tests ausführen')
+                       help='🎯 Execute all Authentication Tests')
     
-    # Test-Kategorien
+    # Test Categories
     parser.add_argument('--email', action='store_true',
-                       help='📧 Nur Email-Verifikation Tests')
+                       help='📧 Only Email Verification Tests')
     parser.add_argument('--unit', action='store_true',
-                       help='🔧 Nur Unit Tests')
+                       help='🔧 Only Unit Tests')
     parser.add_argument('--integration', action='store_true',
-                       help='🔗 Nur Integration Tests')
+                       help='🔗 Only Integration Tests')
     parser.add_argument('--security', action='store_true',
-                       help='🔒 Nur Security Tests')
+                       help='🔒 Only Security Tests')
     parser.add_argument('--performance', action='store_true',
-                       help='⚡ Nur Performance Tests')
+                       help='⚡ Only Performance Tests')
     
-    # Endpoint-spezifische Tests
+    # Endpoint-specific Tests
     parser.add_argument('--login', action='store_true',
-                       help='🔑 Nur Login Tests')
+                       help='🔑 Only Login Tests')
     parser.add_argument('--register', action='store_true',
-                       help='📝 Nur Registration Tests')
+                       help='📝 Only Registration Tests')
     parser.add_argument('--verify', action='store_true',
-                       help='✅ Nur Email-Verifikation Tests')
+                       help='✅ Only Email Verification Tests')
     parser.add_argument('--password', action='store_true',
-                       help='🔐 Nur Password Tests')
+                       help='🔐 Only Password Tests')
     parser.add_argument('--token', action='store_true',
-                       help='🎫 Nur Token Tests')
+                       help='🎫 Only Token Tests')
     parser.add_argument('--logout', action='store_true',
-                       help='🚪 Nur Logout Tests')
+                       help='🚪 Only Logout Tests')
     parser.add_argument('--schema', action='store_true',
-                       help='📋 Nur Schema Validation Tests')
+                       help='📋 Only Schema Validation Tests')
     parser.add_argument('--endpoint', action='store_true',
-                       help='🌐 Nur API Endpoint Tests')
+                       help='🌐 Only API Endpoint Tests')
     
-    # Zusätzliche Optionen
+    # Additional Options
     parser.add_argument('--coverage', action='store_true',
-                       help='📊 Coverage-Report generieren')
+                       help='📊 Generate Coverage Report')
     parser.add_argument('--quiet', '-q', action='store_true',
-                       help='🤫 Weniger verbose Ausgabe')
+                       help='🤫 Less verbose output')
     parser.add_argument('--maxfail', type=int,
-                       help='🛑 Stoppe nach N Fehlern')
+                       help='🛑 Stop after N failures')
     parser.add_argument('--marker', type=str,
-                       help='🏷️ Benutzerdefinierten Marker verwenden')
+                       help='🏷️ Use custom marker')
     
     args = parser.parse_args()
     
-    # Prüfen ob --auth angegeben wurde
+    # Check if --auth was specified
     if not args.auth:
-        print("❌ Fehler: --auth Parameter erforderlich!")
-        print("💡 Verwendung: python test_runner.py --auth")
-        print("📖 Für Hilfe: python test_runner.py --help")
+        logger.info("❌ Error: --auth parameter required!")
+        logger.info("💡 Usage: python test_runner.py --auth")
+        logger.info("📖 For help: python test_runner.py --help")
         return 1
     
-    # Test Runner erstellen
+    # Create Test Runner
     runner = CookifyTestRunner()
     
-    # Parameter für alle Methoden vorbereiten
+    # Prepare parameters for all methods
     test_kwargs = {
         'verbose': not args.quiet,
         'coverage': args.coverage,
         'extra_args': []
     }
     
-    # Zusätzliche pytest-Argumente
+    # Additional pytest arguments
     if args.maxfail:
         test_kwargs['extra_args'].append(f"--maxfail={args.maxfail}")
     
-    # Bestimme welche Test-Methode aufgerufen werden soll
-    # Zuerst prüfen: Endpoint-spezifische Tests
+    # Set test path if specified
+    if args.test_path:
+        runner.test_file = args.test_path
+
+    # Determine which test method to call
+    # First check: Endpoint-specific tests
     if args.login:
         return runner.run_login_tests(**test_kwargs)
     elif args.register:
@@ -514,9 +526,9 @@ Direkte Methoden-Aufrufe (programmatisch):
     elif args.endpoint:
         return runner.run_endpoint_tests(**test_kwargs)
     
-    # Dann: Test-Kategorien
+    # Then: Test categories
     elif args.marker:
-        # Benutzerdefinierter Marker
+        # Custom marker
         return runner.run_custom_tests(marker=args.marker, **test_kwargs)
     elif args.email:
         return runner.run_email_verification_tests(**test_kwargs)

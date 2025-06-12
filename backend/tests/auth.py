@@ -1,6 +1,6 @@
 """
-Umfassende pytest Testsuite für das Authentication-Modul.
-Alle Tests in einer Datei - fokussiert auf Email-Verifikation und Sicherheit.
+Comprehensive pytest test suite for the Authentication module.
+All tests in one file - focused on email verification and security.
 """
 
 import pytest
@@ -30,10 +30,15 @@ from domains.auth.schemas import (
 )
 from domains.auth.models import User, UserProfile
 from main import app
+import logging
+
+# Configure logging
+logger: logging.Logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 # ============================================================================
-# FIXTURES UND KONFIGURATION
+# FIXTURES AND CONFIGURATION
 # ============================================================================
 
 @pytest.fixture(scope="function")
@@ -698,7 +703,7 @@ class TestAuthRoutes:
         with patch('domains.auth.services.request_password_reset') as mock_reset:
             mock_reset.return_value = True
             
-            response = client.post("/auth/password-reset", json={
+            response = client.post("/auth/forgot-password", json={
                 "email": "test@example.com"
             })
             
@@ -1128,27 +1133,27 @@ class TestAsyncEmailVerificationFlow:
 
 if __name__ == "__main__":
     """
-    Ausführung der Tests:
+    Test execution:
     
-    # Alle Tests
+    # All Tests
     python test_auth_complete.py
     
-    # Nur Unit Tests
+    # Only Unit Tests
     pytest test_auth_complete.py -m unit -v
     
-    # Nur Email-Verifikation
+    # Only Email Verification
     pytest test_auth_complete.py -m email_verification -v
     
-    # Nur Integration Tests
+    # Only Integration Tests
     pytest test_auth_complete.py -m integration -v
     
-    # Nur Security Tests
+    # Only Security Tests
     pytest test_auth_complete.py -m security -v
     
     # Performance Tests (slow)
     pytest test_auth_complete.py -m slow -v
     
-    # Mit Coverage
+    # With Coverage
     pytest test_auth_complete.py --cov=domains.auth --cov-report=html
     """
     
@@ -1179,19 +1184,19 @@ if __name__ == "__main__":
         cmd.extend(["-m", "email_verification"])
     elif "--performance" in sys.argv:
         cmd.extend(["-m", "slow"])
-    
-    print("🚀 Starte Auth Tests...")
-    print(f"📅 Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("=" * 60)
-    
+
+    logger.info("🚀 Starting Auth Tests...")
+    logger.info(f"📅 Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    logger.info("=" * 60)
+
     result = subprocess.run(cmd)
-    
-    print("=" * 60)
-    print(f"📅 Completed at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    
+
+    logger.info("=" * 60)
+    logger.info(f"📅 Completed at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
     if result.returncode == 0:
-        print("✅ Alle Tests erfolgreich!")
+        logger.info("✅ All tests passed successfully!")
     else:
-        print("❌ Einige Tests sind fehlgeschlagen!")
+        logger.info("❌ Some tests failed!")
     
     sys.exit(result.returncode)

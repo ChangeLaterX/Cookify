@@ -20,8 +20,8 @@ class Settings(BaseSettings):
     environment: str = "production"
 
     # Supabase Configuration
-    vite_supabase_url: str = ""
-    vite_supabase_anon_key: str = ""
+    SUPABASE_URL: str = ""
+    SUPABASE_KEY: str = ""
 
     # Security Settings
     jwt_secret_key: str = secrets.token_urlsafe(32)
@@ -320,12 +320,12 @@ class Settings(BaseSettings):
     @property
     def supabase_url(self) -> str:
         """Get the Supabase URL."""
-        return self.vite_supabase_url
+        return self.SUPABASE_URL
 
     @property
     def supabase_anon_key(self) -> str:
         """Get the Supabase anonymous key."""
-        return self.vite_supabase_anon_key
+        return self.SUPABASE_KEY
 
     @property
     def is_production(self) -> bool:

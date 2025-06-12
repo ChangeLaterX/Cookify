@@ -50,15 +50,30 @@ class AuthProvider(str, Enum):
 
 
 # Base Models
+class IngredientMasterBase(BaseModel):
+    """Base schema for IngredientMaster data."""
+    name: str
+    calories_per_100g: float
+    proteins_per_100g: float
+    fat_per_100g: float
+    carbs_per_100g: float
+    price_per_100g_cents: int
+
+
+class IngredientMaster(IngredientMasterBase):
+    """Schema for IngredientMaster data from the database."""
+    ingredient_id: UUID
+
+
 class UserBase(BaseModel):
-    """Basis-Schema für User-Daten."""
+    """Base schema for User data."""
     email: str
     auth_provider: AuthProvider = AuthProvider.email
     onboarding_done: bool = False
 
 
 class User(UserBase):
-    """Schema für User-Daten aus der Datenbank."""
+    """Schema for User data from the database."""
     id: UUID
     hashed_password: str
     created_at: datetime
@@ -66,103 +81,103 @@ class User(UserBase):
 
 
 class PreferencesBase(BaseModel):
-    """Basis-Schema für Preferences-Daten."""
-    diet_type: DietType
-    disliked_items: List[str] = []
-    cuisine_preferences: List[str] = []
-    goal: Goal
-    allergies: List[str] = []
-    calorie_target: int
-    preferred_meal_times: Dict[str, str] = {}
+    """Base schema for Preferences data."""
+    diet_type: str
+    disliked_items: Optional[Dict[str, Any]] = None
+    cuisine_preferences: Optional[Dict[str, Any]] = None
+    goal: Optional[str] = None
+    allergies: Optional[Dict[str, Any]] = None
+    calorie_target: Optional[int] = None
+    preferred_meal_times: Optional[Dict[str, Any]] = None
 
 
 class Preferences(PreferencesBase):
-    """Schema für Preferences-Daten aus der Datenbank."""
+    """Schema for Preferences data from the database."""
     id: UUID
     user_id: UUID
 
 
 class PantryItemBase(BaseModel):
-    """Basis-Schema für PantryItem-Daten."""
+    """Base schema for PantryItem data."""
     name: str
     quantity: float
-    unit: Unit
-    category: str
+    unit: str
+    category: Optional[str] = None
     expiry_date: Optional[date] = None
 
 
 class PantryItem(PantryItemBase):
-    """Schema für PantryItem-Daten aus der Datenbank."""
+    """Schema for PantryItem data from the database."""
     id: UUID
     user_id: UUID
     added_at: datetime
 
 
 class RecipeBase(BaseModel):
-    """Basis-Schema für Recipe-Daten."""
-    source: RecipeSource
+    """Base schema for Recipe data."""
+    source: str
     source_url: Optional[str] = None
     title: str
-    description: str
+    description: Optional[str] = None
     image_url: Optional[str] = None
-    ingredients: List[Dict[str, Any]]
+    ingredients: Dict[str, Any]  # JSONB field
     instructions: str
-    estimated_time: int
-    difficulty: Difficulty
+    estimated_time: Optional[int] = None
+    difficulty: Optional[str] = None
     calories: Optional[int] = None
     user_generated: bool = False
-    tags: List[str] = []
-    nutrition: Dict[str, Any] = {}
+    tags: Optional[str] = None
+    nutrition: Optional[Dict[str, Any]] = None  # JSONB field
 
 
 class Recipe(RecipeBase):
-    """Schema für Recipe-Daten aus der Datenbank."""
+    """Schema for Recipe data from the database."""
     id: UUID
     created_at: datetime
 
 
 class SavedRecipeBase(BaseModel):
-    """Basis-Schema für SavedRecipe-Daten."""
+    """Base schema for SavedRecipe data."""
     user_id: UUID
     recipe_id: UUID
 
 
 class SavedRecipe(SavedRecipeBase):
-    """Schema für SavedRecipe-Daten aus der Datenbank."""
-    saved_at: datetime
+    """Schema for SavedRecipe data from the database."""
+    created_at: datetime
 
 
 class MealPlanBase(BaseModel):
-    """Basis-Schema für MealPlan-Daten."""
+    """Base schema for MealPlan data."""
     week_start_date: date
-    meals: List[Dict[str, Any]]
+    meals: Optional[Dict[str, Any]] = None  # JSONB field
     budget_allocated: Optional[float] = None
     notes: Optional[str] = None
 
 
 class MealPlan(MealPlanBase):
-    """Schema für MealPlan-Daten aus der Datenbank."""
+    """Schema for MealPlan data from the database."""
     id: UUID
     user_id: UUID
     generated_at: datetime
 
 
 class ShoppingListBase(BaseModel):
-    """Basis-Schema für ShoppingList-Daten."""
-    items: List[Dict[str, Any]]
+    """Base schema for ShoppingList data."""
+    items: Optional[Dict[str, Any]] = None  # JSONB field
 
 
 class ShoppingList(ShoppingListBase):
-    """Schema für ShoppingList-Daten aus der Datenbank."""
+    """Schema for ShoppingList data from the database."""
     id: UUID
-    user_id: UUID
+    user_id: Optional[UUID] = None
     plan_id: Optional[UUID] = None
     created_at: datetime
 
 
-# Response Models mit flexiblen Schemas für Datenbankabfragen
+# Response Models with flexible schemas for database queries
 class DatabaseResponse(BaseModel):
-    """Flexibles Schema für Datenbankresponses."""
+    """Flexible schema for database responses."""
     model_config = {"extra": "allow"}
     
     def __init__(self, **data) -> None:

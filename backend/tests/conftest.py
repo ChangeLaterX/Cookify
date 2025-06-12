@@ -186,6 +186,70 @@ def mock_database_session():
         yield mock_session
 
 
+# ============================================================================
+# Ingredients Domain Fixtures
+# ============================================================================
+
+@pytest.fixture
+def sample_ingredient_data():
+    """Sample ingredient data for testing."""
+    return {
+        "name": "Test Chicken Breast",
+        "calories_per_100g": 165.0,
+        "proteins_per_100g": 31.0,
+        "fat_per_100g": 3.6,
+        "carbs_per_100g": 0.0,
+        "price_per_100g_cents": 899
+    }
+
+
+@pytest.fixture
+def sample_ingredient_list():
+    """Sample list of ingredients for testing."""
+    return [
+        {
+            "ingredient_id": str(uuid4()),
+            "name": f"Test Ingredient {i}",
+            "calories_per_100g": 100.0 + i,
+            "proteins_per_100g": 10.0 + i,
+            "fat_per_100g": 5.0 + i,
+            "carbs_per_100g": 15.0 + i,
+            "price_per_100g_cents": 500 + i * 10
+        }
+        for i in range(1, 6)
+    ]
+
+
+@pytest.fixture
+def mock_ingredient_supabase_responses():
+    """Mock Supabase responses for ingredient operations."""
+    def _mock_responses(**kwargs):
+        mock_client = Mock()
+        mock_table = Mock()
+        
+        # Configure default responses
+        mock_table.select = Mock(return_value=mock_table)
+        mock_table.insert = Mock(return_value=mock_table)
+        mock_table.update = Mock(return_value=mock_table)
+        mock_table.delete = Mock(return_value=mock_table)
+        mock_table.eq = Mock(return_value=mock_table)
+        mock_table.neq = Mock(return_value=mock_table)
+        mock_table.ilike = Mock(return_value=mock_table)
+        mock_table.range = Mock(return_value=mock_table)
+        mock_table.order = Mock(return_value=mock_table)
+        
+        # Allow custom execute responses
+        if 'execute_return' in kwargs:
+            mock_table.execute = Mock(return_value=kwargs['execute_return'])
+        else:
+            mock_table.execute = Mock()
+        
+        mock_client.table = Mock(return_value=mock_table)
+        return mock_client
+    
+    return _mock_responses
+
+
 # Clean up any test data after tests
 @pytest.fixture(autouse=True)
 def cleanup_test_data():

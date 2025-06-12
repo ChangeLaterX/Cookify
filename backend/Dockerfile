@@ -1,34 +1,34 @@
-# Verwende Python 3.10 slim als Basis-Image für bessere Performance
+# Use Python 3.10 slim as base image for better performance
 FROM python:3.10-slim
 
-# Setze Arbeitsverzeichnis
+# Set working directory
 WORKDIR /backend
 
-# Installiere System-Dependencies (inkl. curl für Healthcheck)
+# Install system dependencies (including curl for healthcheck)
 RUN apt-get update && apt-get install -y \
     gcc \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Kopiere Requirements und installiere Python-Dependencies
+# Copy requirements and install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Kopiere die Backend-Anwendung
+# Copy the backend application
 COPY . .
 
-# Erstelle einen Non-Root-User für Sicherheit
+# Create a non-root user for security
 RUN adduser --disabled-password --gecos '' appuser
 RUN chown -R appuser:appuser /backend
 USER appuser
 
-# Exponiere Port 8000 (um mit lokaler Entwicklung konsistent zu sein)
+# Expose port 8000 (to be consistent with local development)
 EXPOSE 8000
 
-# Healthcheck für Container-Status mit verbessertem Endpoint
+# Healthcheck for container status with improved endpoint
 HEALTHCHECK --interval=30s --timeout=30s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Starte die Anwendung mit optimierten Einstellungen
+# Start the application with optimized settings
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "--access-log"]

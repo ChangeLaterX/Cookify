@@ -4,36 +4,38 @@ Debug script to check rate limiting configuration values.
 """
 import sys
 import os
+import logging
 
 # Add the backend directory to Python path
-sys.path.insert(0, '/Users/jannis/Developer/Cookify/backend')
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 
 from core.config import settings
 
 def main():
-    print("=== Rate Limiting Debug Information ===")
-    print(f"Debug mode: {settings.debug}")
-    print(f"Environment: {settings.environment}")
-    print(f"Rate limiting enabled (base): {settings.rate_limiting_enabled}")
-    print(f"Rate limiting enabled (safe): {settings.rate_limiting_enabled_safe}")
-    print(f"Is production: {settings.is_production}")
-    print(f"Is development: {settings.is_development}")
-    print()
-    print("=== Expected Behavior ===")
-    print("When debug=True, rate_limiting_enabled_safe should be False")
-    print("This should disable rate limiting completely")
-    print()
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+    logger = logging.getLogger(__name__)
+    
+    logger.info("=== Rate Limiting Debug Information ===")
+    logger.debug(f"Debug mode: {settings.debug}")
+    logger.debug(f"Environment: {settings.environment}")
+    logger.debug(f"Rate limiting enabled (base): {settings.rate_limiting_enabled}")
+    logger.debug(f"Rate limiting enabled (safe): {settings.rate_limiting_enabled_safe}")
+    logger.debug(f"Is production: {settings.is_production}")
+    logger.debug(f"Is development: {settings.is_development}")
+    logger.info("=== Expected Behavior ===")
+    logger.info("When debug=True, rate_limiting_enabled_safe should be False")
+    logger.info("This should disable rate limiting completely")
     
     # Test the property logic manually
-    print("=== Manual Property Test ===")
+    logger.info("=== Manual Property Test ===")
     if settings.debug:
         expected_rate_limiting = False
     else:
         expected_rate_limiting = settings.rate_limiting_enabled
     
-    print(f"Expected rate_limiting_enabled_safe: {expected_rate_limiting}")
-    print(f"Actual rate_limiting_enabled_safe: {settings.rate_limiting_enabled_safe}")
-    print(f"Match: {expected_rate_limiting == settings.rate_limiting_enabled_safe}")
+    logger.debug(f"Expected rate_limiting_enabled_safe: {expected_rate_limiting}")
+    logger.debug(f"Actual rate_limiting_enabled_safe: {settings.rate_limiting_enabled_safe}")
+    logger.info(f"Match: {expected_rate_limiting == settings.rate_limiting_enabled_safe}")
 
 if __name__ == "__main__":
     main()
