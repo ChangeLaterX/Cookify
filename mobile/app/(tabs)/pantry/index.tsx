@@ -6,7 +6,7 @@ import { usePantry } from '@/context/PantryContext';
 import Colors from '@/constants/Colors';
 import PantryItemCard from '@/components/PantryItem';
 import EmptyState from '@/components/EmptyState';
-import { PantryItem } from '@/types/supabase';
+import { PantryItem } from '@/types/api';
 import { Plus, Search, Package, Filter, ScanLine } from 'lucide-react-native';
 
 export default function PantryScreen() {

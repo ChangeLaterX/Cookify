@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import Colors from '@/constants/Colors';
 import Button from '@/components/ui/Button';
-import { Camera, FlipCameraIcon, Image, ArrowLeft, ZapIcon } from 'lucide-react-native';
+import { Camera, CameraIcon, ImageIcon, ArrowLeft, ZapIcon } from 'lucide-react-native';
 
 export default function ScanReceiptScreen() {
   const [type, setType] = useState<CameraType>('back');
@@ -74,7 +74,6 @@ export default function ScanReceiptScreen() {
       <View style={styles.cameraContainer}>
         <CameraView
           style={styles.camera}
-          type={type}
         >
           {/* Camera Overlay */}
           <View style={styles.overlay}>
@@ -93,7 +92,7 @@ export default function ScanReceiptScreen() {
               style={styles.flipButton} 
               onPress={toggleCameraType}
             >
-              <FlipCameraIcon size={24} color="white" />
+              <CameraIcon size={24} color="white" />
             </TouchableOpacity>
             
             <TouchableOpacity 
@@ -110,7 +109,7 @@ export default function ScanReceiptScreen() {
               style={styles.galleryButton}
               onPress={() => alert('Photo library access will be available in a future update.')}
             >
-              <Image size={24} color="white" />
+              <ImageIcon size={24} color="white" />
             </TouchableOpacity>
           </View>
         </CameraView>
