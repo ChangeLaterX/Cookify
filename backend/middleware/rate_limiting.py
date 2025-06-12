@@ -24,8 +24,8 @@ class RateLimitConfig:
     requests_per_window: int
     window_seconds: int
     progressive_delay: bool = True
-    progressive_multiplier: float = 2.0
-    max_progressive_delay: int = 300  # 5 minutes
+    progressive_multiplier: float = settings.rate_limit_progressive_multiplier
+    max_progressive_delay: int = settings.rate_limit_max_progressive_delay
 
 
 @dataclass
@@ -80,39 +80,39 @@ class AuthRateLimitMiddleware(BaseHTTPMiddleware):
             ),
             # Password reset confirmation - prevent token guessing
             "/api/auth/reset-password": RateLimitConfig(
-                requests_per_window=5,
-                window_seconds=900,  # 15 minutes
+                requests_per_window=settings.rate_limit_reset_password_attempts,
+                window_seconds=settings.rate_limit_reset_password_window,
                 progressive_delay=True
             ),
             # Email verification - prevent spam
             "/api/auth/verify-email": RateLimitConfig(
-                requests_per_window=5,
-                window_seconds=300,  # 5 minutes
+                requests_per_window=settings.rate_limit_verify_email_attempts,
+                window_seconds=settings.rate_limit_verify_email_window,
                 progressive_delay=False
             ),
             # Resend verification - prevent email spam
             "/api/auth/resend-verification": RateLimitConfig(
-                requests_per_window=2,
-                window_seconds=1800,  # 30 minutes
+                requests_per_window=settings.rate_limit_resend_verification_attempts,
+                window_seconds=settings.rate_limit_resend_verification_window,
                 progressive_delay=True
             ),
             # Token refresh - moderate limits
             "/api/auth/refresh": RateLimitConfig(
-                requests_per_window=20,
-                window_seconds=300,  # 5 minutes
+                requests_per_window=settings.rate_limit_refresh_token_attempts,
+                window_seconds=settings.rate_limit_refresh_token_window,
                 progressive_delay=False
             ),
             # General auth endpoints fallback
             "default_auth": RateLimitConfig(
-                requests_per_window=10,
-                window_seconds=600,  # 10 minutes
+                requests_per_window=settings.rate_limit_default_auth_attempts,
+                window_seconds=settings.rate_limit_default_auth_window,
                 progressive_delay=False
             )
         }
         
-        # Schedule cleanup every 10 minutes
+        # Schedule cleanup
         self.last_cleanup = time.time()
-        self.cleanup_interval = 600  # 10 minutes
+        self.cleanup_interval = settings.rate_limit_cleanup_interval
     
     async def dispatch(self, request: Request, call_next):
         """
@@ -146,7 +146,7 @@ class AuthRateLimitMiddleware(BaseHTTPMiddleware):
         # Get client identifier
         client_ip = self._get_client_ip(request)
         user_agent = request.headers.get("user-agent", "unknown")
-        client_key = f"{client_ip}:{user_agent[:50]}"  # Include user agent for better tracking
+        client_key = f"{client_ip}:{user_agent[:settings.rate_limit_user_agent_truncate_length]}"  # Include user agent for better tracking
         
         # Periodic cleanup
         current_time = time.time()
@@ -170,7 +170,7 @@ class AuthRateLimitMiddleware(BaseHTTPMiddleware):
                     "retry_after": retry_after,
                     "details": {
                         "endpoint": path,
-                        "limit_window": "15 minutes",
+                        "limit_window": f"{settings.rate_limit_window_display_minutes} minutes",
                         "max_requests": self._get_rate_limit_config(path).requests_per_window
                     }
                 },
@@ -315,8 +315,8 @@ class AuthRateLimitMiddleware(BaseHTTPMiddleware):
         Args:
             current_time: Current timestamp
         """
-        # Remove data older than 1 hour
-        cutoff_time = current_time - 3600
+        # Remove data older than configured cutoff time
+        cutoff_time = current_time - settings.rate_limit_cleanup_cutoff
         
         expired_clients = []
         for client_key, client_data in self.client_data.items():
@@ -362,7 +362,7 @@ class AuthRateLimitMiddleware(BaseHTTPMiddleware):
         
         self.logger.warning(
             f"Rate limit violation: {request.method} {request.url.path} | "
-            f"IP: {client_ip} | User-Agent: {user_agent[:100]} | "
+            f"IP: {client_ip} | User-Agent: {user_agent[:settings.rate_limit_user_agent_length]} | "
             f"Retry-After: {retry_after}s | Data: {violation_data}"
         )
 

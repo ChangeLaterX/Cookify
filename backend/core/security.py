@@ -38,7 +38,7 @@ class SecuritySchemes:
 
 def generate_secret_key() -> str:
     """Generate a secure random secret key."""
-    return secrets.token_urlsafe(32)
+    return secrets.token_urlsafe(settings.security_token_length)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -53,7 +53,7 @@ def get_password_hash(password: str) -> str:
 
 def generate_token() -> str:
     """Generate a secure random token."""
-    return secrets.token_urlsafe(32)
+    return secrets.token_urlsafe(settings.security_token_length)
 
 
 def hash_token(token: str) -> str:

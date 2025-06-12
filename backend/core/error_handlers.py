@@ -7,6 +7,8 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from core.config import settings
+
 # Function to get request ID
 def get_request_id(request: Request) -> str:
     """Get request ID from request state."""
@@ -76,7 +78,7 @@ def setup_error_handlers(app: FastAPI) -> None:
                 "request_id": request_id,
                 "status_code": exc.status_code
             },
-            headers={"Retry-After": "60"}
+            headers={"Retry-After": str(settings.http_retry_after_default)}
         )
     
     @app.exception_handler(ValidationError)
@@ -135,12 +137,12 @@ def setup_error_handlers(app: FastAPI) -> None:
         logger.warning(f"Validation error (Request ID: {request_id}): {str(exc)}")
         
         return JSONResponse(
-            status_code=422,
+            status_code=settings.http_unprocessable_entity,
             content={
                 "error": "validation_error",
                 "message": exc.errors(),
                 "request_id": request_id,
-                "status_code": 422
+                "status_code": settings.http_unprocessable_entity
             }
         )
 
@@ -151,12 +153,12 @@ def setup_error_handlers(app: FastAPI) -> None:
         logger.exception(f"Unhandled exception (Request ID: {request_id}): {str(exc)}")
         
         return JSONResponse(
-            status_code=500,
+            status_code=settings.http_internal_server_error,
             content={
                 "error": "internal_server_error",
                 "message": "An unexpected error occurred. Please try again later.",
                 "request_id": request_id,
-                "status_code": 500
+                "status_code": settings.http_internal_server_error
             }
         )
     

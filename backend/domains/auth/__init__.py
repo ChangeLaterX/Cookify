@@ -33,7 +33,7 @@ from .services import (
 )
 from .routes import router
 
-__all__ = [
+__all__: list[str] = [
     # Models
     "User",
     "UserProfile",
