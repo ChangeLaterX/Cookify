@@ -17,17 +17,17 @@ if [ ! -f ".env" ]; then
     cp .env.example .env
     echo "📝 Please edit the .env file with your Supabase credentials:"
     echo "   - SUPABASE_URL"
-    echo "   - SUPABASE_ANON_KEY"
+    echo "   - SUPABASE_KEY"
     echo ""
     read -p "Press Enter once you have configured the .env file..."
 fi
 
 # Build and start containers
 echo "🔨 Building Docker Image..."
-docker-compose build
+docker compose build
 
 echo "🚀 Starting Cookify API..."
-docker-compose up -d
+docker compose up -d
 
 echo ""
 echo "✅ Cookify API is now running!"
@@ -36,7 +36,7 @@ echo "📋 Health Check: http://localhost:8000/health"
 echo "📖 API Docs: http://localhost:8000/docs"
 echo ""
 echo "📊 Container Status:"
-docker-compose ps
+docker compose ps
 
 echo ""
 echo "📝 Useful Commands:"
