@@ -7,7 +7,7 @@ echo "🛑 Stopping Cookify Backend..."
 cd "$(dirname "$0")"
 
 # Stop and remove containers
-docker-compose down
+docker  compose down
 
 echo "✅ Cookify Backend stopped!"
 echo ""
