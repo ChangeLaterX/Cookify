@@ -2,7 +2,6 @@
 Authentication Middleware for FastAPI.
 Provides automatic user context injection and request/response processing.
 """
-import logging
 import time
 from typing import Optional, Dict, Any
 from uuid import UUID
@@ -14,8 +13,9 @@ from starlette.responses import JSONResponse
 from domains.auth.services import get_current_user as get_user_from_token, AuthenticationError
 from domains.auth.schemas import AuthUser
 from core.config import settings
+from core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class AuthContextMiddleware(BaseHTTPMiddleware):
@@ -32,7 +32,9 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
     
     def __init__(self, app):
         super().__init__(app)
-        self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
+        import logging
+        from core.logging import get_logger
+        self.logger = get_logger(f"{__name__}.{self.__class__.__name__}")
         
         # Endpoints that don't require authentication
         self.public_endpoints = {

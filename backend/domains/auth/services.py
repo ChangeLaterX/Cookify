@@ -57,7 +57,9 @@ class AuthService:
 
     def __init__(self):
         self.supabase: Client = get_supabase_client()
-        self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
+        # Verwende den verbesserten strukturierten Logger
+        from core.logging import get_logger
+        self.logger = get_logger(f"{__name__}.{self.__class__.__name__}")
 
     async def register_user(self, user_data: UserCreate) -> TokenResponse:
         """

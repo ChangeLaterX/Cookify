@@ -16,9 +16,9 @@ def main():
     logger = logging.getLogger(__name__)
     
     logger.info("=== Rate Limiting Debug Information ===")
-    logger.debug(f"Debug mode: {settings.debug}")
-    logger.debug(f"Environment: {settings.environment}")
-    logger.debug(f"Rate limiting enabled (base): {settings.rate_limiting_enabled}")
+    logger.debug(f"Debug mode: {settings.DEBUG}")
+    logger.debug(f"Environment: {settings.ENVIRONMENT}")
+    logger.debug(f"Rate limiting enabled (base): {settings.RATE_LIMITING_ENABLED}")
     logger.debug(f"Rate limiting enabled (safe): {settings.rate_limiting_enabled_safe}")
     logger.debug(f"Is production: {settings.is_production}")
     logger.debug(f"Is development: {settings.is_development}")
@@ -28,10 +28,10 @@ def main():
     
     # Test the property logic manually
     logger.info("=== Manual Property Test ===")
-    if settings.debug:
+    if settings.DEBUG:
         expected_rate_limiting = False
     else:
-        expected_rate_limiting = settings.rate_limiting_enabled
+        expected_rate_limiting = settings.RATE_LIMITING_ENABLED
     
     logger.debug(f"Expected rate_limiting_enabled_safe: {expected_rate_limiting}")
     logger.debug(f"Actual rate_limiting_enabled_safe: {settings.rate_limiting_enabled_safe}")

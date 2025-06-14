@@ -15,8 +15,8 @@ class SupabaseService:
         """Lazy loading of the Supabase client."""
         if self._client is None:
             self._client = create_client(
-                settings.supabase_url,
-                settings.supabase_anon_key
+                settings.SUPABASE_URL,
+                settings.SUPABASE_KEY
             )
         return self._client
     

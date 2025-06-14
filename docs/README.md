@@ -9,6 +9,9 @@ This directory contains comprehensive documentation for the Cookify meal plannin
 - **[Authentication API](./auth-api.md)** - Detailed documentation for all authentication endpoints
 - **[Ingredients API](./ingredients-api.md)** - Complete documentation for ingredients master data endpoints
 
+### Developer Guides
+- **[Logging Guide](../backend/docs/logging_guide.md)** - Best practices and standards for logging in the application
+
 ### Quick Start Guides
 - [Getting Started](#getting-started)
 - [Authentication Flow](#authentication-flow)

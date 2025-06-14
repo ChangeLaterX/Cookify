@@ -50,7 +50,8 @@ from .services import (
 )
 from middleware.security import get_current_user, get_optional_user
 
-logger: logging.Logger = logging.getLogger(__name__)
+from core.logging import get_logger
+logger = get_logger(__name__)
 
 # Create router for auth endpoints
 router = APIRouter(prefix="/auth", tags=["Authentication"])

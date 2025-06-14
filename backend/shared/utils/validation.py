@@ -18,11 +18,11 @@ def is_valid_email(email: str) -> bool:
     """Validate email address format."""
     try:
         # Additional length and character validation from settings
-        if not email or len(email) > settings.email_max_length or len(email) < settings.email_min_length:
+        if not email or len(email) > settings.EMAIL_MAX_LENGTH or len(email) < settings.EMAIL_MIN_LENGTH:
             return False
         
         # Check for dangerous characters from settings
-        if any(char in email for char in settings.email_dangerous_chars):
+        if any(char in email for char in settings.EMAIL_DANGEROUS_CHARS):
             return False
             
         # Use email_validator but allow test domains
@@ -34,11 +34,11 @@ def is_valid_email(email: str) -> bool:
 
 def is_valid_uuid(uuid_string: str) -> bool:
     """Validate UUID format."""
-    if not uuid_string or len(uuid_string) != settings.uuid_length:
+    if not uuid_string or len(uuid_string) != settings.UUID_LENGTH:
         return False
         
     uuid_pattern = re.compile(
-        settings.uuid_pattern,
+        settings.UUID_PATTERN,
         re.IGNORECASE
     )
     return bool(uuid_pattern.match(uuid_string))
@@ -61,11 +61,11 @@ def sanitize_string(text: str, max_length: Optional[int] = None, allow_html: Opt
         return ""
     
     # Use configuration defaults if not provided
-    max_length = max_length if max_length is not None else settings.input_max_string_length
-    allow_html = allow_html if allow_html is not None else not settings.input_html_escape_by_default
+    max_length = max_length if max_length is not None else settings.INPUT_MAX_STRING_LENGTH
+    allow_html = allow_html if allow_html is not None else not settings.INPUT_HTML_ESCAPE_BY_DEFAULT
     
     # Remove leading/trailing whitespace if configured
-    if settings.input_strip_whitespace:
+    if settings.INPUT_STRIP_WHITESPACE:
         sanitized = text.strip()
     else:
         sanitized = text
@@ -75,9 +75,9 @@ def sanitize_string(text: str, max_length: Optional[int] = None, allow_html: Opt
         sanitized = html.escape(sanitized)
     
     # Remove dangerous characters if configured
-    if settings.input_forbidden_control_chars:
+    if settings.INPUT_FORBIDDEN_CONTROL_CHARS:
         sanitized = sanitized.replace('\x00', '')  # Remove null bytes
-        sanitized = re.sub(settings.control_chars_pattern, '', sanitized)  # Remove control characters
+        sanitized = re.sub(settings.CONTROL_CHARS_PATTERN, '', sanitized)  # Remove control characters
     
     # Truncate if max_length is specified
     if max_length and len(sanitized) > max_length:
@@ -94,9 +94,9 @@ def sanitize_url(url: str, allowed_schemes: Optional[List[str]] = None,
         return ""
     
     # Use configuration defaults if not provided
-    allowed_schemes = allowed_schemes if allowed_schemes is not None else settings.url_allowed_schemes
-    allowed_domains = allowed_domains if allowed_domains is not None else settings.url_allowed_domains
-    allow_localhost = allow_localhost if allow_localhost is not None else settings.url_allow_localhost
+    allowed_schemes = allowed_schemes if allowed_schemes is not None else settings.URL_ALLOWED_SCHEMES
+    allowed_domains = allowed_domains if allowed_domains is not None else settings.URL_ALLOWED_DOMAINS
+    allow_localhost = allow_localhost if allow_localhost is not None else settings.URL_ALLOW_LOCALHOST
     
     url = url.strip()
     
