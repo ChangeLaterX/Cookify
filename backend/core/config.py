@@ -351,6 +351,61 @@ class Settings(BaseSettings):
         "green", "yellow", "orange", "purple", "pink", "silver", "gold"
     ]
 
+    # Health Monitoring Settings
+    # Configuration for health check endpoints and monitoring system
+    HEALTH_MONITORING_ENABLED: bool = True  # Enable health monitoring system
+    HEALTH_SYSTEM_MONITORING_ENABLED: bool = True  # Enable system resource monitoring
+    HEALTH_PERFORMANCE_METRICS_ENABLED: bool = True  # Enable performance metrics collection
+    HEALTH_EXTERNAL_SERVICE_CHECKS_ENABLED: bool = True  # Enable external service checks
+
+    # Health Check Timeouts (milliseconds)
+    HEALTH_DATABASE_QUERY_TIMEOUT: int = 5000  # Database health check timeout
+    HEALTH_DATABASE_CONNECTION_TIMEOUT: int = 3000  # Database connection timeout
+    HEALTH_AUTH_CHECK_TIMEOUT: int = 2000  # Authentication service timeout
+    HEALTH_INGREDIENTS_QUERY_TIMEOUT: int = 3000  # Ingredients service timeout
+    HEALTH_RECEIPT_OCR_CHECK_TIMEOUT: int = 1000  # Receipt OCR check timeout
+    HEALTH_OVERALL_CHECK_TIMEOUT: int = 30  # Overall health check timeout (seconds)
+
+    # Response Time Thresholds (milliseconds)
+    HEALTH_RESPONSE_TIME_WARNING: int = 1000  # Warning threshold for response times
+    HEALTH_RESPONSE_TIME_CRITICAL: int = 5000  # Critical threshold for response times
+
+    # System Resource Thresholds (percentages)
+    HEALTH_MEMORY_USAGE_WARNING: float = 80.0  # Memory usage warning threshold
+    HEALTH_MEMORY_USAGE_CRITICAL: float = 95.0  # Memory usage critical threshold
+    HEALTH_CPU_USAGE_WARNING: float = 80.0  # CPU usage warning threshold
+    HEALTH_CPU_USAGE_CRITICAL: float = 95.0  # CPU usage critical threshold
+    HEALTH_DISK_USAGE_WARNING: float = 85.0  # Disk usage warning threshold
+    HEALTH_DISK_USAGE_CRITICAL: float = 95.0  # Disk usage critical threshold
+
+    # Health Check Caching (seconds)
+    HEALTH_DETAILED_CHECK_CACHE_TTL: int = 30  # Cache detailed health checks
+    HEALTH_QUICK_CHECK_CACHE_TTL: int = 10  # Cache quick health checks
+
+    # Health Check Retry Configuration
+    HEALTH_MAX_RETRIES: int = 2  # Maximum retries for failed health checks
+    HEALTH_RETRY_DELAY: float = 0.5  # Delay between retries (seconds)
+    HEALTH_MAX_CONCURRENT_CHECKS: int = 10  # Maximum concurrent health checks
+
+    # Health Metrics Collection
+    HEALTH_METRICS_MAX_RETENTION: int = 1000  # Maximum metrics to retain per service
+    HEALTH_ALERT_RETENTION_HOURS: int = 24  # Hours to retain alert history
+    HEALTH_METRICS_CLEANUP_INTERVAL: int = 3600  # Cleanup interval (seconds)
+
+    # Health Alert Thresholds
+    HEALTH_CONSECUTIVE_FAILURES_ALERT: int = 3  # Alert after N consecutive failures
+    HEALTH_DEGRADED_SERVICES_ALERT_PERCENT: float = 50.0  # Alert if >50% services degraded
+    HEALTH_ALERT_COOLDOWN_MINUTES: int = 15  # Cooldown between similar alerts
+
+    # Health Check Service Names
+    HEALTH_SERVICE_NAMES: List[str] = ["auth", "ingredients", "receipt", "database", "system"]
+
+    # Health Endpoint Settings
+    HEALTH_ENDPOINT_PREFIX: str = "/health"  # Health endpoints prefix
+    HEALTH_INCLUDE_SYSTEM_INFO: bool = True  # Include system info in detailed checks
+    HEALTH_INCLUDE_PERFORMANCE_METRICS: bool = True  # Include performance metrics
+    HEALTH_MASK_SENSITIVE_INFO: bool = True  # Mask sensitive information in health responses
+
     # Common Password Substitutions
     COMMON_PASSWORD_SUBSTITUTIONS: List[Tuple[str, str]] = [
         ("password", "p4ssw0rd"), ("password", "passw0rd"), ("password", "p@ssword"),

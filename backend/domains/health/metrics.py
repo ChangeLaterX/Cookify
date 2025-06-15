@@ -7,11 +7,12 @@ import time
 import logging
 from collections import deque, defaultdict
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Deque
+from typing import Dict, List, Optional, Deque, Any
 from datetime import datetime, timedelta
 from enum import Enum
 
 from .schemas import ServiceStatus, ServiceHealthStatus, DetailedHealthResponse
+from core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +54,7 @@ class ServiceMetrics:
     failed_checks: int = 0
     avg_response_time: float = 0.0
     max_response_time: int = 0
-    min_response_time: int = float('inf')
+    min_response_time: int = 999999  # Use large int instead of float('inf')
     uptime_percentage: float = 100.0
     last_check: Optional[datetime] = None
     last_failure: Optional[datetime] = None
@@ -64,24 +65,24 @@ class ServiceMetrics:
 class HealthMetricsCollector:
     """Collects and analyzes health metrics over time."""
     
-    def __init__(self, max_metrics: int = 1000, alert_retention_hours: int = 24):
+    def __init__(self, max_metrics: Optional[int] = None, alert_retention_hours: Optional[int] = None):
         """
         Initialize metrics collector.
         
         Args:
-            max_metrics: Maximum number of metrics to retain per service
-            alert_retention_hours: Hours to retain alert history
+            max_metrics: Maximum number of metrics to retain per service (uses settings default)
+            alert_retention_hours: Hours to retain alert history (uses settings default)
         """
-        self.max_metrics = max_metrics
-        self.alert_retention_hours = alert_retention_hours
+        self.max_metrics = max_metrics or settings.HEALTH_METRICS_MAX_RETENTION
+        self.alert_retention_hours = alert_retention_hours or settings.HEALTH_ALERT_RETENTION_HOURS
         
         # Metrics storage: service_name -> deque of HealthMetric
         self.metrics: Dict[str, Deque[HealthMetric]] = defaultdict(
-            lambda: deque(maxlen=max_metrics)
+            lambda: deque(maxlen=self.max_metrics)
         )
         
         # Alert history
-        self.alerts: Deque[HealthAlert] = deque(maxlen=max_metrics)
+        self.alerts: Deque[HealthAlert] = deque(maxlen=self.max_metrics)
         
         # Aggregated service metrics
         self.service_metrics: Dict[str, ServiceMetrics] = {}
@@ -231,7 +232,7 @@ class HealthMetricsCollector:
             if metric.timestamp >= cutoff_time
         ]
     
-    def get_system_overview(self) -> Dict[str, any]:
+    def get_system_overview(self) -> Dict[str, Any]:
         """Get overall system health overview."""
         total_services = len(self.service_metrics)
         healthy_services = sum(

@@ -18,30 +18,31 @@ except ImportError:
     psutil = None  # type: ignore
 
 from .schemas import ServiceHealthStatus, ServiceStatus, HealthResponse, DetailedHealthResponse
+from core.config import settings
 
 logger = logging.getLogger(__name__)
 
 # Global application start time for uptime calculation
 _app_start_time = time.time()
 
-# Health check thresholds
-DATABASE_QUERY_TIMEOUT_MS = 5000  # 5 seconds
-HIGH_RESPONSE_TIME_WARNING_MS = 1000  # 1 second
-MEMORY_USAGE_WARNING_PERCENT = 80
-CPU_USAGE_WARNING_PERCENT = 90
-
 
 class HealthCheckService:
     """Service for performing health checks across all application domains."""
     
     def __init__(self):
-        self.service_checkers = {
-            "auth": self._check_auth_service,
-            "ingredients": self._check_ingredients_service,  
-            "receipt": self._check_receipt_service,
-            "database": self._check_database_connection,
-            "system": self._check_system_resources,
-        }
+        # Use service names from settings
+        self.service_checkers = {}
+        for service_name in settings.HEALTH_SERVICE_NAMES:
+            if service_name == "auth":
+                self.service_checkers[service_name] = self._check_auth_service
+            elif service_name == "ingredients":
+                self.service_checkers[service_name] = self._check_ingredients_service
+            elif service_name == "receipt":
+                self.service_checkers[service_name] = self._check_receipt_service
+            elif service_name == "database":
+                self.service_checkers[service_name] = self._check_database_connection
+            elif service_name == "system":
+                self.service_checkers[service_name] = self._check_system_resources
     
     async def check_all_services(self) -> DetailedHealthResponse:
         """
@@ -281,8 +282,8 @@ class HealthCheckService:
             from core.config import settings
             
             basic_info = {
-                "app_name": "Cookify Backend API",
-                "version": "0.1.0",
+                "app_name": settings.APP_NAME,
+                "version": settings.VERSION,
                 "environment": settings.ENVIRONMENT,
                 "total_check_time_ms": str(total_time_ms),
                 "platform": platform.system(),
@@ -321,8 +322,8 @@ class HealthCheckService:
             logger.warning(f"Failed to collect system metrics: {str(e)}")
             from core.config import settings
             return {
-                "app_name": "Cookify Backend API",
-                "version": "0.1.0",
+                "app_name": settings.APP_NAME,
+                "version": settings.VERSION,
                 "environment": settings.ENVIRONMENT,
                 "total_check_time_ms": str(total_time_ms),
                 "metrics_error": "Failed to collect system metrics"
@@ -351,17 +352,17 @@ class HealthCheckService:
             warnings = []
             
             # Check memory usage
-            if memory.percent > MEMORY_USAGE_WARNING_PERCENT:
+            if memory.percent > settings.HEALTH_MEMORY_USAGE_WARNING:
                 status = ServiceStatus.DEGRADED
                 warnings.append(f"High memory usage: {memory.percent:.1f}%")
             
             # Check CPU usage
-            if cpu_percent > CPU_USAGE_WARNING_PERCENT:
+            if cpu_percent > settings.HEALTH_CPU_USAGE_WARNING:
                 status = ServiceStatus.DEGRADED
                 warnings.append(f"High CPU usage: {cpu_percent:.1f}%")
             
             # Check disk usage
-            if disk_usage.percent > 90:
+            if disk_usage.percent > settings.HEALTH_DISK_USAGE_WARNING:
                 status = ServiceStatus.DEGRADED
                 warnings.append(f"High disk usage: {disk_usage.percent:.1f}%")
             
