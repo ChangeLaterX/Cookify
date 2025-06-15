@@ -93,46 +93,90 @@ class OCRService:
             
             image = Image.open(BytesIO(image_data))
             
-            # Convert to RGB if needed (handles RGBA, grayscale, etc.)
-            if image.mode != 'RGB':
-                image = image.convert('RGB')
+            # Preprocess image for better OCR accuracy
+            image = self._preprocess_image_for_ocr(image)
             
             # Run OCR in a thread pool to avoid blocking
             loop = asyncio.get_event_loop()
             
-            # Extract text with confidence data
+            # Extract text with confidence data using optimized config
             if not pytesseract:
                 raise OCRError("pytesseract not available", "OCR_DEPENDENCIES_MISSING")
+            
+            # Try different OCR configurations for best results
+            configs = [
+                '--psm 6 -c tesseract_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.,$()- ',
+                '--psm 6',  # Assume uniform block of text
+                '--psm 4',  # Assume single column of text
+                '--psm 3',  # Default, fully automatic page segmentation
+            ]
+            
+            best_result = None
+            best_confidence = 0
+            
+            for config in configs:
+                try:
+                    # Extract confidence data
+                    ocr_data = await loop.run_in_executor(
+                        None, 
+                        lambda c=config: pytesseract.image_to_data(  # type: ignore
+                            image, 
+                            output_type=pytesseract.Output.DICT,  # type: ignore
+                            config=c
+                        )
+                    )
+                    
+                    # Extract text
+                    extracted_text = await loop.run_in_executor(
+                        None,
+                        lambda c=config: pytesseract.image_to_string(  # type: ignore
+                            image,
+                            config=c
+                        )
+                    )
+                    
+                    # Calculate average confidence
+                    confidences = [int(conf) for conf in ocr_data['conf'] if int(conf) > 0]
+                    avg_confidence = sum(confidences) / len(confidences) if confidences else 0
+                    
+                    # Keep the best result
+                    if avg_confidence > best_confidence:
+                        best_confidence = avg_confidence
+                        best_result = extracted_text
+                        
+                except Exception as e:
+                    logger.warning(f"OCR config '{config}' failed: {e}")
+                    continue
+            
+            # Fallback if all configs failed
+            if best_result is None:
+                ocr_data = await loop.run_in_executor(
+                    None, 
+                    lambda: pytesseract.image_to_data(  # type: ignore
+                        image, 
+                        output_type=pytesseract.Output.DICT,  # type: ignore
+                        config='--psm 6'
+                    )
+                )
                 
-            ocr_data = await loop.run_in_executor(
-                None, 
-                lambda: pytesseract.image_to_data(  # type: ignore
-                    image, 
-                    output_type=pytesseract.Output.DICT,  # type: ignore
-                    config='--psm 6'  # Assume uniform block of text
+                best_result = await loop.run_in_executor(
+                    None,
+                    lambda: pytesseract.image_to_string(  # type: ignore
+                        image,
+                        config='--psm 6'
+                    )
                 )
-            )
-            
-            # Extract text
-            extracted_text = await loop.run_in_executor(
-                None,
-                lambda: pytesseract.image_to_string(  # type: ignore
-                    image,
-                    config='--psm 6'
-                )
-            )
-            
-            # Calculate average confidence
-            confidences = [int(conf) for conf in ocr_data['conf'] if int(conf) > 0]
-            avg_confidence = sum(confidences) / len(confidences) if confidences else 0
+                
+                confidences = [int(conf) for conf in ocr_data['conf'] if int(conf) > 0]
+                best_confidence = sum(confidences) / len(confidences) if confidences else 0
             
             processing_time_ms = int((time.time() - start_time) * 1000)
             
-            logger.info(f"OCR completed in {processing_time_ms}ms with {avg_confidence:.1f}% confidence")
+            logger.info(f"OCR completed in {processing_time_ms}ms with {best_confidence:.1f}% confidence")
             
             return OCRTextResponse(
-                extracted_text=extracted_text.strip(),
-                confidence=avg_confidence,
+                extracted_text=best_result.strip() if best_result else "",
+                confidence=best_confidence,
                 processing_time_ms=processing_time_ms
             )
             
@@ -142,7 +186,7 @@ class OCRService:
     
     def _extract_receipt_items(self, text: str) -> List[str]:
         """
-        Extract potential food items from receipt text.
+        Extract potential food items from receipt text with improved recognition.
         
         Args:
             text: Raw OCR text
@@ -153,14 +197,49 @@ class OCRService:
         lines = text.split('\n')
         items = []
         
-        # Patterns to identify product lines (basic heuristics)
-        # Skip lines that look like headers, totals, or store info
+        # Enhanced patterns to identify product lines
         skip_patterns = [
-            r'^(total|subtotal|tax|change|receipt|store|address|phone)',
+            # Store info patterns
+            r'^(fresh|market|grocery|store|shop|supermarket)',
+            r'^\d{1,3}\s+(main|street|ave|avenue|road|rd|st|drive|dr)',
+            r'^(anytown|city|town)',
+            r'^tel[:\s]*\(?[\d\s\-\)]+',
+            r'^phone[:\s]*\(?[\d\s\-\)]+',
+            
+            # Receipt metadata patterns
+            r'^receipt\s*[#:]',
+            r'^date[:\s]*\d',
+            r'^time[:\s]*\d',
+            r'^cashier[:\s]*',
+            r'^clerk[:\s]*',
+            r'^register[:\s]*',
+            
+            # Total/summary patterns
+            r'^(sub)?total[:\s]*\$',
+            r'^tax[:\s]*\(?[\d\.%]+',
+            r'^change[:\s]*\$',
+            r'^payment[:\s]*',
+            r'^card[:\s]*',
+            r'^cash[:\s]*',
+            
+            # Footer patterns
+            r'^thank\s+you',
+            r'^have\s+a',
+            r'^visit\s+us',
+            r'^www\.',
+            r'^[\*\-=]{3,}',  # separators
+            
+            # Standalone prices or numbers
+            r'^\$?\d+[.,]\d{2}$',
             r'^\d{1,2}[:/]\d{1,2}[:/]\d{2,4}',  # dates
-            r'^\d+\.\d{2}$',  # standalone prices
-            r'^[*-]{3,}',  # separators
-            r'^(cashier|clerk|thank you)',
+        ]
+        
+        # Patterns that indicate a product line
+        product_indicators = [
+            r'\(\d+\s*(lbs?|lb|pounds?|kg|g|oz|ounces?|bags?|count|ct|pcs?|pieces?)\)',  # quantity in parentheses
+            r'\d+\s*x\s*',  # quantity multiplier
+            r'@\s*\$\d+[.,]\d{2}',  # unit price
+            r'\$\d+[.,]\d{2}\s*$',  # price at end of line
         ]
         
         for line in lines:
@@ -172,16 +251,52 @@ class OCRService:
             if any(re.search(pattern, line.lower()) for pattern in skip_patterns):
                 continue
             
-            # Look for lines that might contain product names
-            # Usually have letters and might have numbers/prices
-            if re.search(r'[a-zA-Z]{3,}', line):
-                # Clean up the line - remove prices and quantities at the end
-                cleaned_line = re.sub(r'\s*\d+[.,]\d{2}\s*$', '', line)  # remove trailing prices
-                cleaned_line = re.sub(r'\s*\d+\s*x\s*$', '', cleaned_line)  # remove quantities
-                cleaned_line = re.sub(r'\s*@\s*\d+[.,]\d{2}\s*$', '', cleaned_line)  # remove unit prices
+            # Look for lines that contain alphabetic characters (potential product names)
+            if not re.search(r'[a-zA-Z]{2,}', line):
+                continue
                 
-                if cleaned_line.strip() and len(cleaned_line.strip()) >= 3:
-                    items.append(cleaned_line.strip())
+            # Check if line has product indicators or looks like a product line
+            has_product_indicator = any(re.search(pattern, line) for pattern in product_indicators)
+            has_letters_and_price = re.search(r'[a-zA-Z].*\$\d+[.,]\d{2}', line)
+            
+            if has_product_indicator or has_letters_and_price:
+                # Clean up the line - remove prices and quantities at the end
+                cleaned_line = line
+                
+                # Remove trailing prices
+                cleaned_line = re.sub(r'\s*\$\d+[.,]\d{2}\s*$', '', cleaned_line)
+                
+                # Remove trailing quantities
+                cleaned_line = re.sub(r'\s*\d+\s*x\s*$', '', cleaned_line)
+                cleaned_line = re.sub(r'\s*@\s*\$\d+[.,]\d{2}\s*$', '', cleaned_line)
+                
+                # Remove quantity indicators in parentheses but keep the text before
+                cleaned_line = re.sub(r'\s*\(\d+\s*(lbs?|lb|pounds?|kg|g|oz|ounces?|bags?|count|ct|pcs?|pieces?)\)\s*', ' ', cleaned_line)
+                
+                # Clean up extra whitespace and common OCR artifacts
+                cleaned_line = re.sub(r'\s+', ' ', cleaned_line)  # normalize whitespace
+                cleaned_line = re.sub(r'[^\w\s\-\']', ' ', cleaned_line)  # remove special chars except useful ones
+                cleaned_line = cleaned_line.strip()
+                
+                if cleaned_line and len(cleaned_line) >= 3:
+                    # Additional filtering for common food items
+                    food_keywords = [
+                        'tomato', 'onion', 'garlic', 'pepper', 'carrot', 'potato', 'spinach',
+                        'banana', 'apple', 'orange', 'lemon', 'lime', 'berry', 'grape',
+                        'chicken', 'beef', 'pork', 'fish', 'salmon', 'tuna', 'turkey',
+                        'milk', 'cheese', 'egg', 'butter', 'yogurt', 'cream',
+                        'bread', 'rice', 'pasta', 'flour', 'cereal', 'oat',
+                        'oil', 'salt', 'pepper', 'spice', 'herb', 'basil', 'oregano',
+                        'bean', 'lentil', 'nut', 'almond', 'walnut',
+                        'lettuce', 'cabbage', 'broccoli', 'cauliflower', 'mushroom'
+                    ]
+                    
+                    # Check if the item contains food-related keywords
+                    contains_food_keyword = any(keyword in cleaned_line.lower() for keyword in food_keywords)
+                    
+                    # Add if it contains food keywords or if it looks like a food item
+                    if contains_food_keyword or len(cleaned_line.split()) <= 4:  # Short items are likely products
+                        items.append(cleaned_line)
         
         return items
     
@@ -266,13 +381,22 @@ class OCRService:
             # Process each item and find ingredient suggestions
             processed_items = []
             for item_text in raw_items:
+                # Extract quantity, unit, and price
+                quantity, unit, price = self._extract_quantity_and_price(item_text)
+                
+                # Find ingredient suggestions
                 suggestions = await self._find_ingredient_suggestions(item_text)
                 
+                # Clean product name for better matching
+                clean_name = re.sub(r'\s*\$\d+[.,]\d{2}\s*$', '', item_text)  # remove price
+                clean_name = re.sub(r'\s*\(\d+.*?\)\s*', ' ', clean_name)  # remove quantity info
+                clean_name = re.sub(r'\s+', ' ', clean_name).strip()  # normalize whitespace
+                
                 receipt_item = ReceiptItem(
-                    detected_text=item_text,
-                    quantity=None,
-                    unit=None,
-                    price=None,
+                    detected_text=clean_name,
+                    quantity=quantity,
+                    unit=unit,
+                    price=price,
                     suggestions=suggestions
                 )
                 processed_items.append(receipt_item)
@@ -293,6 +417,135 @@ class OCRService:
         except Exception as e:
             logger.error(f"Receipt processing failed: {str(e)}")
             raise OCRError(f"Failed to process receipt: {str(e)}", "RECEIPT_PROCESSING_FAILED")
+    
+    def _preprocess_image_for_ocr(self, image):
+        """
+        Preprocess image to improve OCR accuracy with balanced techniques.
+        
+        Args:
+            image: PIL Image object
+            
+        Returns:
+            Preprocessed PIL Image
+        """
+        try:
+            # Convert to RGB if needed
+            if image.mode != 'RGB':
+                image = image.convert('RGB')
+            
+            # Convert to grayscale for better OCR performance
+            gray_image = image.convert('L')
+            
+            # Balanced image enhancement pipeline
+            from PIL import ImageEnhance, ImageFilter
+            
+            # Step 1: Moderate contrast enhancement
+            contrast_enhancer = ImageEnhance.Contrast(gray_image)
+            enhanced_image = contrast_enhancer.enhance(1.3)  # Moderate contrast boost
+            
+            # Step 2: Moderate sharpening
+            sharpness_enhancer = ImageEnhance.Sharpness(enhanced_image)
+            sharpened_image = sharpness_enhancer.enhance(1.5)  # Light sharpening
+            
+            # Step 3: Noise reduction with very light blur
+            denoised = sharpened_image.filter(ImageFilter.GaussianBlur(radius=0.3))
+            
+            # Step 4: Final light sharpening
+            final_sharp = denoised.filter(ImageFilter.UnsharpMask(radius=1, percent=150, threshold=3))
+            
+            # Step 5: Scale image if it's too small (tesseract works better with larger images)
+            width, height = final_sharp.size
+            min_dimension = 800  # Reasonable minimum for good OCR
+            
+            if width < min_dimension or height < min_dimension:
+                # Calculate scale factor
+                scale_factor = max(min_dimension / width, min_dimension / height)
+                new_width = int(width * scale_factor)
+                new_height = int(height * scale_factor)
+                
+                # Use LANCZOS for high quality upscaling
+                if hasattr(Image, 'Resampling'):
+                    final_sharp = final_sharp.resize((new_width, new_height), Image.Resampling.LANCZOS)
+                else:
+                    # Fallback for older PIL versions
+                    final_sharp = final_sharp.resize((new_width, new_height), Image.LANCZOS)
+                logger.info(f"Upscaled image from {width}x{height} to {new_width}x{new_height}")
+            
+            # Convert back to RGB for tesseract compatibility
+            processed_image = final_sharp.convert('RGB')
+            
+            logger.info("Image preprocessing completed successfully")
+            return processed_image
+            
+        except Exception as e:
+            logger.warning(f"Image preprocessing failed, using basic preprocessing: {str(e)}")
+            # Fallback to basic preprocessing
+            try:
+                if image.mode != 'RGB':
+                    image = image.convert('RGB')
+                
+                # Very basic enhancement
+                from PIL import ImageEnhance
+                enhancer = ImageEnhance.Contrast(image)
+                enhanced = enhancer.enhance(1.2)
+                
+                return enhanced
+            except Exception as e2:
+                logger.warning(f"Basic preprocessing also failed, using original: {str(e2)}")
+                return image.convert('RGB') if image.mode != 'RGB' else image
+    
+    def _extract_quantity_and_price(self, item_text: str) -> Tuple[Optional[float], Optional[str], Optional[float]]:
+        """
+        Extract quantity, unit, and price from receipt item text.
+        
+        Args:
+            item_text: Raw receipt item text
+            
+        Returns:
+            Tuple of (quantity, unit, price)
+        """
+        quantity = None
+        unit = None
+        price = None
+        
+        try:
+            # Extract price (at the end of line)
+            price_match = re.search(r'\$(\d+[.,]\d{2})', item_text)
+            if price_match:
+                price_str = price_match.group(1).replace(',', '.')
+                price = float(price_str)
+            
+            # Extract quantity and unit patterns
+            quantity_patterns = [
+                r'\((\d+(?:[.,]\d+)?)\s*(lbs?|lb|pounds?|kg|g|oz|ounces?|bags?|count|ct|pcs?|pieces?|gallon|l|ml|liters?)\)',
+                r'(\d+(?:[.,]\d+)?)\s*(lbs?|lb|pounds?|kg|g|oz|ounces?|bags?|count|ct|pcs?|pieces?|gallon|l|ml|liters?)',
+                r'\((\d+)\)',  # just number in parentheses
+            ]
+            
+            for pattern in quantity_patterns:
+                match = re.search(pattern, item_text, re.IGNORECASE)
+                if match:
+                    quantity_str = match.group(1).replace(',', '.')
+                    quantity = float(quantity_str)
+                    if len(match.groups()) > 1:
+                        unit = match.group(2).lower()
+                    break
+            
+            # Normalize units
+            if unit:
+                unit_mapping = {
+                    'lbs': 'lb', 'pounds': 'lb', 'pound': 'lb',
+                    'ounces': 'oz', 'ounce': 'oz',
+                    'pieces': 'pcs', 'piece': 'pcs',
+                    'bags': 'bag', 'counts': 'count',
+                    'liters': 'l', 'liter': 'l'
+                }
+                unit = unit_mapping.get(unit, unit)
+            
+        except (ValueError, AttributeError) as e:
+            logger.debug(f"Error extracting quantity/price from '{item_text}': {e}")
+        
+        return quantity, unit, price
 
 
 # Create global service instance
