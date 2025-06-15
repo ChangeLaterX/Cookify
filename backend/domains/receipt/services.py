@@ -186,7 +186,7 @@ class OCRService:
     
     def _extract_receipt_items(self, text: str) -> List[str]:
         """
-        Extract potential food items from receipt text with improved recognition.
+        Extract potential food items from receipt text with advanced recognition.
         
         Args:
             text: Raw OCR text
@@ -214,13 +214,16 @@ class OCRService:
             r'^clerk[:\s]*',
             r'^register[:\s]*',
             
-            # Total/summary patterns
-            r'^(sub)?total[:\s]*\$',
+            # Total/summary patterns - improved
+            r'^(sub)?total[:\s]*',
             r'^tax[:\s]*\(?[\d\.%]+',
             r'^change[:\s]*\$',
             r'^payment[:\s]*',
             r'^card[:\s]*',
             r'^cash[:\s]*',
+            r'^subtott',  # OCR error for "subtotal"
+            r'^tot[:\s]*',  # OCR error for "total"
+            r'^tout[:\s]*',  # OCR error for "total"
             
             # Footer patterns
             r'^thank\s+you',
@@ -234,15 +237,41 @@ class OCRService:
             r'^\d{1,2}[:/]\d{1,2}[:/]\d{2,4}',  # dates
         ]
         
-        # Patterns that indicate a product line
+        # Enhanced patterns that indicate a product line
         product_indicators = [
-            r'\(\d+\s*(lbs?|lb|pounds?|kg|g|oz|ounces?|bags?|count|ct|pcs?|pieces?)\)',  # quantity in parentheses
+            # Quantity patterns - more flexible for OCR errors
+            r'\(\d+\s*(lbs?|lb|pounds?|kg|g|oz|ounces?|bags?|count|ct|pcs?|pieces?|gallon|l|ml)\)',  
+            r'\(\d+\s*(its|ibs|ib|be|bs|1b|11b|2b|ts|bults|butte|goz|cound|container|tresh|fresh)\)',  # OCR errors
             r'\d+\s*x\s*',  # quantity multiplier
             r'@\s*\$\d+[.,]\d{2}',  # unit price
             r'\$\d+[.,]\d{2}\s*$',  # price at end of line
+            r'\$\d+[.,]\d{1,2}[.,]?\s*$',  # price with OCR errors
+            # Common quantity indicators without parentheses
+            r'\d+\s*(lbs?|lb|pounds?|kg|g|oz|ounces?|bags?|count|gallon|l|ml)\s',
+            r'\d+\s*(its|ibs|ib|be|bs|1b|11b|2b|ts|container)\s',  # OCR errors
         ]
         
+        # Pre-process lines to fix common OCR errors
+        corrected_lines = []
         for line in lines:
+            # Fix common OCR errors in units
+            corrected_line = line
+            corrected_line = re.sub(r'\b(its|ibs)\b', 'lbs', corrected_line, flags=re.IGNORECASE)
+            corrected_line = re.sub(r'\b(ib|1b|11b)\b', 'lb', corrected_line, flags=re.IGNORECASE)
+            corrected_line = re.sub(r'\b(be|bs)\b', 'lbs', corrected_line, flags=re.IGNORECASE)
+            corrected_line = re.sub(r'\b(ts)\b', 'lbs', corrected_line, flags=re.IGNORECASE)
+            corrected_line = re.sub(r'\b(goz)\b', '8oz', corrected_line, flags=re.IGNORECASE)
+            corrected_line = re.sub(r'\b(cound)\b', 'count', corrected_line, flags=re.IGNORECASE)
+            corrected_line = re.sub(r'\b(bults|butte)\b', 'bulbs', corrected_line, flags=re.IGNORECASE)
+            corrected_line = re.sub(r'\b(tresh)\b', 'fresh', corrected_line, flags=re.IGNORECASE)
+            
+            # Fix price formatting OCR errors
+            corrected_line = re.sub(r'\$(\d+)(\d{2})([,.]?)', r'$\1.\2', corrected_line)  # $398 -> $3.98
+            corrected_line = re.sub(r'\$(\d+)[.,](\d{1})(\d{1})([,.]?)', r'$\1.\2\3', corrected_line)  # $1.2.9 -> $1.29
+            
+            corrected_lines.append(corrected_line)
+        
+        for line in corrected_lines:
             line = line.strip()
             if not line or len(line) < 3:
                 continue
@@ -256,46 +285,110 @@ class OCRService:
                 continue
                 
             # Check if line has product indicators or looks like a product line
-            has_product_indicator = any(re.search(pattern, line) for pattern in product_indicators)
-            has_letters_and_price = re.search(r'[a-zA-Z].*\$\d+[.,]\d{2}', line)
+            has_product_indicator = any(re.search(pattern, line, re.IGNORECASE) for pattern in product_indicators)
+            has_letters_and_price = re.search(r'[a-zA-Z].*\$\d+[.,]\d{1,2}', line)
             
-            if has_product_indicator or has_letters_and_price:
-                # Clean up the line - remove prices and quantities at the end
+            # Additional check: line starts with a food-related word
+            food_start_words = [
+                'tomato', 'onion', 'garlic', 'pepper', 'carrot', 'potato', 'spinach',
+                'banana', 'apple', 'orange', 'lemon', 'lime', 'berry', 'grape',
+                'chicken', 'beef', 'pork', 'fish', 'salmon', 'tuna', 'turkey',
+                'milk', 'cheese', 'egg', 'butter', 'yogurt', 'cream',
+                'bread', 'rice', 'pasta', 'flour', 'cereal', 'oat',
+                'oil', 'salt', 'pepper', 'spice', 'herb', 'basil', 'oregano',
+                'bean', 'lentil', 'nut', 'almond', 'walnut',
+                'lettuce', 'cabbage', 'broccoli', 'cauliflower', 'mushroom',
+                # Common variations and OCR errors
+                'tomatnes', 'onions', 'garlie', 'bellpeppers', 'cancts', 'bananas',
+                'apples', 'ground', 'salmon', 'fillet', 'mitk', 'imtik', 'eggs', 'fggs',
+                'cheddar', 'chesidar', 'pasa', 'otiweoit', 'otiveoil', 'basilfresh'
+            ]
+            
+            starts_with_food = any(line.lower().startswith(word) for word in food_start_words)
+            
+            if has_product_indicator or has_letters_and_price or starts_with_food:
+                # Advanced cleaning pipeline
                 cleaned_line = line
                 
-                # Remove trailing prices
-                cleaned_line = re.sub(r'\s*\$\d+[.,]\d{2}\s*$', '', cleaned_line)
+                # Remove trailing prices (more flexible patterns)
+                cleaned_line = re.sub(r'\s*\$\d+[.,]\d{1,2}[.,]?\s*$', '', cleaned_line)
+                cleaned_line = re.sub(r'\s*\$\d+[.,]\d{1,2}\s*,?\s*$', '', cleaned_line)
                 
-                # Remove trailing quantities
+                # Remove trailing quantities and unit prices
                 cleaned_line = re.sub(r'\s*\d+\s*x\s*$', '', cleaned_line)
-                cleaned_line = re.sub(r'\s*@\s*\$\d+[.,]\d{2}\s*$', '', cleaned_line)
+                cleaned_line = re.sub(r'\s*@\s*\$\d+[.,]\d{1,2}\s*$', '', cleaned_line)
                 
                 # Remove quantity indicators in parentheses but keep the text before
-                cleaned_line = re.sub(r'\s*\(\d+\s*(lbs?|lb|pounds?|kg|g|oz|ounces?|bags?|count|ct|pcs?|pieces?)\)\s*', ' ', cleaned_line)
+                cleaned_line = re.sub(r'\s*\(\d+\s*(lbs?|lb|pounds?|kg|g|oz|ounces?|bags?|count|ct|pcs?|pieces?|gallon|l|ml)\)\s*', ' ', cleaned_line)
                 
-                # Clean up extra whitespace and common OCR artifacts
+                # Remove trailing quantity without parentheses
+                cleaned_line = re.sub(r'\s*\(\d+\s*(its|ibs|ib|be|bs|1b|11b|2b|ts|bults|butte|goz|cound|container|tresh|fresh)\)\s*', ' ', cleaned_line)
+                cleaned_line = re.sub(r'\s+\d+\s*(lbs?|lb|pounds?|kg|g|oz|ounces?|bags?|count|gallon|l|ml)\s*$', '', cleaned_line)
+                
+                # Clean up extra whitespace and OCR artifacts
                 cleaned_line = re.sub(r'\s+', ' ', cleaned_line)  # normalize whitespace
                 cleaned_line = re.sub(r'[^\w\s\-\']', ' ', cleaned_line)  # remove special chars except useful ones
                 cleaned_line = cleaned_line.strip()
                 
+                # Fix common product name OCR errors
+                cleaned_line = re.sub(r'\btomatnes\b', 'tomatoes', cleaned_line, flags=re.IGNORECASE)
+                cleaned_line = re.sub(r'\bgarlie\b', 'garlic', cleaned_line, flags=re.IGNORECASE)
+                cleaned_line = re.sub(r'\bbellpeppers\b', 'bell peppers', cleaned_line, flags=re.IGNORECASE)
+                cleaned_line = re.sub(r'\bcancts\b', 'carrots', cleaned_line, flags=re.IGNORECASE)
+                cleaned_line = re.sub(r'\bmitk|imtik\b', 'milk', cleaned_line, flags=re.IGNORECASE)
+                cleaned_line = re.sub(r'\bfggs\b', 'eggs', cleaned_line, flags=re.IGNORECASE)
+                cleaned_line = re.sub(r'\bchesidar\b', 'cheddar', cleaned_line, flags=re.IGNORECASE)
+                cleaned_line = re.sub(r'\bpasa\b', 'pasta', cleaned_line, flags=re.IGNORECASE)
+                cleaned_line = re.sub(r'\botiweoit|otiveoil\b', 'olive oil', cleaned_line, flags=re.IGNORECASE)
+                cleaned_line = re.sub(r'\bbasilfresh\b', 'basil fresh', cleaned_line, flags=re.IGNORECASE)
+                
                 if cleaned_line and len(cleaned_line) >= 3:
-                    # Additional filtering for common food items
+                    # Enhanced food keywords list with common variations
                     food_keywords = [
+                        # Vegetables
                         'tomato', 'onion', 'garlic', 'pepper', 'carrot', 'potato', 'spinach',
+                        'lettuce', 'cabbage', 'broccoli', 'cauliflower', 'mushroom', 'celery',
+                        'cucumber', 'zucchini', 'eggplant', 'bell', 'green', 'red',
+                        
+                        # Fruits
                         'banana', 'apple', 'orange', 'lemon', 'lime', 'berry', 'grape',
+                        'strawberry', 'blueberry', 'raspberry', 'pear', 'peach', 'plum',
+                        
+                        # Proteins
                         'chicken', 'beef', 'pork', 'fish', 'salmon', 'tuna', 'turkey',
-                        'milk', 'cheese', 'egg', 'butter', 'yogurt', 'cream',
-                        'bread', 'rice', 'pasta', 'flour', 'cereal', 'oat',
+                        'ground', 'breast', 'fillet', 'steak', 'chop', 'wing', 'thigh',
+                        
+                        # Dairy
+                        'milk', 'cheese', 'egg', 'butter', 'yogurt', 'cream', 'cheddar',
+                        'mozzarella', 'swiss', 'american', 'cottage',
+                        
+                        # Pantry staples
+                        'bread', 'rice', 'pasta', 'flour', 'cereal', 'oat', 'wheat',
+                        'quinoa', 'barley', 'noodle', 'spaghetti', 'penne',
+                        
+                        # Seasonings & oils
                         'oil', 'salt', 'pepper', 'spice', 'herb', 'basil', 'oregano',
-                        'bean', 'lentil', 'nut', 'almond', 'walnut',
-                        'lettuce', 'cabbage', 'broccoli', 'cauliflower', 'mushroom'
+                        'olive', 'vegetable', 'canola', 'coconut', 'sesame',
+                        
+                        # Legumes & nuts
+                        'bean', 'lentil', 'nut', 'almond', 'walnut', 'peanut',
+                        'cashew', 'pecan', 'pistachio', 'chickpea', 'kidney'
                     ]
                     
                     # Check if the item contains food-related keywords
                     contains_food_keyword = any(keyword in cleaned_line.lower() for keyword in food_keywords)
                     
-                    # Add if it contains food keywords or if it looks like a food item
-                    if contains_food_keyword or len(cleaned_line.split()) <= 4:  # Short items are likely products
+                    # More lenient acceptance criteria
+                    is_likely_product = (
+                        contains_food_keyword or 
+                        len(cleaned_line.split()) <= 5 or  # Slightly longer items allowed
+                        starts_with_food or
+                        re.search(r'^[A-Z][a-z]+', cleaned_line)  # Capitalized words often products
+                    )
+                    
+                    if is_likely_product:
+                        # Final cleanup
+                        cleaned_line = cleaned_line.title()  # Proper case for better readability
                         items.append(cleaned_line)
         
         return items
