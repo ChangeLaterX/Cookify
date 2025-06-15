@@ -20,6 +20,8 @@ from shared.utils.validation_env import load_validation_config, get_validation_s
 # Domain routers
 from domains.auth.routes import router as auth_router
 from domains.ingredients.routes import router as ingredients_router
+from domains.receipt.routes import router as receipt_router
+from domains.health.routes import router as health_router
 
 # Setup logging first
 setup_logging()
@@ -69,6 +71,8 @@ def create_application() -> FastAPI:
     # Include routers
     application.include_router(auth_router, prefix="/api")
     application.include_router(ingredients_router, prefix="/api")
+    application.include_router(receipt_router, prefix="/api")
+    application.include_router(health_router, prefix="/api")
     
     # Add startup and shutdown events
     application.add_event_handler("startup", on_startup)
@@ -105,47 +109,15 @@ app: FastAPI = create_application()
 
 @app.get("/")
 async def root() -> dict[str, Any]:
-    """Root endpoint for health check."""
+    """Root endpoint for basic application info."""
     return {
         "message": f"{settings.APP_NAME} is running",
         "status": "healthy",
         "version": settings.VERSION,
         "docs": settings.DOCS_URL,
-        "debug": settings.DEBUG
-    }
-
-
-@app.get("/health")
-async def health_check(request: Request) -> dict[str, Any]:
-    """Enhanced health check endpoint with system information."""
-
-    cache_stats: dict[str, Any] | None = None
-    if settings.ENABLE_USER_CACHE:
-        try:
-            from domains.auth.cache import user_cache
-            cache_stats = await user_cache.stats()
-        except ImportError:
-            cache_stats = {"error": "Cache module not available"}
-        except Exception as e:
-            cache_stats = {"error": f"Cache unavailable: {str(e)}"}
-
-    return {
-        "status": "healthy",
-        "app": settings.APP_NAME,
-        "version": settings.VERSION,
-        "timestamp": "2025-05-27T10:00:00Z",
-        "system": {
-            "debug": settings.DEBUG,
-            "cache_enabled": settings.ENABLE_USER_CACHE,
-            "cache_stats": cache_stats,
-        },
-        "validation": get_validation_settings(),
-        "endpoints": {
-            "auth": "/api/auth",
-            "ingredients": "/api/ingredients",
-            "docs": settings.DOCS_URL,
-            "redoc": settings.REDOC_URL,
-        },
+        "debug": settings.DEBUG,
+        "health_check": "/api/health",
+        "quick_health": "/api/health/quick"
     }
 
 

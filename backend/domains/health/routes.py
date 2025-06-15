@@ -1,0 +1,292 @@
+"""
+FastAPI Routes for Health Domain.
+Provides HTTP endpoints for system health monitoring.
+"""
+
+import logging
+from fastapi import APIRouter, status
+from datetime import datetime
+
+from .schemas import DetailedHealthResponse, HealthResponse
+from .services import health_service
+from .metrics import get_metrics_collector
+
+logger = logging.getLogger(__name__)
+
+# Create router for health endpoints
+router = APIRouter(prefix="/health", tags=["Health"])
+
+
+@router.get(
+    "/",
+    response_model=DetailedHealthResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Comprehensive health check",
+    description="Check health status of all application services with detailed information",
+)
+async def detailed_health_check() -> DetailedHealthResponse:
+    """
+    Perform comprehensive health check of all services.
+
+    Returns:
+        DetailedHealthResponse with status of all services including timing and details
+
+    This endpoint checks:
+    - Authentication service (Supabase Auth)
+    - Ingredients service (Database connectivity)
+    - Receipt service (OCR availability)
+    - Database connection (PostgreSQL)
+    - System resources (CPU, Memory, Disk)
+    """
+    logger.info("Performing detailed health check of all services")
+    
+    health_result = await health_service.check_all_services()
+    
+    # Record metrics
+    metrics_collector = get_metrics_collector()
+    metrics_collector.record_health_check(health_result)
+    
+    logger.info(
+        f"Health check completed: {health_result.status.value} "
+        f"({len(health_result.services)} services checked)"
+    )
+    
+    return health_result
+
+
+@router.get(
+    "/quick",
+    response_model=HealthResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Quick health check",
+    description="Fast basic health check without detailed service information",
+)
+async def quick_health_check() -> HealthResponse:
+    """
+    Perform quick health check without detailed service information.
+
+    Returns:
+        HealthResponse with basic system health status
+
+    This is a lightweight endpoint that performs minimal checks,
+    suitable for load balancer health checks or frequent monitoring.
+    """
+    logger.info("Performing quick health check")
+    
+    health_result = await health_service.quick_health_check()
+    
+    logger.info(f"Quick health check completed: {health_result.status.value}")
+    
+    return health_result
+
+
+@router.get(
+    "/liveness",
+    status_code=status.HTTP_200_OK,
+    summary="Liveness probe",
+    description="Kubernetes/Docker liveness probe endpoint - returns 200 if app is alive",
+)
+async def liveness_probe() -> dict:
+    """
+    Liveness probe for Kubernetes/Docker orchestration.
+    
+    This endpoint only checks if the application is running and can respond.
+    It does not check external dependencies.
+    
+    Returns:
+        Simple status dict
+    """
+    return {"status": "alive", "timestamp": datetime.utcnow().isoformat()}
+
+
+@router.get(
+    "/readiness",
+    status_code=status.HTTP_200_OK,
+    summary="Readiness probe", 
+    description="Kubernetes/Docker readiness probe - returns 200 if app is ready to serve traffic",
+)
+async def readiness_probe() -> dict:
+    """
+    Readiness probe for Kubernetes/Docker orchestration.
+    
+    This endpoint checks if the application is ready to serve traffic
+    by validating critical dependencies.
+    
+    Returns:
+        Status dict with readiness information
+        
+    Raises:
+        HTTPException: 503 if application is not ready
+    """
+    try:
+        # Quick check of critical services only
+        from shared.database.supabase import get_supabase_client
+        
+        # Test basic Supabase connectivity
+        supabase = get_supabase_client()
+        
+        return {
+            "status": "ready",
+            "timestamp": datetime.utcnow().isoformat(),
+            "database": "connected"
+        }
+    except Exception as e:
+        logger.error(f"Readiness check failed: {str(e)}")
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "status": "not_ready",
+                "error": str(e),
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        )
+
+
+@router.get(
+    "/metrics",
+    status_code=status.HTTP_200_OK,
+    summary="Health metrics overview",
+    description="Get aggregated health metrics and system overview",
+)
+async def health_metrics() -> dict:
+    """
+    Get health metrics and system overview.
+    
+    Returns:
+        Dictionary with system overview and service metrics
+    """
+    metrics_collector = get_metrics_collector()
+    system_overview = metrics_collector.get_system_overview()
+    service_metrics = metrics_collector.get_all_service_metrics()
+    
+    # Convert ServiceMetrics objects to dicts for JSON serialization
+    service_metrics_dict = {}
+    for service_name, metrics in service_metrics.items():
+        service_metrics_dict[service_name] = {
+            "service_name": metrics.service_name,
+            "total_checks": metrics.total_checks,
+            "successful_checks": metrics.successful_checks,
+            "failed_checks": metrics.failed_checks,
+            "avg_response_time": round(metrics.avg_response_time, 2),
+            "max_response_time": metrics.max_response_time,
+            "min_response_time": metrics.min_response_time if metrics.min_response_time != float('inf') else 0,
+            "uptime_percentage": round(metrics.uptime_percentage, 2),
+            "last_check": metrics.last_check.isoformat() if metrics.last_check else None,
+            "last_failure": metrics.last_failure.isoformat() if metrics.last_failure else None,
+            "consecutive_failures": metrics.consecutive_failures,
+            "consecutive_successes": metrics.consecutive_successes,
+        }
+    
+    return {
+        "system_overview": system_overview,
+        "service_metrics": service_metrics_dict,
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+
+@router.get(
+    "/alerts",
+    status_code=status.HTTP_200_OK,
+    summary="Recent health alerts",
+    description="Get recent health alerts and incidents",
+)
+async def health_alerts(hours: int = 1) -> dict:
+    """
+    Get recent health alerts.
+    
+    Args:
+        hours: Number of hours to look back for alerts (default: 1)
+        
+    Returns:
+        Dictionary with recent alerts
+    """
+    if hours < 1 or hours > 168:  # Max 1 week
+        hours = 1
+    
+    metrics_collector = get_metrics_collector()
+    alerts = metrics_collector.get_recent_alerts(hours=hours)
+    
+    # Convert alerts to dict format
+    alerts_dict = []
+    for alert in alerts:
+        alerts_dict.append({
+            "level": alert.level.value,
+            "service_name": alert.service_name,
+            "message": alert.message,
+            "timestamp": alert.timestamp.isoformat(),
+            "metric": {
+                "status": alert.metric.status.value,
+                "response_time_ms": alert.metric.response_time_ms,
+                "error_message": alert.metric.error_message
+            } if alert.metric else None
+        })
+    
+    return {
+        "alerts": alerts_dict,
+        "hours_back": hours,
+        "alert_count": len(alerts_dict),
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+
+@router.get(
+    "/service/{service_name}/history",
+    status_code=status.HTTP_200_OK,
+    summary="Service health history",
+    description="Get health check history for a specific service",
+)
+async def service_health_history(service_name: str, hours: int = 1) -> dict:
+    """
+    Get health check history for a specific service.
+    
+    Args:
+        service_name: Name of the service
+        hours: Number of hours to look back (default: 1)
+        
+    Returns:
+        Dictionary with service health history
+    """
+    if hours < 1 or hours > 168:  # Max 1 week
+        hours = 1
+    
+    metrics_collector = get_metrics_collector()
+    history = metrics_collector.get_service_history(service_name, hours=hours)
+    service_metrics = metrics_collector.get_service_metrics(service_name)
+    
+    # Convert history to dict format
+    history_dict = []
+    for metric in history:
+        history_dict.append({
+            "timestamp": metric.timestamp.isoformat(),
+            "status": metric.status.value,
+            "response_time_ms": metric.response_time_ms,
+            "error_message": metric.error_message,
+            "details": metric.details
+        })
+    
+    # Convert service metrics to dict
+    service_metrics_dict = None
+    if service_metrics:
+        service_metrics_dict = {
+            "service_name": service_metrics.service_name,
+            "total_checks": service_metrics.total_checks,
+            "successful_checks": service_metrics.successful_checks,
+            "failed_checks": service_metrics.failed_checks,
+            "avg_response_time": round(service_metrics.avg_response_time, 2),
+            "uptime_percentage": round(service_metrics.uptime_percentage, 2),
+            "consecutive_failures": service_metrics.consecutive_failures,
+        }
+    
+    return {
+        "service_name": service_name,
+        "hours_back": hours,
+        "history": history_dict,
+        "history_count": len(history_dict),
+        "service_metrics": service_metrics_dict,
+        "timestamp": datetime.utcnow().isoformat()
+    }
+
+
+# Export router
+__all__ = ["router"]

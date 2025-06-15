@@ -55,6 +55,29 @@ Manages ingredient master data including nutritional information and pricing.
 
 Handles receipt parsing and ingredient extraction (coming soon).
 
+### 🏥 Health Check API
+**Base Path:** `/api/health`
+
+Provides comprehensive health monitoring for all application services.
+
+**Documentation:** [Health API Documentation](./health-api.md)
+
+**Key Features:**
+- Comprehensive service health monitoring
+- System resource monitoring (CPU, memory, disk)
+- Real-time metrics and alerting
+- Kubernetes/Docker probe endpoints
+- Historical health data and trends
+
+**Endpoints:**
+- `GET /api/health/` - Detailed health check of all services
+- `GET /api/health/quick` - Fast health check for load balancers
+- `GET /api/health/liveness` - Kubernetes liveness probe
+- `GET /api/health/readiness` - Kubernetes readiness probe
+- `GET /api/health/metrics` - Aggregated health metrics
+- `GET /api/health/alerts` - Recent health alerts
+- `GET /api/health/service/{name}/history` - Service health history
+
 ## Authentication
 
 Most write operations require authentication using JWT Bearer tokens.

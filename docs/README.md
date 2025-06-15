@@ -1,6 +1,16 @@
 # Cookify Documentation
 
-This directory contains comprehensive documentation for the Cookify meal planning application.
+This dire# Test the API
+
+```bash
+# Health check
+curl http://dev.krija.info:8000/api/health/quick
+
+# Detailed health check with metrics
+curl http://dev.krija.info:8000/api/health/
+
+# List ingredients
+curl http://dev.krija.info:8000/api/ingredients/masterntains comprehensive documentation for the Cookify meal planning application.
 
 ## 📚 Documentation Index
 
