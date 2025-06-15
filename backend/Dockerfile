@@ -4,10 +4,12 @@ FROM python:3.10-slim
 # Set working directory
 WORKDIR /backend
 
-# Install system dependencies (including curl for healthcheck)
+# Install system dependencies (including curl for healthcheck and tesseract for OCR)
 RUN apt-get update && apt-get install -y \
     gcc \
     curl \
+    tesseract-ocr \
+    tesseract-ocr-eng \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies

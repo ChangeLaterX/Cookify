@@ -49,6 +49,27 @@ class OCRService:
                 "OCR dependencies not available. Please install pytesseract and Pillow.",
                 "OCR_DEPENDENCIES_MISSING"
             )
+        
+        # Configure tesseract path - try standard Docker/system locations
+        if pytesseract:
+            import os
+            import shutil
+            
+            # Try to find tesseract in standard locations (Docker-friendly)
+            tesseract_paths = [
+                shutil.which('tesseract'),  # PATH lookup (should work in Docker)
+                '/usr/bin/tesseract',  # Standard system installation
+                '/usr/local/bin/tesseract',  # Local installation
+                os.environ.get('TESSERACT_CMD'),  # Environment variable override
+            ]
+            
+            for path in tesseract_paths:
+                if path and os.path.isfile(path):
+                    pytesseract.pytesseract.tesseract_cmd = path
+                    logger.info(f"Configured tesseract path: {path}")
+                    break
+            else:
+                logger.warning("Could not find tesseract executable. Install tesseract-ocr package.")
     
     async def extract_text_from_image(self, image_data: bytes) -> OCRTextResponse:
         """

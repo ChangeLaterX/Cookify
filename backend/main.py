@@ -3,8 +3,7 @@ Main FastAPI application with enhanced architecture.
 """
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-import logging
-from typing import Any, Dict
+from typing import Any
 
 # Core imports
 from core.config import settings

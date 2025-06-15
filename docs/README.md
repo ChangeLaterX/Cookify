@@ -1,6 +1,6 @@
 # Cookify Documentation
 
-This dire# Test the API
+This directory contains comprehensive documentation for Cookify.
 
 ```bash
 # Health check
@@ -10,7 +10,9 @@ curl http://dev.krija.info:8000/api/health/quick
 curl http://dev.krija.info:8000/api/health/
 
 # List ingredients
-curl http://dev.krija.info:8000/api/ingredients/masterntains comprehensive documentation for the Cookify meal planning application.
+curl http://dev.krija.info:8000/api/ingredients/master
+
+This directory contains comprehensive documentation for the Cookify meal planning application.
 
 ## 📚 Documentation Index
 
@@ -342,7 +344,7 @@ When implementing new features, ensure:
 - [ ] **Logging**: Add appropriate logging for debugging and monitoring
 - [ ] **Rate Limiting**: Consider rate limiting for sensitive endpoints
 
-## 🔍 Troubleshooting
+## 🔍 Troubleshootingija.info:8000/api/ingredients/master
 
 ### Common Issues
 
