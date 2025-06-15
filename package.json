@@ -12,5 +12,9 @@
     "dev:mobile": "cd mobile && npm run dev",
     "build:web": "cd mobile && npm run build:web",
     "lint": "cd mobile && npm run lint"
+  },
+  "dependencies": {
+    "formik": "^2.4.6",
+    "yup": "^1.6.1"
   }
 }
