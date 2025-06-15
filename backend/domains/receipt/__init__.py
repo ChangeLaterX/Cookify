@@ -1,12 +1,38 @@
-from .models import IngredientMaster
+"""
+Receipt Domain.
 
-# from .routes import router
+This domain handles receipt OCR processing and ingredient matching for the Cookify application.
+"""
 
-__all__: list[str] = [
-    # Models
-    "IngredientMaster",
-    # Schemas
-    # Services
+from .routes import router
+from .schemas import (
+    OCRTextResponse,
+    OCRProcessedResponse,
+    ReceiptItem,
+    OCRItemSuggestion,
+    OCRApiResponse,
+    MessageResponse,
+    ErrorResponse,
+)
+from .services import (
+    extract_text_from_image,
+    process_receipt_image,
+    OCRError,
+)
+
+__all__ = [
     # Routes
-    #"router",
+    "router",
+    # Schemas
+    "OCRTextResponse",
+    "OCRProcessedResponse",
+    "ReceiptItem",
+    "OCRItemSuggestion",
+    "OCRApiResponse",
+    "MessageResponse",
+    "ErrorResponse",
+    # Services
+    "extract_text_from_image",
+    "process_receipt_image",
+    "OCRError",
 ]

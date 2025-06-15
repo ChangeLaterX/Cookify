@@ -373,3 +373,6 @@ async def search_ingredients_by_name(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"error": "Internal server error", "error_code": "INTERNAL_ERROR"},
         )
+
+
+# End of ingredients routes
