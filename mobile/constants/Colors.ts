@@ -87,6 +87,7 @@ export const light = {
   card: 'white',
   border: neutral[200],
   notification: secondary[500],
+  default: neutral[50],
 };
 
 export const dark = {
@@ -95,6 +96,7 @@ export const dark = {
   card: neutral[800],
   border: neutral[700],
   notification: secondary[500],
+  default: '#444',
 };
 
 // Default theme

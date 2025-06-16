@@ -6,6 +6,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import Colors from '@/constants/Colors';
 import { Mail, Lock, User, AlertCircle } from 'lucide-react-native';
+import { isValidEmail, isStrongPassword } from 'shared/src/utils/validationUtils';
 
 export default function SignupScreen() {
   const { signUp, loading } = useAuth();
@@ -17,17 +18,22 @@ export default function SignupScreen() {
   const handleSignUp = async () => {
     // Validation
     if (!email || !password || !confirmPassword) {
-      setError('Please fill in all fields');
+      setError('Please fill in all fields.');
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      setError('Please enter a valid email address.');
       return;
     }
     
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError('Passwords do not match.');
       return;
     }
     
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long');
+    if (!isStrongPassword(password)) {
+      setError('Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number.');
       return;
     }
     
@@ -73,7 +79,7 @@ export default function SignupScreen() {
 
             {error && (
               <View style={styles.errorContainer}>
-                <AlertCircle size={18} color={Colors.error.main} />
+                <AlertCircle size={18} color={Colors.light.default} />
                 <Text style={styles.errorText}>{error}</Text>
               </View>
             )}
@@ -193,9 +199,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   errorText: {
-    fontFamily: 'Inter-Regular',
+    fontFamily: 'Inter-Medium',
     marginLeft: 8,
-    color: Colors.error.main,
+    color: Colors.light.default,
+    fontWeight: 'bold',
     flex: 1,
   },
   inputContainer: {
