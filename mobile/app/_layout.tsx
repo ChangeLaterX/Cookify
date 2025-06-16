@@ -1,6 +1,6 @@
 import 'react-native-url-polyfill/auto'; // Must be at the top
 import { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, SplashScreen } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -11,7 +11,6 @@ import { AuthProvider } from '@/context/AuthContext';
 import { PantryProvider } from '@/context/PantryContext';
 import { RecipeProvider } from '@/context/RecipeContext';
 import { ShoppingListProvider } from '@/context/ShoppingListContext';
-import { SplashScreen } from 'expo-router';
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -39,7 +38,7 @@ export default function RootLayout() {
   if (!fontsLoaded && !fontError) {
     return null;
   }
-  
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>

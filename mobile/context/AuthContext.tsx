@@ -1,6 +1,7 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { router } from 'expo-router';
 import { User } from '@/types/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const API_BASE_URL = "http://dev.krija.info:8000/api"
 
 interface MockSessionUser {
@@ -43,7 +44,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<LocalSession | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Restore session and user from AsyncStorage on mount
+  useEffect(() => {
+    const restoreSession = async () => {
+      try {
+        const storedSession = await AsyncStorage.getItem('session');
+        const storedUser = await AsyncStorage.getItem('user');
+        if (storedSession && storedUser) {
+          setSession(JSON.parse(storedSession));
+          setUser(JSON.parse(storedUser));
+        }
+      } catch (e) {
+        console.error('Failed to restore session:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    restoreSession();
+  }, []);
 
 
   const signIn = async (email: string, password: string) => {
@@ -82,14 +102,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           token_type: token_type,
           user: sessionUser,
           expires_in: expires_in,
-          expires_at: Math.floor(new Date(expires_at).getTime() / 1000),
+          expires_at: Math.floor(new Date(expires_at).getTime()),
           refresh_token: refresh_token,
         };
 
         setSession(session);
         setUser(sessionUser);
+        await AsyncStorage.setItem('session', JSON.stringify(session));
+        await AsyncStorage.setItem('user', JSON.stringify(sessionUser));
         setLoading(false);
-        router.push('/(tabs)');
+        setTimeout(() => {
+          router.replace('/(tabs)');
+        }, 0);
+
+        // router.push('/(tabs)');
         return { error: null };
       } else {
         const errorMessage = getErrorMessage(responseData, 'Sign in failed.');
@@ -139,7 +165,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           token_type: token_type,
           user: sessionUser,
           expires_in: expires_in,
-          expires_at: Math.floor(new Date(expires_at).getTime() / 1000),
+          expires_at: Math.floor(new Date(expires_at).getTime()),
           refresh_token: refresh_token,
         };
 
@@ -163,15 +189,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = async () => {
     setLoading(true);
     try {
-
+      // Clear user and session state
       setUser(null);
       setSession(null);
-      // Clear tokens from storage if you are using any storage
-      // localStorage.removeItem('access_token');
-      setLoading(false);
+      // Remove persisted session and user from AsyncStorage
+      await AsyncStorage.removeItem('session');
+      await AsyncStorage.removeItem('user');
+      // Navigate to login screen after sign out
       setTimeout(() => {
         router.replace('/(auth)/login');
       }, 0);
+
+      setLoading(false);
       return { error: null };
     } catch (e: any) {
       console.error('Logout API call error:', e);
