@@ -1,16 +1,30 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ActivityIndicator, View } from 'react-native';
 import { Tabs, router } from 'expo-router';
 import Colors from '@/constants/Colors';
 import { Home, ShoppingBasket, UtensilsCrossed, User, ClipboardList } from 'lucide-react-native';
 import { useAuth } from '@/context/AuthContext';
 
 export default function TabLayout() {
-  const { user } = useAuth();
-  
-  // If no user is logged in, we shouldn't render the tabs
+  const { user, loading } = useAuth();
+
+  React.useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/(auth)/login');
+    }
+  }, [user, loading]);
+
+  // While loading, render nothing (or a loading indicator)
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.primary[500]} />
+      </View>
+    );
+  }
+
+  // If no user is logged in, render nothing while redirecting
   if (!user) {
-    router.replace('/(auth)/login');
     return null;
   }
 
@@ -99,5 +113,10 @@ const styles = StyleSheet.create({
   tabBarLabel: {
     fontFamily: 'Inter-Medium',
     fontSize: 12,
+  },
+   loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

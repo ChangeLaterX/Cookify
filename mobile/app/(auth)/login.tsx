@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { Link } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 import { Input } from '@/components/ui/Input';
@@ -13,6 +13,15 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.primary[500]} />
+      </View>
+    );
+  }
+
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -126,6 +135,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   logoContainer: {
     height: 250,
