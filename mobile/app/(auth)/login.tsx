@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { Link, router } from 'expo-router';
+import { Link } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
-import Input from '@/components/ui/Input';
-import Button from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
 import Colors from '@/constants/Colors';
 import { Mail, Lock, AlertCircle } from 'lucide-react-native';
 import { isValidEmail, isStrongPassword } from 'shared/src/utils/validationUtils';
@@ -107,7 +107,7 @@ export default function LoginScreen() {
             />
 
             <View style={styles.signupContainer}>
-              <Text style={styles.noAccountText}>Don't have an account? </Text>
+              <Text style={styles.noAccountText}>{`Don't have an account? `}</Text>
               <Link href="/(auth)/signup" asChild>
                 <Text style={styles.signupLink}>Sign Up</Text>
               </Link>

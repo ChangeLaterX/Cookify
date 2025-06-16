@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, KeyboardAvoidingView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { usePantry } from '@/context/PantryContext';
-import Input from '@/components/ui/Input';
-import Button from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
 import Colors from '@/constants/Colors';
 import { ArrowLeft, Calendar, Camera, Package } from 'lucide-react-native';
 import { formatDate } from '@/utils/dates';
+import { isPositiveNumber, isValidDateString } from 'shared/src/utils/validationUtils';
 
 // Food categories with default shelf life
 const FOOD_CATEGORIES = [
@@ -63,6 +64,16 @@ export default function EditPantryItemScreen() {
     
     if (!category) {
       setError('Please select a category');
+      return;
+    }
+
+    if (!isPositiveNumber(Number(quantity))) {
+      setError('Quantity must be a positive number.');
+      return;
+    }
+
+    if (!isValidDateString(expirationDate)) {
+      setError('Please enter a valid expiration date.');
       return;
     }
     

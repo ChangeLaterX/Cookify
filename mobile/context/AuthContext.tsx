@@ -1,10 +1,8 @@
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-// import { supabase } from '@/utils/supabase'; // Supabase client removed
+import React, { createContext, useState, useContext, ReactNode } from 'react';
+import { router } from 'expo-router';
 import { User } from '@/types/api';
-// import { Session } from '@supabase/supabase-js'; // Supabase Session type removed
-import { API_BASE_URL } from '@env';
+const API_BASE_URL = "http://dev.krija.info:8000/api"
 
-// Define a minimal local Session type to match the mockSession structure
 interface MockSessionUser {
   id: string;
   aud: string;
@@ -23,7 +21,7 @@ interface MockSessionUser {
 interface LocalSession {
   access_token: string;
   token_type: string;
-  user: MockSessionUser; // Use the locally defined user type for the mock
+  user: MockSessionUser;
   expires_in: number;
   expires_at: number;
   refresh_token: string;
@@ -31,112 +29,127 @@ interface LocalSession {
 
 interface AuthContextType {
   user: User | null;
-  session: LocalSession | null; // Use local Session type
+  session: LocalSession | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any | null }>;
-  signUp: (email: string, password: string) => Promise<{ error: any | null, data: any | null }>;
-  signOut: () => Promise<void>;
+  signUp: (email: string, password: string, username: string) => Promise<{ error: any | null, data: any | null }>;
+  signOut: () => Promise<{ error: any | null }>;
   resetPassword: (email: string) => Promise<{ error: any | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  // Mock user and session for bypassing login
-  const mockUser: User = {
-    id: 'mock-user-id',
-    email: 'test@example.com',
-    created_at: new Date().toISOString(),
-    // Add any other required fields from your User type in mobile/types/supabase.ts
-    // Ensure all non-optional fields from your User type are present
-  };
 
-  const mockSession: LocalSession = { // Use local Session type
-    access_token: 'mock-access-token',
-    token_type: 'bearer',
-    user: {
-      id: mockUser.id,
-      aud: 'authenticated',
-      role: 'authenticated',
-      email: mockUser.email,
-      email_confirmed_at: new Date().toISOString(),
-      phone: '',
-      confirmed_at: new Date().toISOString(),
-      last_sign_in_at: new Date().toISOString(),
-      app_metadata: { provider: 'email', providers: ['email'] },
-      user_metadata: {},
-      created_at: mockUser.created_at,
-      updated_at: new Date().toISOString(),
-      // Add any other required fields from Supabase's User type if your Session type expects them
-    } as any, // Using 'as any' here to simplify mock, ensure it matches Session's user type structure
-    expires_in: 3600,
-    expires_at: Math.floor(Date.now() / 1000) + 3600,
-    refresh_token: 'mock-refresh-token',
-  };
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<LocalSession | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const [user, setUser] = useState<User | null>(mockUser);
-  const [session, setSession] = useState<LocalSession | null>(mockSession); // Use local Session type
-  const [loading, setLoading] = useState(false); // Start with loading false
-
-  // useEffect(() => {
-  //   // Set up listener for auth changes
-  //   const { data: authListener } = supabase.auth.onAuthStateChange(
-  //     async (event, currentSession) => {
-  //       setSession(currentSession);
-  //       setUser(currentSession?.user?.email ? (currentSession.user as User) : null);
-  //       setLoading(false);
-  //     }
-  //   );
-  //
-  //   // Get initial session
-  //   supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-  //     setSession(currentSession);
-  //     setUser(currentSession?.user?.email ? (currentSession.user as User) : null);
-  //     setLoading(false);
-  //   });
-  //
-  //   return () => {
-  //     authListener?.subscription.unsubscribe();
-  //   };
-  // }, []);
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);
-    console.warn('signIn function is not implemented for custom backend yet.');
-    // TODO: Implement signIn with your custom backend
-    setLoading(false);
-    return { error: { message: 'Sign in not implemented' } };
-  };
-
-  const signUp = async (email: string, password: string) => {
-    setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password, user_metadata: {} }),
+        body: JSON.stringify({ email, password }),
+      });
+
+      const responseData = await response.json();
+      console.log('Signin response:', responseData);
+      if (response.ok && responseData.success) {
+        const { access_token, expires_at, expires_in, refresh_token, token_type } = responseData.data;
+
+        const sessionUser = {
+          id: 'mock-user-id',
+          aud: 'authenticated',
+          role: 'authenticated',
+          email: email,
+          email_confirmed_at: new Date().toISOString(),
+          phone: '',
+          confirmed_at: new Date().toISOString(),
+          last_sign_in_at: new Date().toISOString(),
+          app_metadata: { provider: 'email', providers: ['email'] },
+          user_metadata: {},
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        const session = {
+          access_token: access_token,
+          token_type: token_type,
+          user: sessionUser,
+          expires_in: expires_in,
+          expires_at: Math.floor(new Date(expires_at).getTime() / 1000),
+          refresh_token: refresh_token,
+        };
+
+        setSession(session);
+        setUser(sessionUser);
+        setLoading(false);
+        router.push('/(tabs)');
+        return { error: null };
+      } else {
+        const errorMessage = getErrorMessage(responseData, 'Sign in failed.');
+        setLoading(false);
+        return { error: { message: errorMessage } };
+      }
+    } catch (e: any) {
+      console.error('Signin API call error:', e);
+      setLoading(false);
+      return { error: { message: e.message || 'An unexpected network error occurred.' } };
+    }
+  };
+
+  const signUp = async (email: string, password: string, username: string) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, username }),
       });
 
       const responseData = await response.json();
 
-      if (response.ok) {
-        // Assuming responseData is { user: ApiUser, session: ApiSession }
-        // And ApiSession contains session.user which is compatible with the User type
-        setSession(responseData.session);
-        setUser(responseData.session.user); // Or responseData.user if that's preferred and compatible
+      if (response.ok && responseData.success) {
+        const { access_token, expires_at, expires_in, refresh_token, token_type } = responseData.data;
+
+        const sessionUser = {
+          id: 'mock-user-id',
+          aud: 'authenticated',
+          role: 'authenticated',
+          email: email,
+          email_confirmed_at: new Date().toISOString(),
+          phone: '',
+          confirmed_at: new Date().toISOString(),
+          last_sign_in_at: new Date().toISOString(),
+          app_metadata: { provider: 'email', providers: ['email'] },
+          user_metadata: { username: username },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        const session = {
+          access_token: access_token,
+          token_type: token_type,
+          user: sessionUser,
+          expires_in: expires_in,
+          expires_at: Math.floor(new Date(expires_at).getTime() / 1000),
+          refresh_token: refresh_token,
+        };
+
+        setSession(session);
+        setUser(sessionUser);
         setLoading(false);
+        router.replace('/(tabs)');
         return { data: responseData, error: null };
       } else {
-        let errorMessage = 'Sign up failed.';
-        if (responseData.detail && Array.isArray(responseData.detail) && responseData.detail.length > 0) {
-          errorMessage = responseData.detail.map((err: any) => err.msg).join('; ');
-        } else if (responseData.message) {
-          errorMessage = responseData.message;
-        } else if (typeof responseData === 'string') { // Fallback for plain text error
-          errorMessage = responseData;
-        }
+        const errorMessage = getErrorMessage(responseData, 'Sign up failed.');
         setLoading(false);
         return { data: null, error: { message: errorMessage } };
       }
@@ -148,18 +161,51 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
-    console.warn('signOut function is not implemented for custom backend yet.');
-    // TODO: Implement signOut with your custom backend
-    // For now, to make the mock login bypass work with a sign out button:
-    setUser(null);
-    setSession(null);
-    // This will likely redirect to auth screens if your root layout handles it.
+    setLoading(true);
+    try {
+
+      setUser(null);
+      setSession(null);
+      // Clear tokens from storage if you are using any storage
+      // localStorage.removeItem('access_token');
+      setLoading(false);
+      setTimeout(() => {
+        router.replace('/(auth)/login');
+      }, 0);
+      return { error: null };
+    } catch (e: any) {
+      console.error('Logout API call error:', e);
+      setLoading(false);
+      return { error: { message: e.message || 'An unexpected network error occurred.' } };
+    }
   };
 
   const resetPassword = async (email: string) => {
-    console.warn('resetPassword function is not implemented for custom backend yet.');
-    // TODO: Implement resetPassword with your custom backend
-    return { error: { message: 'Reset password not implemented' } };
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const responseData = await response.json();
+
+      if (response.ok && responseData.success) {
+        setLoading(false);
+        return { error: null };
+      } else {
+        const errorMessage = getErrorMessage(responseData, 'Reset password failed.');
+        setLoading(false);
+        return { error: { message: errorMessage } };
+      }
+    } catch (e: any) {
+      console.error('Reset password API call error:', e);
+      setLoading(false);
+      return { error: { message: e.message || 'An unexpected network error occurred.' } };
+    }
   };
 
   const value = {
@@ -181,4 +227,16 @@ export const useAuth = (): AuthContextType => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
+};
+
+const getErrorMessage = (responseData: any, defaultMessage: string) => {
+  let errorMessage = defaultMessage;
+  if (responseData.detail && Array.isArray(responseData.detail) && responseData.detail.length > 0) {
+    errorMessage = responseData.detail.map((err: any) => err.msg).join('; ');
+  } else if (responseData.message) {
+    errorMessage = responseData.message;
+  } else if (typeof responseData === 'string') {
+    errorMessage = responseData;
+  }
+  return errorMessage;
 };

@@ -37,9 +37,15 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const getButtonStyle = (): ViewStyle => {
+    const sizeStyleMap: Record<'small' | 'medium' | 'large', keyof typeof styles> = {
+      small: 'buttonSmall',
+      medium: 'buttonMedium',
+      large: 'buttonLarge',
+    };
+
     let buttonStyle: ViewStyle = {
       ...styles.button,
-      ...styles[`button${size.charAt(0).toUpperCase() + size.slice(1)}`]
+      ...styles[sizeStyleMap[size]]
     };
 
     // Add variant styling

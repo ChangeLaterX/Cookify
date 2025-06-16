@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
-import Input from '@/components/ui/Input';
-import Button from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
 import Colors from '@/constants/Colors';
 import { Mail, AlertCircle, ArrowLeft } from 'lucide-react-native';
+import { isValidEmail } from 'shared/src/utils/validationUtils';
 
 export default function ForgotPasswordScreen() {
   const { resetPassword } = useAuth();
@@ -16,16 +17,21 @@ export default function ForgotPasswordScreen() {
 
   const handleResetPassword = async () => {
     if (!email) {
-      setError('Please enter your email address');
+      setError('Please enter your email address.');
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      setError('Please enter a valid email address.');
       return;
     }
 
     try {
       setLoading(true);
       setError(null);
-      
+
       const { error: resetError } = await resetPassword(email);
-      
+
       if (resetError) {
         setError(resetError.message);
       } else {
@@ -46,28 +52,30 @@ export default function ForgotPasswordScreen() {
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
-          <TouchableOpacity 
-            style={styles.backButton} 
-            onPress={() => router.back()}
-          >
-            <ArrowLeft size={24} color={Colors.neutral[800]} />
-          </TouchableOpacity>
-          
-          <Text style={styles.title}>Reset Password</Text>
-          
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 24, marginTop: 36 }}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <ArrowLeft size={32} color={Colors.neutral[800]} />
+            </TouchableOpacity>
+
+            <Text style={styles.title}>Reset Password</Text>
+
+          </View>
           {!isSubmitted ? (
             <>
               <Text style={styles.description}>
-                Enter your email address and we'll send you instructions to reset your password.
+                {`Enter your email address and we'll send you instructions to reset your password.`}
               </Text>
-              
+
               {error && (
                 <View style={styles.errorContainer}>
-                  <AlertCircle size={18} color={Colors.error.main} />
+                  <AlertCircle size={18} color={Colors.light.default} />
                   <Text style={styles.errorText}>{error}</Text>
                 </View>
               )}
-              
+
               <Input
                 label="Email Address"
                 placeholder="Enter your email"
@@ -77,7 +85,7 @@ export default function ForgotPasswordScreen() {
                 leftIcon={<Mail size={20} color={Colors.neutral[500]} />}
                 containerStyle={styles.inputContainer}
               />
-              
+
               <Button
                 title="Reset Password"
                 onPress={handleResetPassword}
@@ -90,9 +98,9 @@ export default function ForgotPasswordScreen() {
             <View style={styles.successContainer}>
               <Text style={styles.successTitle}>Check your inbox</Text>
               <Text style={styles.successMessage}>
-                We've sent password reset instructions to {email}. Please check your email.
+                {`We've sent password reset instructions to {email}. Please check your email.`}
               </Text>
-              
+
               <Button
                 title="Back to Login"
                 onPress={() => router.replace('/(auth)/login')}
@@ -118,7 +126,10 @@ const styles = StyleSheet.create({
   },
   backButton: {
     alignSelf: 'flex-start',
+    marginTop: 12,
+    marginRight: 10,
     marginBottom: 24,
+    marginLeft: 0,
   },
   title: {
     fontFamily: 'Poppins-SemiBold',
@@ -144,7 +155,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontFamily: 'Inter-Regular',
     marginLeft: 8,
-    color: Colors.error.main,
+    color: Colors.light.default,
     flex: 1,
   },
   inputContainer: {

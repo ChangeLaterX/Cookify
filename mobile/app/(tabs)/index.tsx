@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -9,7 +9,7 @@ import Colors from '@/constants/Colors';
 import ExpirationAlert from '@/components/ExpirationAlert';
 import RecipeCard from '@/components/RecipeCard';
 import { Bell, Plus, ShoppingCart } from 'lucide-react-native';
-import Button from '@/components/ui/Button';
+import { Button } from '@/components/ui/Button';
 
 export default function HomeScreen() {
   const { user } = useAuth();
@@ -32,7 +32,7 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>Hello,</Text>
-            <Text style={styles.username}>{user.email?.split('@')[0] || 'Chef'}</Text>
+            <Text style={styles.username}>{user.user_metadata?.username || user.email?.split('@')[0] || 'Chef'}</Text>
           </View>
           <Pressable
             style={styles.notificationButton}

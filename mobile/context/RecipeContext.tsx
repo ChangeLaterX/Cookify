@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-// import { supabase } from '@/utils/supabase'; // Supabase client removed
-import { Recipe } from '@/types/api'; // Assuming this type matches your backend structure for now
+import { Recipe } from '@/types/api';
 import { usePantry } from './PantryContext';
-import { API_BASE_URL } from '@env';
+
 
 interface RecipeContextType {
   recipes: Recipe[];
@@ -31,6 +30,7 @@ export const RecipeProvider = ({ children }: { children: ReactNode }) => {
     if (pantryItems.length > 0) {
       getSuggestedRecipes();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pantryItems]);
 
   const fetchRecipes = async () => {

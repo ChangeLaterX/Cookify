@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Link, router } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
-import Input from '@/components/ui/Input';
-import Button from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
 import Colors from '@/constants/Colors';
 import { Mail, Lock, User, AlertCircle } from 'lucide-react-native';
 import { isValidEmail, isStrongPassword } from 'shared/src/utils/validationUtils';
@@ -14,6 +14,7 @@ export default function SignupScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [username, setUsername] = useState('');
 
   const handleSignUp = async () => {
     // Validation
@@ -38,8 +39,8 @@ export default function SignupScreen() {
     }
     
     try {
-      const { error: signUpError, data } = await signUp(email, password);
-      
+      const { error: signUpError, data } = await signUp(email, password, username);
+      console.log('Sign-up data:', data);
       if (signUpError) {
         setError(signUpError.message);
       } else {
@@ -95,6 +96,15 @@ export default function SignupScreen() {
             />
 
             <Input
+              label="Username"
+              placeholder="Choose a username"
+              value={username}
+              onChangeText={setUsername}
+              leftIcon={<User size={20} color={Colors.neutral[500]} />}
+              containerStyle={styles.inputContainer}
+            />
+
+            <Input
               label="Password"
               placeholder="Create a password"
               secureTextEntry
@@ -104,7 +114,7 @@ export default function SignupScreen() {
               hint="Must be at least 6 characters"
               containerStyle={styles.inputContainer}
             />
-            
+
             <Input
               label="Confirm Password"
               placeholder="Confirm your password"

@@ -3,7 +3,7 @@
  */
 
 // Base colors
-export const primary = {
+ const primary = {
   50: '#E8F5E9',
   100: '#C8E6C9',
   200: '#A5D6A7',
@@ -16,7 +16,7 @@ export const primary = {
   900: '#1B5E20',
 };
 
-export const secondary = {
+ const secondary = {
   50: '#FFF3E0',
   100: '#FFE0B2',
   200: '#FFCC80',
@@ -29,7 +29,7 @@ export const secondary = {
   900: '#E65100',
 };
 
-export const accent = {
+ const accent = {
   50: '#E1F5FE',
   100: '#B3E5FC',
   200: '#81D4FA',
@@ -42,7 +42,7 @@ export const accent = {
   900: '#01579B',
 };
 
-export const neutral = {
+ const neutral = {
   50: '#FAFAFA',
   100: '#F5F5F5',
   200: '#EEEEEE',
@@ -55,33 +55,33 @@ export const neutral = {
   900: '#212121',
 };
 
-export const success = {
+ const success = {
   light: '#81C784',
   main: '#4CAF50',
   dark: '#388E3C',
 };
 
-export const warning = {
+ const warning = {
   light: '#FFD54F',
   main: '#FFC107',
   dark: '#FFA000',
 };
 
-export const error = {
+ const error = {
   light: '#E57373',
   main: '#F44336',
   dark: '#D32F2F',
 };
 
 // Expiration status colors
-export const expiration = {
+ const expiration = {
   fresh: '#4CAF50', // Good for a while
   soon: '#FFC107', // Expiring soon
   expired: '#F44336', // Expired
 };
 
 // Theme colors
-export const light = {
+ const light = {
   text: neutral[900],
   background: neutral[50],
   card: 'white',
@@ -90,7 +90,7 @@ export const light = {
   default: neutral[50],
 };
 
-export const dark = {
+ const dark = {
   text: neutral[50],
   background: neutral[900],
   card: neutral[800],

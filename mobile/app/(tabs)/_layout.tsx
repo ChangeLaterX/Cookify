@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Tabs } from 'expo-router';
+import { StyleSheet } from 'react-native';
+import { Tabs, router } from 'expo-router';
 import Colors from '@/constants/Colors';
-import { Home, ShoppingBasket, UtensilsCrossed, Bell, User, ClipboardList } from 'lucide-react-native';
+import { Home, ShoppingBasket, UtensilsCrossed, User, ClipboardList } from 'lucide-react-native';
 import { useAuth } from '@/context/AuthContext';
 
 export default function TabLayout() {
@@ -10,6 +10,7 @@ export default function TabLayout() {
   
   // If no user is logged in, we shouldn't render the tabs
   if (!user) {
+    router.replace('/(auth)/login');
     return null;
   }
 

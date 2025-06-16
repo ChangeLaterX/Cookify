@@ -3,10 +3,10 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Keyboar
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { usePantry } from '@/context/PantryContext';
-import Input from '@/components/ui/Input';
-import Button from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
 import Colors from '@/constants/Colors';
-import { ArrowLeft, Calendar, Camera, Package, ShoppingBag } from 'lucide-react-native';
+import { ArrowLeft, Calendar, Camera, Package } from 'lucide-react-native';
 import { calculateExpirationDate, formatDate } from '@/utils/dates';
 
 // Food categories with default shelf life
@@ -31,7 +31,7 @@ export default function AddPantryItemScreen() {
   const [quantity, setQuantity] = useState('1');
   const [unit, setUnit] = useState('');
   const [category, setCategory] = useState('');
-  const [purchaseDate, setPurchaseDate] = useState(formatDate(new Date()));
+  // const [purchaseDate, setPurchaseDate] = useState(formatDate(new Date()));
   const [expirationDate, setExpirationDate] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);

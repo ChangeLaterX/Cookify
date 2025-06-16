@@ -9,7 +9,7 @@ import {
   TextStyle 
 } from 'react-native';
 import Colors from '@/constants/Colors';
-
+ 
 interface InputProps extends TextInputProps {
   label?: string;
   error?: string;
@@ -65,6 +65,8 @@ export const Input = forwardRef<TextInput, InputProps>(({
     </View>
   );
 });
+
+Input.displayName = 'Input';
 
 const styles = StyleSheet.create({
   container: {
