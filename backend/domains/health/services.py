@@ -19,7 +19,7 @@ except ImportError:
 
 from .schemas import ServiceHealthStatus, ServiceStatus, HealthResponse, DetailedHealthResponse
 from core.config import settings
-from scripts.ingredient_file_manager import get_ingredient_file_status
+from domains.update.ingredient_cache import get_ingredient_cache_status
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +46,8 @@ class HealthCheckService:
                 self.service_checkers[service_name] = self._check_system_resources
             elif service_name == "cache":
                 self.service_checkers[service_name] = self._check_cache_status
+            elif service_name == "update":
+                self.service_checkers[service_name] = self._check_update_service
     
     async def check_all_services(self) -> DetailedHealthResponse:
         """
@@ -259,7 +261,7 @@ class HealthCheckService:
         """Check ingredient file cache status."""
         import traceback
         try:
-            status = get_ingredient_file_status()
+            status = get_ingredient_cache_status()
             file_exists = status.get("file_exists", False)
             needs_update = status.get("needs_update", True)
             ingredient_count = status.get("ingredient_count", 0)
@@ -294,6 +296,65 @@ class HealthCheckService:
                 error=str(e)
             )
     
+    async def _check_update_service(self) -> ServiceHealthStatus:
+        """Check update service health."""
+        try:
+            from domains.update.services import get_ingredient_cache_status
+            
+            # Test if we can access the update service functions
+            cache_status = await get_ingredient_cache_status()
+            
+            # Check if the update service is operational
+            cache_healthy = cache_status.get("cache_file_exists", False)
+            
+            return ServiceHealthStatus(
+                name="update",
+                status=ServiceStatus.HEALTHY if cache_healthy else ServiceStatus.DEGRADED,
+                message="Update service is operational" if cache_healthy else "Update service operational but cache degraded",
+                details={
+                    "cache_status": "healthy" if cache_healthy else "degraded",
+                    "last_cache_update": str(cache_status.get("last_updated", "unknown")),
+                    "ingredient_count": str(cache_status.get("ingredient_count", 0)),
+                    "service_available": "true"
+                }
+            )
+        except Exception as e:
+            return ServiceHealthStatus(
+                name="update",
+                status=ServiceStatus.UNHEALTHY,
+                message="Update service unavailable",                error=str(e)
+            )
+    
+    async def _check_update_service(self) -> ServiceHealthStatus:
+        """Check update service health."""
+        try:
+            from domains.update.services import get_ingredient_cache_status
+            
+            # Test if we can access the update service functions
+            cache_status = await get_ingredient_cache_status()
+            
+            # Check if the update service is operational
+            cache_healthy = cache_status.get("cache_file_exists", False)
+            
+            return ServiceHealthStatus(
+                name="update",
+                status=ServiceStatus.HEALTHY if cache_healthy else ServiceStatus.DEGRADED,
+                message="Update service is operational" if cache_healthy else "Update service operational but cache degraded",
+                details={
+                    "cache_status": "healthy" if cache_healthy else "degraded",
+                    "last_cache_update": str(cache_status.get("last_updated", "unknown")),
+                    "ingredient_count": str(cache_status.get("ingredient_count", 0)),
+                    "service_available": "true"
+                }
+            )
+        except Exception as e:
+            return ServiceHealthStatus(
+                name="update",
+                status=ServiceStatus.UNHEALTHY,
+                message="Update service unavailable",
+                error=str(e)
+            )
+
     def _determine_overall_status(self, services: List[ServiceHealthStatus]) -> ServiceStatus:
         """Determine overall system status based on individual service statuses."""
         if not services:

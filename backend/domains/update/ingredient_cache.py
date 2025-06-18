@@ -1,8 +1,8 @@
 """
-Simple Ingredient Names File Manager.
+Ingredient Cache Manager.
 
-This script creates and maintains a simple text file with all ingredient names
-from the Supabase database. The file is updated once per week automatically.
+This module handles the creation and maintenance of ingredient cache files.
+Moved from scripts/ingredient_file_manager.py to domains/update/.
 """
 
 import logging
@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import List, Dict, Optional
 
 from shared.database.supabase import get_supabase_client
+from core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -20,19 +21,28 @@ logger = logging.getLogger(__name__)
 class IngredientNamesManager:
     """Manages a simple file containing all ingredient names."""
     
-    def __init__(self, file_path: str = "data/ingredient_names.txt"):
+    def __init__(self, file_path: Optional[str] = None):
         """
         Initialize the manager.
         
         Args:
-            file_path: Path to the ingredient names file
+            file_path: Path to the ingredient names file (defaults to config setting)
         """
+        if file_path is None:
+            file_path = settings.UPDATE_INGREDIENT_CACHE_FILE_PATH
+            
         self.file_path = Path(file_path)
-        self.metadata_path = Path(str(file_path).replace('.txt', '_metadata.json'))
-        self.update_interval_days = 7  # Update once per week
+        
+        # Use config for metadata path or derive from file path
+        if hasattr(settings, 'UPDATE_INGREDIENT_CACHE_METADATA_FILE'):
+            self.metadata_path = Path(settings.UPDATE_INGREDIENT_CACHE_METADATA_FILE)
+        else:
+            self.metadata_path = Path(str(file_path).replace('.txt', '_metadata.json'))
+            
+        self.update_interval_days = settings.UPDATE_INGREDIENT_CACHE_INTERVAL_DAYS
         
         # Ensure the data directory exists
-        self.file_path.parent.mkdir(exist_ok=True)
+        self.file_path.parent.mkdir(exist_ok=True, mode=settings.UPDATE_CACHE_FILE_PERMISSIONS)
     
     def _get_metadata(self) -> Dict:
         """Get metadata about the last update."""
@@ -184,18 +194,14 @@ class IngredientNamesManager:
             logger.error(f"Failed to load ingredients from file: {str(e)}")
             return []
     
-    async def update_if_needed(self) -> bool:
+    async def update_ingredient_names(self) -> bool:
         """
-        Update the ingredient file if needed (once per week).
+        Force update the ingredient names file.
         
         Returns:
-            bool: True if update was performed, False if not needed or failed
+            bool: True if successful, False if failed
         """
-        if not self.needs_update():
-            logger.info("Ingredient file is up to date, no update needed")
-            return False
-        
-        logger.info("Ingredient file needs update, fetching from database...")
+        logger.info("Updating ingredient names file...")
         
         # Load from database
         ingredient_names = await self.load_ingredients_from_database()
@@ -213,6 +219,19 @@ class IngredientNamesManager:
             logger.error("❌ Failed to update ingredient file")
         
         return success
+    
+    async def update_if_needed(self) -> bool:
+        """
+        Update the ingredient file if needed (once per week).
+        
+        Returns:
+            bool: True if update was performed, False if not needed or failed
+        """
+        if not self.needs_update():
+            logger.info("Ingredient file is up to date, no update needed")
+            return False
+        
+        return await self.update_ingredient_names()
     
     def get_status(self) -> Dict:
         """Get status information about the ingredient file."""
@@ -232,17 +251,16 @@ class IngredientNamesManager:
 ingredient_manager = IngredientNamesManager()
 
 
-async def initialize_ingredient_file() -> bool:
+async def initialize_ingredient_cache() -> bool:
     """
-    Initialize the ingredient file at application startup.
+    Initialize the ingredient cache at application startup.
     
     This function checks if the file needs updating and updates it if necessary.
-    Should be called once when FastAPI starts.
     
     Returns:
         bool: True if successful, False if failed
     """
-    logger.info("Initializing ingredient names file...")
+    logger.info("Initializing ingredient names cache...")
     
     try:
         # Check if update is needed and perform it
@@ -252,23 +270,22 @@ async def initialize_ingredient_file() -> bool:
         status = ingredient_manager.get_status()
         
         if status["file_exists"]:
-            logger.info(f"✅ Ingredient file ready: {status['ingredient_count']} ingredients")
+            logger.info(f"✅ Ingredient cache ready: {status['ingredient_count']} ingredients")
             logger.info(f"   File path: {status['file_path']}")
             logger.info(f"   Last updated: {status['last_updated']}")
-            logger.info(f"   Next update in: {7 - (datetime.now() - datetime.fromisoformat(status['last_updated']) if status['last_updated'] else datetime.now()).days} days")
             return True
         else:
-            logger.error("❌ Ingredient file could not be created")
+            logger.error("❌ Ingredient cache could not be created")
             return False
             
     except Exception as e:
-        logger.error(f"Error during ingredient file initialization: {str(e)}")
+        logger.error(f"Error during ingredient cache initialization: {str(e)}")
         return False
 
 
 def get_ingredient_names() -> List[str]:
     """
-    Get all ingredient names from the file.
+    Get all ingredient names from the cache file.
     
     This is the main function that OCR services should use.
     
@@ -278,9 +295,22 @@ def get_ingredient_names() -> List[str]:
     return ingredient_manager.load_ingredients_from_file()
 
 
-def get_ingredient_file_status() -> Dict:
+def get_ingredient_names_for_ocr() -> List[str]:
     """
-    Get status information about the ingredient file for monitoring.
+    Get all ingredient names for OCR matching.
+    
+    This is the main function that OCR services should use to get
+    the list of known ingredients for matching against detected text.
+    
+    Returns:
+        List[str]: List of all ingredient names
+    """
+    return get_ingredient_names()
+
+
+def get_ingredient_cache_status() -> Dict:
+    """
+    Get status information about the ingredient cache for monitoring.
     
     Returns:
         Dict: Status information
@@ -290,7 +320,9 @@ def get_ingredient_file_status() -> Dict:
 
 # Export public functions
 __all__ = [
-    "initialize_ingredient_file",
-    "get_ingredient_names",
-    "get_ingredient_file_status"
+    "IngredientNamesManager",
+    "initialize_ingredient_cache",
+    "get_ingredient_names", 
+    "get_ingredient_names_for_ocr",
+    "get_ingredient_cache_status"
 ]

@@ -7,6 +7,7 @@ import logging
 from fastapi import APIRouter, status
 from datetime import datetime
 
+from core.config import settings
 from .schemas import DetailedHealthResponse, HealthResponse
 from .services import health_service
 from .metrics import get_metrics_collector
@@ -14,15 +15,15 @@ from .metrics import get_metrics_collector
 logger = logging.getLogger(__name__)
 
 # Create router for health endpoints
-router = APIRouter(prefix="/health", tags=["Health"])
+router = APIRouter(prefix=settings.HEALTH_PREFIX, tags=[settings.HEALTH_TAG])
 
 
 @router.get(
-    "/",
+    settings.HEALTH_ROOT_ENDPOINT,
     response_model=DetailedHealthResponse,
     status_code=status.HTTP_200_OK,
-    summary="Comprehensive health check",
-    description="Check health status of all application services with detailed information",
+    summary=settings.HEALTH_ROOT_TITLE,
+    description=settings.HEALTH_ROOT_DESCRIPTION,
 )
 async def detailed_health_check() -> DetailedHealthResponse:
     """
@@ -55,11 +56,11 @@ async def detailed_health_check() -> DetailedHealthResponse:
 
 
 @router.get(
-    "/quick",
+    settings.HEALTH_QUICK_ENDPOINT,
     response_model=HealthResponse,
     status_code=status.HTTP_200_OK,
-    summary="Quick health check",
-    description="Fast basic health check without detailed service information",
+    summary=settings.HEALTH_QUICK_TITLE,
+    description=settings.HEALTH_QUICK_DESCRIPTION,
 )
 async def quick_health_check() -> HealthResponse:
     """
@@ -81,10 +82,10 @@ async def quick_health_check() -> HealthResponse:
 
 
 @router.get(
-    "/liveness",
+    settings.HEALTH_LIVENESS_ENDPOINT,
     status_code=status.HTTP_200_OK,
-    summary="Liveness probe",
-    description="Kubernetes/Docker liveness probe endpoint - returns 200 if app is alive",
+    summary=settings.HEALTH_LIVENESS_TITLE,
+    description=settings.HEALTH_LIVENESS_DESCRIPTION,
 )
 async def liveness_probe() -> dict:
     """
@@ -100,10 +101,10 @@ async def liveness_probe() -> dict:
 
 
 @router.get(
-    "/readiness",
+    settings.HEALTH_READINESS_ENDPOINT,
     status_code=status.HTTP_200_OK,
-    summary="Readiness probe", 
-    description="Kubernetes/Docker readiness probe - returns 200 if app is ready to serve traffic",
+    summary=settings.HEALTH_READINESS_TITLE, 
+    description=settings.HEALTH_READINESS_DESCRIPTION,
 )
 async def readiness_probe() -> dict:
     """
@@ -134,7 +135,7 @@ async def readiness_probe() -> dict:
         logger.error(f"Readiness check failed: {str(e)}")
         from fastapi import HTTPException
         raise HTTPException(
-            status_code=503,
+            status_code=settings.HEALTH_SERVICE_UNAVAILABLE_STATUS,
             detail={
                 "status": "not_ready",
                 "error": str(e),
@@ -144,10 +145,10 @@ async def readiness_probe() -> dict:
 
 
 @router.get(
-    "/metrics",
+    settings.HEALTH_METRICS_ENDPOINT,
     status_code=status.HTTP_200_OK,
-    summary="Health metrics overview",
-    description="Get aggregated health metrics and system overview",
+    summary=settings.HEALTH_METRICS_TITLE,
+    description=settings.HEALTH_METRICS_DESCRIPTION,
 )
 async def health_metrics() -> dict:
     """
@@ -168,10 +169,10 @@ async def health_metrics() -> dict:
             "total_checks": metrics.total_checks,
             "successful_checks": metrics.successful_checks,
             "failed_checks": metrics.failed_checks,
-            "avg_response_time": round(metrics.avg_response_time, 2),
+            "avg_response_time": round(metrics.avg_response_time, settings.HEALTH_METRICS_DECIMAL_PLACES),
             "max_response_time": metrics.max_response_time,
-            "min_response_time": metrics.min_response_time if metrics.min_response_time != float('inf') else 0,
-            "uptime_percentage": round(metrics.uptime_percentage, 2),
+            "min_response_time": metrics.min_response_time if metrics.min_response_time != float('inf') else settings.HEALTH_MIN_RESPONSE_TIME_DEFAULT,
+            "uptime_percentage": round(metrics.uptime_percentage, settings.HEALTH_METRICS_DECIMAL_PLACES),
             "last_check": metrics.last_check.isoformat() if metrics.last_check else None,
             "last_failure": metrics.last_failure.isoformat() if metrics.last_failure else None,
             "consecutive_failures": metrics.consecutive_failures,
@@ -186,12 +187,12 @@ async def health_metrics() -> dict:
 
 
 @router.get(
-    "/alerts",
+    settings.HEALTH_ALERTS_ENDPOINT,
     status_code=status.HTTP_200_OK,
-    summary="Recent health alerts",
-    description="Get recent health alerts and incidents",
+    summary=settings.HEALTH_ALERTS_TITLE,
+    description=settings.HEALTH_ALERTS_DESCRIPTION,
 )
-async def health_alerts(hours: int = 1) -> dict:
+async def health_alerts(hours: int = settings.HEALTH_ALERTS_DEFAULT_HOURS) -> dict:
     """
     Get recent health alerts.
     
@@ -201,8 +202,8 @@ async def health_alerts(hours: int = 1) -> dict:
     Returns:
         Dictionary with recent alerts
     """
-    if hours < 1 or hours > 168:  # Max 1 week
-        hours = 1
+    if hours < settings.HEALTH_ALERTS_MIN_HOURS or hours > settings.HEALTH_ALERTS_MAX_HOURS:  # Max 1 week
+        hours = settings.HEALTH_ALERTS_DEFAULT_HOURS
     
     metrics_collector = get_metrics_collector()
     alerts = metrics_collector.get_recent_alerts(hours=hours)
@@ -231,10 +232,10 @@ async def health_alerts(hours: int = 1) -> dict:
 
 
 @router.get(
-    "/service/{service_name}/history",
+    settings.HEALTH_SERVICE_HISTORY_ENDPOINT,
     status_code=status.HTTP_200_OK,
-    summary="Service health history",
-    description="Get health check history for a specific service",
+    summary=settings.HEALTH_SERVICE_HISTORY_TITLE,
+    description=settings.HEALTH_SERVICE_HISTORY_DESCRIPTION,
 )
 async def service_health_history(service_name: str, hours: int = 1) -> dict:
     """

@@ -27,7 +27,7 @@ class IngredientMasterCreate(BaseModel):
         ..., ge=0, description="Carbohydrates per 100g in grams"
     )
     price_per_100g_cents: int = Field(..., ge=0, description="Price per 100g in cents")
-
+    category: Optional[str] = Field(None, description="Ingredient category")
     @validator("name")
     def validate_name(cls, v):
         """Validate ingredient name is not empty after stripping."""

@@ -21,6 +21,7 @@ from domains.auth.routes import router as auth_router
 from domains.ingredients.routes import router as ingredients_router
 from domains.ocr.routes import router as receipt_router
 from domains.health.routes import router as health_router
+from domains.update.routes import router as update_router
 
 # Setup logging first
 setup_logging()
@@ -72,6 +73,7 @@ def create_application() -> FastAPI:
     application.include_router(ingredients_router, prefix="/api")
     application.include_router(receipt_router, prefix="/api")
     application.include_router(health_router, prefix="/api")
+    application.include_router(update_router, prefix="/api")
     
     # Add startup and shutdown events
     application.add_event_handler("startup", on_startup)
@@ -90,14 +92,14 @@ async def on_startup() -> None:
     
     # Run startup scripts (ingredient cache, etc.)
     try:
-        from scripts.startup import run_startup_scripts
-        scripts_success = await run_startup_scripts()
-        if scripts_success:
-            logger.info("✅ All startup scripts completed successfully")
+        from domains.update.ingredient_cache import initialize_ingredient_cache
+        cache_success = await initialize_ingredient_cache()
+        if cache_success:
+            logger.info("✅ Ingredient cache initialized successfully")
         else:
-            logger.warning("⚠️ Some startup scripts failed - check logs for details")
+            logger.warning("⚠️ Ingredient cache initialization failed - check logs for details")
     except Exception as e:
-        logger.error(f"❌ Error running startup scripts: {str(e)}")
+        logger.error(f"❌ Error initializing ingredient cache: {str(e)}")
     
     logger.info(f"Debug mode: {settings.DEBUG}")
     logger.info(f"CORS origins: {settings.CORS_ORIGINS}")
@@ -133,5 +135,12 @@ async def root() -> dict[str, Any]:
 
 if __name__ == "__main__":
     import uvicorn
+    from core.config import settings
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(
+        app, 
+        host=settings.SERVER_HOST, 
+        port=settings.SERVER_PORT,
+        log_level=settings.LOG_LEVEL.lower(),
+        access_log=settings.ENABLE_ACCESS_LOG
+    )

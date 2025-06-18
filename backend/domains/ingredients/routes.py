@@ -9,6 +9,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 
+from core.config import settings
 from .schemas import (
     IngredientMasterCreate,
     IngredientMasterUpdate,
@@ -33,15 +34,15 @@ from middleware.security import get_current_user, get_optional_user
 logger: logging.Logger = logging.getLogger(__name__)
 
 # Create router for ingredient endpoints
-router = APIRouter(prefix="/ingredients", tags=["Ingredients"])
+router = APIRouter(prefix=settings.INGREDIENTS_PREFIX, tags=[settings.INGREDIENTS_TAG])
 
 
 @router.get(
-    "/master",
+    settings.INGREDIENTS_MASTER_ENDPOINT,
     response_model=IngredientListApiResponse,
     status_code=status.HTTP_200_OK,
-    summary="List all master ingredients",
-    description="Retrieve all ingredients from master table with pagination support",
+    summary=settings.INGREDIENTS_MASTER_LIST_TITLE,
+    description=settings.INGREDIENTS_MASTER_LIST_DESCRIPTION,
 )
 async def list_ingredients(
     limit: int = Query(10, ge=1, le=100, description="Maximum number of results"),

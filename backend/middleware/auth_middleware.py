@@ -100,7 +100,7 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
                 f"Critical middleware error: {str(e)} | "
                 f"Path: {request.url.path} | "
                 f"IP: {client_ip} | "
-                f"Duration: {duration:.3f}s | "
+                f"Duration: {duration:.{settings.MIDDLEWARE_DURATION_DECIMAL_PLACES}f}s | "
                 f"Exception type: {type(e).__name__} | "
                 f"Exception details: {repr(e)}"
             )
@@ -126,7 +126,7 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
                 self.logger.debug("Invalid authorization header format")
                 return
             
-            token = authorization[7:]  # Remove "Bearer " prefix
+            token = authorization[settings.MIDDLEWARE_BEARER_PREFIX_LENGTH:]  # Remove "Bearer " prefix
             
             # Validate and get user
             user = await get_user_from_token(token)
@@ -183,7 +183,7 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
         # Check for forwarded headers (when behind proxy)
         forwarded_for = request.headers.get("x-forwarded-for")
         if forwarded_for:
-            return forwarded_for.split(",")[0].strip()
+            return forwarded_for.split(",")[settings.SECURITY_IP_HEADER_SPLIT_INDEX].strip()
         
         real_ip = request.headers.get("x-real-ip")
         if real_ip:
@@ -222,7 +222,7 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
             "method": request.method,
             "path": request.url.path,
             "status_code": response.status_code,
-            "duration": f"{duration:.3f}s",
+            "duration": f"{duration:.{settings.MIDDLEWARE_DURATION_DECIMAL_PLACES}f}s",
             "client_ip": client_ip,
             "user_agent": user_agent,
             "request_id": request_id,
@@ -231,9 +231,9 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
         }
         
         # Log level based on response status
-        if response.status_code >= 500:
+        if response.status_code >= settings.MIDDLEWARE_HTTP_SERVER_ERROR_THRESHOLD:
             self.logger.error(f"Request failed: {log_data}")
-        elif response.status_code >= 400:
+        elif response.status_code >= settings.MIDDLEWARE_HTTP_CLIENT_ERROR_THRESHOLD:
             self.logger.warning(f"Client error: {log_data}")
         elif settings.enable_access_log:
             self.logger.info(f"Request: {log_data}")

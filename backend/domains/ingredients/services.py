@@ -11,6 +11,7 @@ from fastapi import HTTPException, status
 from supabase import Client
 
 from shared.database.supabase import get_supabase_client
+from core.config import settings
 from .models import IngredientMaster
 from .schemas import (
     IngredientMasterCreate,
@@ -32,13 +33,13 @@ class IngredientError(Exception):
 
 
 async def get_all_ingredients(
-    limit: int = 10, offset: int = 0
+    limit: Optional[int] = None, offset: int = 0
 ) -> IngredientListResponse:
     """
     Get all ingredients from master table with pagination.
 
     Args:
-        limit: Maximum number of ingredients to return
+        limit: Maximum number of ingredients to return (defaults to config setting)
         offset: Number of ingredients to skip
 
     Returns:
@@ -47,6 +48,11 @@ async def get_all_ingredients(
     Raises:
         IngredientError: If database query fails
     """
+    if limit is None:
+        limit = settings.API_DEFAULT_PAGE_SIZE
+        
+    # Enforce maximum page size
+    limit = min(limit, settings.API_MAX_PAGE_SIZE)
     try:
         supabase: Client = get_supabase_client()
 
@@ -303,14 +309,14 @@ async def delete_ingredient(ingredient_id: UUID) -> bool:
 
 
 async def search_ingredients(
-    query: str, limit: int = 10, offset: int = 0
+    query: str, limit: Optional[int] = None, offset: int = 0
 ) -> IngredientListResponse:
     """
     Search ingredients by name.
 
     Args:
         query: Search query string
-        limit: Maximum number of results to return
+        limit: Maximum number of results to return (defaults to config setting)
         offset: Number of results to skip
 
     Returns:
@@ -319,6 +325,11 @@ async def search_ingredients(
     Raises:
         IngredientError: If search fails
     """
+    if limit is None:
+        limit = settings.API_DEFAULT_PAGE_SIZE
+        
+    # Enforce maximum page size
+    limit = min(limit, settings.API_MAX_PAGE_SIZE)
     try:
         supabase: Client = get_supabase_client()
 
