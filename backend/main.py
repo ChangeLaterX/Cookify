@@ -22,9 +22,6 @@ from domains.ingredients.routes import router as ingredients_router
 from domains.ocr.routes import router as receipt_router
 from domains.health.routes import router as health_router
 
-# Scripts router
-from scripts.routes import router as scripts_router
-
 # Setup logging first
 setup_logging()
 from core.logging import get_logger
@@ -75,7 +72,6 @@ def create_application() -> FastAPI:
     application.include_router(ingredients_router, prefix="/api")
     application.include_router(receipt_router, prefix="/api")
     application.include_router(health_router, prefix="/api")
-    application.include_router(scripts_router, prefix="/api")
     
     # Add startup and shutdown events
     application.add_event_handler("startup", on_startup)

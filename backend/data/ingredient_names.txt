@@ -1,0 +1,855 @@
+# Cookify Ingredient Names
+# Generated: 2025-06-18T13:51:19.195443
+# Total ingredients: 850
+# Auto-updated weekly
+
+canned adzuki beans
+canned anchovy
+canned apple
+canned apricot
+canned artichoke
+canned asparagus
+canned banana
+canned beetroot
+canned bell pepper
+canned black beans
+canned blackberry
+canned black-eyed peas
+canned blueberry
+canned bok choy
+canned broad beans
+canned broccoli
+canned brussels sprouts
+canned butter beans
+canned cabbage
+canned cannellini beans
+canned cantaloupe
+canned carrot
+canned cauliflower
+canned celery
+canned cherry
+canned chickpeas
+canned chili pepper
+canned clam
+canned cod
+canned collard greens
+canned corn
+canned crab
+canned cranberry beans
+canned cucumber
+canned cuttlefish
+canned edamame
+canned eggplant
+canned endive
+canned fava beans
+canned fennel
+canned fig
+canned garlic
+canned ginger
+canned grape
+canned green peas
+canned haddock
+canned jalapeno
+canned kale
+canned kidney beans
+canned kiwi
+canned leek
+canned lentil green
+canned lentil red
+canned lentils
+canned lettuce
+canned lobster
+canned mackerel
+canned mango
+canned mung beans
+canned mushroom
+canned mussel
+canned navy beans
+canned octopus
+canned okra
+canned onion
+canned orange
+canned oyster
+canned parsnip
+canned peach
+canned pear
+canned peas
+canned pineapple
+canned pinto beans
+canned plum
+canned pomegranate
+canned potato
+canned pumpkin
+canned radish
+canned raspberry
+canned rhubarb
+canned salmon
+canned sardine
+canned scallion
+canned scallop
+canned seaweed
+canned shallot
+canned shrimp
+canned soybeans
+canned spinach
+canned split peas
+canned squid
+canned strawberry
+canned sweet potato
+canned swiss chard
+canned tilapia
+canned tomato
+canned trout
+canned tuna
+canned turnip
+canned watermelon
+canned zucchini
+cheese butter
+cheese cheddar cheese
+cheese cottage cheese
+cheese cow milk
+cheese cream
+cheese cream cheese
+cheese feta cheese
+cheese goat milk
+cheese greek yogurt
+cheese mozzarella cheese
+cheese parmesan cheese
+cheese sheep milk
+cheese sour cream
+cheese yogurt
+cream butter
+cream cheddar cheese
+cream cottage cheese
+cream cow milk
+cream cream
+cream cream cheese
+cream feta cheese
+cream goat milk
+cream greek yogurt
+cream mozzarella cheese
+cream parmesan cheese
+cream sheep milk
+cream sour cream
+cream yogurt
+cured bacon
+cured beef brisket
+cured beef liver
+cured beef roast
+cured beef steak
+cured chicken breast
+cured chicken drumstick
+cured chicken thigh
+cured chicken wing
+cured duck breast
+cured duck leg
+cured goose
+cured ground beef
+cured ham
+cured lamb chop
+cured lamb shank
+cured pork belly
+cured pork chop
+cured pork liver
+cured pork shoulder
+cured pork tenderloin
+cured prosciutto
+cured rabbit
+cured salami
+cured sausage
+cured short ribs
+cured turkey breast
+cured turkey leg
+cured veal cutlet
+cured venison
+dried adzuki beans
+dried apple
+dried apricot
+dried banana
+dried black beans
+dried blackberry
+dried black-eyed peas
+dried blueberry
+dried broad beans
+dried butter beans
+dried cannellini beans
+dried cantaloupe
+dried cherry
+dried chickpeas
+dried cranberry beans
+dried edamame
+dried fava beans
+dried fig
+dried grape
+dried green peas
+dried kidney beans
+dried kiwi
+dried lentil green
+dried lentil red
+dried lentils
+dried mango
+dried mung beans
+dried navy beans
+dried orange
+dried peach
+dried pear
+dried pineapple
+dried pinto beans
+dried plum
+dried pomegranate
+dried raspberry
+dried soybeans
+dried split peas
+dried strawberry
+dried watermelon
+drink apple juice
+drink beer
+drink black tea
+drink champagne
+drink cider
+drink coffee
+drink grape juice
+drink green tea
+drink herbal tea
+drink juice
+drink orange juice
+drink rum
+drink smoothie
+drink soda
+drink spirit
+drink tequila
+drink vodka
+drink water
+drink whiskey
+drink wine
+flakes amaranth
+flakes barley
+flakes basmati rice
+flakes buckwheat
+flakes bulgur
+flakes cornmeal
+flakes couscous
+flakes farro
+flakes jasmine rice
+flakes millet
+flakes oats
+flakes polenta
+flakes quinoa
+flakes rice
+flakes rye
+flakes semolina
+flakes sorghum
+flakes spelt
+flakes teff
+flakes wild rice
+flour amaranth
+flour barley
+flour basmati rice
+flour buckwheat
+flour bulgur
+flour cornmeal
+flour couscous
+flour farro
+flour jasmine rice
+flour millet
+flour oats
+flour polenta
+flour quinoa
+flour rice
+flour rye
+flour semolina
+flour sorghum
+flour spelt
+flour teff
+flour wild rice
+fresh adzuki beans
+fresh anchovy
+fresh apple
+fresh apricot
+fresh artichoke
+fresh asparagus
+fresh bacon
+fresh banana
+fresh beef brisket
+fresh beef liver
+fresh beef roast
+fresh beef steak
+fresh beetroot
+fresh bell pepper
+fresh black beans
+fresh blackberry
+fresh black-eyed peas
+fresh blueberry
+fresh bok choy
+fresh broad beans
+fresh broccoli
+fresh brussels sprouts
+fresh butter beans
+fresh cabbage
+fresh cannellini beans
+fresh cantaloupe
+fresh carrot
+fresh cauliflower
+fresh celery
+fresh cherry
+fresh chicken breast
+fresh chicken drumstick
+fresh chicken thigh
+fresh chicken wing
+fresh chickpeas
+fresh chili pepper
+fresh clam
+fresh cod
+fresh collard greens
+fresh corn
+fresh crab
+fresh cranberry beans
+fresh cucumber
+fresh cuttlefish
+fresh duck breast
+fresh duck leg
+fresh edamame
+fresh eggplant
+fresh endive
+fresh fava beans
+fresh fennel
+fresh fig
+fresh garlic
+fresh ginger
+fresh goose
+fresh grape
+fresh green peas
+fresh ground beef
+fresh haddock
+fresh ham
+fresh jalapeno
+fresh kale
+fresh kidney beans
+fresh kiwi
+fresh lamb chop
+fresh lamb shank
+fresh leek
+fresh lentil green
+fresh lentil red
+fresh lentils
+fresh lettuce
+fresh lobster
+fresh mackerel
+fresh mango
+fresh mung beans
+fresh mushroom
+fresh mussel
+fresh navy beans
+fresh octopus
+fresh okra
+fresh onion
+fresh orange
+fresh oyster
+fresh parsnip
+fresh peach
+fresh pear
+fresh peas
+fresh pineapple
+fresh pinto beans
+fresh plum
+fresh pomegranate
+fresh pork belly
+fresh pork chop
+fresh pork liver
+fresh pork shoulder
+fresh pork tenderloin
+fresh potato
+fresh prosciutto
+fresh pumpkin
+fresh rabbit
+fresh radish
+fresh raspberry
+fresh rhubarb
+fresh salami
+fresh salmon
+fresh sardine
+fresh sausage
+fresh scallion
+fresh scallop
+fresh seaweed
+fresh shallot
+fresh short ribs
+fresh shrimp
+fresh soybeans
+fresh spinach
+fresh split peas
+fresh squid
+fresh strawberry
+fresh sweet potato
+fresh swiss chard
+fresh tilapia
+fresh tomato
+fresh trout
+fresh tuna
+fresh turkey breast
+fresh turkey leg
+fresh turnip
+fresh veal cutlet
+fresh venison
+fresh watermelon
+fresh zucchini
+frozen anchovy
+frozen apple
+frozen apricot
+frozen artichoke
+frozen asparagus
+frozen banana
+frozen beetroot
+frozen bell pepper
+frozen blackberry
+frozen blueberry
+frozen bok choy
+frozen broccoli
+frozen brussels sprouts
+frozen cabbage
+frozen cantaloupe
+frozen carrot
+frozen cauliflower
+frozen celery
+frozen cherry
+frozen chili pepper
+frozen clam
+frozen cod
+frozen collard greens
+frozen corn
+frozen crab
+frozen cucumber
+frozen cuttlefish
+frozen eggplant
+frozen endive
+frozen fennel
+frozen fig
+frozen garlic
+frozen ginger
+frozen grape
+frozen haddock
+frozen jalapeno
+frozen kale
+frozen kiwi
+frozen leek
+frozen lettuce
+frozen lobster
+frozen mackerel
+frozen mango
+frozen mushroom
+frozen mussel
+frozen octopus
+frozen okra
+frozen onion
+frozen orange
+frozen oyster
+frozen parsnip
+frozen peach
+frozen pear
+frozen peas
+frozen pineapple
+frozen plum
+frozen pomegranate
+frozen potato
+frozen pumpkin
+frozen radish
+frozen raspberry
+frozen rhubarb
+frozen salmon
+frozen sardine
+frozen scallion
+frozen scallop
+frozen seaweed
+frozen shallot
+frozen shrimp
+frozen spinach
+frozen squid
+frozen strawberry
+frozen sweet potato
+frozen swiss chard
+frozen tilapia
+frozen tomato
+frozen trout
+frozen tuna
+frozen turnip
+frozen watermelon
+frozen zucchini
+grains amaranth
+grains barley
+grains basmati rice
+grains buckwheat
+grains bulgur
+grains cornmeal
+grains couscous
+grains farro
+grains jasmine rice
+grains millet
+grains oats
+grains polenta
+grains quinoa
+grains rice
+grains rye
+grains semolina
+grains sorghum
+grains spelt
+grains teff
+grains wild rice
+ground allspice
+ground anise
+ground bacon
+ground basil
+ground bay leaf
+ground beef brisket
+ground beef liver
+ground beef roast
+ground beef steak
+ground black pepper
+ground cardamom
+ground cayenne pepper
+ground chicken breast
+ground chicken drumstick
+ground chicken thigh
+ground chicken wing
+ground chili powder
+ground cilantro
+ground cinnamon
+ground cloves
+ground coriander
+ground cumin
+ground curry powder
+ground dill
+ground duck breast
+ground duck leg
+ground fennel seed
+ground fenugreek
+ground five spice powder
+ground galangal
+ground garam masala
+ground ginger
+ground ginger root
+ground goose
+ground ground beef
+ground ham
+ground herbes de Provence
+ground horseradish
+ground juniper berries
+ground lamb chop
+ground lamb shank
+ground lavender
+ground lemongrass
+ground mace
+ground marjoram
+ground mint
+ground mustard seed
+ground nutmeg
+ground oregano
+ground paprika
+ground parsley
+ground pork belly
+ground pork chop
+ground pork liver
+ground pork shoulder
+ground pork tenderloin
+ground prosciutto
+ground rabbit
+ground rosemary
+ground saffron
+ground sage
+ground salami
+ground sausage
+ground sesame seed
+ground short ribs
+ground sichuan pepper
+ground star anise
+ground sumac
+ground tarragon
+ground thyme
+ground turkey breast
+ground turkey leg
+ground turmeric
+ground turmeric root
+ground veal cutlet
+ground venison
+ground white pepper
+ground whole peppercorns
+ground yellow mustard
+juice apple
+juice apricot
+juice banana
+juice blackberry
+juice blueberry
+juice cantaloupe
+juice cherry
+juice fig
+juice grape
+juice kiwi
+juice mango
+juice orange
+juice peach
+juice pear
+juice pineapple
+juice plum
+juice pomegranate
+juice raspberry
+juice strawberry
+juice watermelon
+milk butter
+milk cheddar cheese
+milk cottage cheese
+milk cow milk
+milk cream
+milk cream cheese
+milk feta cheese
+milk goat milk
+milk greek yogurt
+milk mozzarella cheese
+milk parmesan cheese
+milk sheep milk
+milk sour cream
+milk yogurt
+oil avocado oil
+oil canola oil
+oil coconut oil
+oil olive oil
+oil peanut oil
+oil sesame oil
+oil soybean oil
+oil sunflower oil
+paste alfredo sauce
+paste barbecue sauce
+paste béchamel sauce
+paste chimichurri
+paste curry sauce
+paste fish sauce
+paste gravy
+paste hoisin sauce
+paste hot sauce
+paste ketchup
+paste mayonnaise
+paste mole sauce
+paste mustard
+paste pesto
+paste salsa
+paste soy sauce
+paste tahini
+paste teriyaki sauce
+paste tomato sauce
+paste vinaigrette
+puree apple
+puree apricot
+puree banana
+puree blackberry
+puree blueberry
+puree cantaloupe
+puree cherry
+puree fig
+puree grape
+puree kiwi
+puree mango
+puree orange
+puree peach
+puree pear
+puree pineapple
+puree plum
+puree pomegranate
+puree raspberry
+puree strawberry
+puree watermelon
+raw almonds
+raw almond slivers
+raw brazil nuts
+raw cashews
+raw chestnuts
+raw hazelnuts
+raw macadamia nuts
+raw mixed nuts
+raw peanuts
+raw pecans
+raw pine nuts
+raw pistachios
+raw sunflower seeds
+raw walnut halves
+raw walnuts
+roasted almonds
+roasted almond slivers
+roasted brazil nuts
+roasted cashews
+roasted chestnuts
+roasted hazelnuts
+roasted macadamia nuts
+roasted mixed nuts
+roasted peanuts
+roasted pecans
+roasted pine nuts
+roasted pistachios
+roasted sunflower seeds
+roasted walnut halves
+roasted walnuts
+salted almonds
+salted almond slivers
+salted brazil nuts
+salted cashews
+salted chestnuts
+salted hazelnuts
+salted macadamia nuts
+salted mixed nuts
+salted peanuts
+salted pecans
+salted pine nuts
+salted pistachios
+salted sunflower seeds
+salted walnut halves
+salted walnuts
+sauce alfredo sauce
+sauce barbecue sauce
+sauce béchamel sauce
+sauce chimichurri
+sauce curry sauce
+sauce fish sauce
+sauce gravy
+sauce hoisin sauce
+sauce hot sauce
+sauce ketchup
+sauce mayonnaise
+sauce mole sauce
+sauce mustard
+sauce pesto
+sauce salsa
+sauce soy sauce
+sauce tahini
+sauce teriyaki sauce
+sauce tomato sauce
+sauce vinaigrette
+smoked anchovy
+smoked bacon
+smoked beef brisket
+smoked beef liver
+smoked beef roast
+smoked beef steak
+smoked chicken breast
+smoked chicken drumstick
+smoked chicken thigh
+smoked chicken wing
+smoked clam
+smoked cod
+smoked crab
+smoked cuttlefish
+smoked duck breast
+smoked duck leg
+smoked goose
+smoked ground beef
+smoked haddock
+smoked ham
+smoked lamb chop
+smoked lamb shank
+smoked lobster
+smoked mackerel
+smoked mussel
+smoked octopus
+smoked oyster
+smoked pork belly
+smoked pork chop
+smoked pork liver
+smoked pork shoulder
+smoked pork tenderloin
+smoked prosciutto
+smoked rabbit
+smoked salami
+smoked salmon
+smoked sardine
+smoked sausage
+smoked scallop
+smoked seaweed
+smoked short ribs
+smoked shrimp
+smoked squid
+smoked tilapia
+smoked trout
+smoked tuna
+smoked turkey breast
+smoked turkey leg
+smoked veal cutlet
+smoked venison
+whole allspice
+whole amaranth
+whole anise
+whole barley
+whole basil
+whole basmati rice
+whole bay leaf
+whole black pepper
+whole buckwheat
+whole bulgur
+whole cardamom
+whole cayenne pepper
+whole chili powder
+whole cilantro
+whole cinnamon
+whole cloves
+whole coriander
+whole cornmeal
+whole couscous
+whole cumin
+whole curry powder
+whole dill
+whole farro
+whole fennel seed
+whole fenugreek
+whole five spice powder
+whole galangal
+whole garam masala
+whole ginger
+whole ginger root
+whole herbes de Provence
+whole horseradish
+whole jasmine rice
+whole juniper berries
+whole lavender
+whole lemongrass
+whole mace
+whole marjoram
+whole millet
+whole mint
+whole mustard seed
+whole nutmeg
+whole oats
+whole oregano
+whole paprika
+whole parsley
+whole polenta
+whole quinoa
+whole rice
+whole rosemary
+whole rye
+whole saffron
+whole sage
+whole semolina
+whole sesame seed
+whole sichuan pepper
+whole sorghum
+whole spelt
+whole star anise
+whole sumac
+whole tarragon
+whole teff
+whole thyme
+whole turmeric
+whole turmeric root
+whole white pepper
+whole whole peppercorns
+whole wild rice
+whole yellow mustard
+yogurt butter
+yogurt cheddar cheese
+yogurt cottage cheese
+yogurt cow milk
+yogurt cream
+yogurt cream cheese
+yogurt feta cheese
+yogurt goat milk
+yogurt greek yogurt
+yogurt mozzarella cheese
+yogurt parmesan cheese
+yogurt sheep milk
+yogurt sour cream
+yogurt yogurt
