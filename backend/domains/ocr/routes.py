@@ -29,7 +29,7 @@ router = APIRouter(prefix="/ocr", tags=["OCR"])
 
 
 @router.post(
-    "/ocr/extract-text",
+    "/extract-text",
     response_model=OCRTextResponse,
     status_code=status.HTTP_200_OK,
     summary="Extract text from receipt image",
@@ -99,7 +99,7 @@ async def extract_receipt_text(
 
 
 @router.post(
-    "/ocr/process",
+    "/process",
     response_model=OCRApiResponse,
     status_code=status.HTTP_200_OK,
     summary="Process receipt with ingredient suggestions",

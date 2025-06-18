@@ -9,8 +9,8 @@ import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 from io import BytesIO
 
-from domains.receipt.services import OCRService, OCRError
-from domains.receipt.schemas import OCRTextResponse
+from domains.ocr.services import OCRService, OCRError
+from domains.ocr.schemas import OCRTextResponse
 from tests.ocr.config import OCRTestBase
 from tests.ocr.utils.mocks import MockContextManager, OCRMockFactory, OCRResponseFactory
 
@@ -26,8 +26,8 @@ class TestOCRTextExtraction(OCRTestBase):
             mock_tesseract_data = OCRMockFactory.create_mock_tesseract_data()
             expected_text = "FRESH MARKET GROCERY\nTomatoes (2 lbs) $3.98"
             
-            with patch('domains.receipt.services.pytesseract') as mock_tesseract, \
-                 patch('domains.receipt.services.Image') as mock_image_class:
+            with patch('domains.ocr.services.pytesseract') as mock_tesseract, \
+                 patch('domains.ocr.services.Image') as mock_image_class:
                 
                 # Configure mocks
                 mock_image = OCRMockFactory.create_mock_image()
@@ -57,8 +57,8 @@ class TestOCRTextExtraction(OCRTestBase):
     async def test_extract_text_from_image_with_multiple_configs(self):
         """Test text extraction tries multiple OCR configurations."""
         with MockContextManager():
-            with patch('domains.receipt.services.pytesseract') as mock_tesseract, \
-                 patch('domains.receipt.services.Image') as mock_image_class:
+            with patch('domains.ocr.services.pytesseract') as mock_tesseract, \
+                 patch('domains.ocr.services.Image') as mock_image_class:
                 
                 # Setup mock to fail first configs, succeed on last
                 mock_tesseract.image_to_data.side_effect = [
@@ -86,8 +86,8 @@ class TestOCRTextExtraction(OCRTestBase):
     async def test_extract_text_from_image_all_configs_fail(self):
         """Test text extraction when all OCR configurations fail."""
         with MockContextManager():
-            with patch('domains.receipt.services.pytesseract') as mock_tesseract, \
-                 patch('domains.receipt.services.Image') as mock_image_class:
+            with patch('domains.ocr.services.pytesseract') as mock_tesseract, \
+                 patch('domains.ocr.services.Image') as mock_image_class:
                 
                 # Make all configs fail, then provide fallback
                 mock_tesseract.image_to_data.side_effect = Exception("All configs failed")
@@ -111,7 +111,7 @@ class TestOCRTextExtraction(OCRTestBase):
     async def test_extract_text_from_image_invalid_image(self):
         """Test text extraction with invalid image data."""
         with MockContextManager():
-            with patch('domains.receipt.services.Image') as mock_image_class:
+            with patch('domains.ocr.services.Image') as mock_image_class:
                 # Mock Image.open to raise an exception
                 mock_image_class.open.side_effect = Exception("Invalid image format")
                 
@@ -127,8 +127,8 @@ class TestOCRTextExtraction(OCRTestBase):
     async def test_extract_text_from_image_empty_result(self):
         """Test text extraction when OCR returns empty result."""
         with MockContextManager():
-            with patch('domains.receipt.services.pytesseract') as mock_tesseract, \
-                 patch('domains.receipt.services.Image') as mock_image_class:
+            with patch('domains.ocr.services.pytesseract') as mock_tesseract, \
+                 patch('domains.ocr.services.Image') as mock_image_class:
                 
                 # Configure mocks to return empty/None results
                 mock_tesseract.image_to_data.return_value = {'conf': [], 'text': []}
@@ -154,8 +154,8 @@ class TestOCRTextExtraction(OCRTestBase):
     async def test_extract_text_confidence_calculation(self):
         """Test confidence score calculation from OCR data."""
         with MockContextManager():
-            with patch('domains.receipt.services.pytesseract') as mock_tesseract, \
-                 patch('domains.receipt.services.Image') as mock_image_class:
+            with patch('domains.ocr.services.pytesseract') as mock_tesseract, \
+                 patch('domains.ocr.services.Image') as mock_image_class:
                 
                 # Mock OCR data with specific confidence scores
                 mock_tesseract.image_to_data.return_value = {
@@ -181,7 +181,7 @@ class TestOCRTextExtraction(OCRTestBase):
     def test_image_preprocessing_called(self):
         """Test that image preprocessing is called during text extraction."""
         with MockContextManager():
-            with patch('domains.receipt.services.Image') as mock_image_class:
+            with patch('domains.ocr.services.Image') as mock_image_class:
                 mock_image = OCRMockFactory.create_mock_image()
                 mock_image_class.open.return_value = mock_image
                 

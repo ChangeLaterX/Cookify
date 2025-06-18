@@ -8,8 +8,8 @@ import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 from typing import List
 
-from domains.receipt.services import OCRService, OCRError
-from domains.receipt.schemas import OCRItemSuggestion
+from domains.ocr.services import OCRService, OCRError
+from domains.ocr.schemas import OCRItemSuggestion
 from domains.ingredients.services import IngredientError
 from tests.ocr.config import OCRTestBase
 from tests.ocr.utils.mocks import MockContextManager, with_mocked_ocr
@@ -31,7 +31,7 @@ class TestOCRIngredientSuggestions(OCRTestBase):
                 count=3
             )
             
-            with patch('domains.receipt.services.search_ingredients', return_value=mock_ingredient_data):
+            with patch('domains.ocr.services.search_ingredients', return_value=mock_ingredient_data):
                 suggestions = await service._find_ingredient_suggestions("Tomatoes (2 lbs)")
                 
                 assert len(suggestions) > 0
@@ -58,7 +58,7 @@ class TestOCRIngredientSuggestions(OCRTestBase):
                     count=2
                 )
                 
-                with patch('domains.receipt.services.search_ingredients', return_value=mock_results):
+                with patch('domains.ocr.services.search_ingredients', return_value=mock_results):
                     suggestions = await service._find_ingredient_suggestions(ocr_text)
                     
                     assert len(suggestions) > 0, f"No suggestions for {ocr_text}"
@@ -77,7 +77,7 @@ class TestOCRIngredientSuggestions(OCRTestBase):
                 count=0  # No results
             )
             
-            with patch('domains.receipt.services.search_ingredients', return_value=mock_results):
+            with patch('domains.ocr.services.search_ingredients', return_value=mock_results):
                 suggestions = await service._find_ingredient_suggestions("Xyzabc Random Item")
                 
                 assert len(suggestions) == 0
@@ -108,7 +108,7 @@ class TestOCRIngredientSuggestions(OCRTestBase):
             mock_search_result = MagicMock()
             mock_search_result.ingredients = mock_ingredients
             
-            with patch('domains.receipt.services.search_ingredients', return_value=mock_search_result):
+            with patch('domains.ocr.services.search_ingredients', return_value=mock_search_result):
                 suggestions = await service._find_ingredient_suggestions("Apple")
                 
                 # Should only include suggestions above threshold (30%)
@@ -122,7 +122,7 @@ class TestOCRIngredientSuggestions(OCRTestBase):
             service = OCRService()
             
             # Mock search_ingredients to raise IngredientError
-            with patch('domains.receipt.services.search_ingredients', 
+            with patch('domains.ocr.services.search_ingredients', 
                       side_effect=IngredientError("Database error", "DB_ERROR")):
                 
                 suggestions = await service._find_ingredient_suggestions("Tomatoes")
@@ -137,7 +137,7 @@ class TestOCRIngredientSuggestions(OCRTestBase):
             service = OCRService()
             
             # Mock search_ingredients to raise unexpected error
-            with patch('domains.receipt.services.search_ingredients', 
+            with patch('domains.ocr.services.search_ingredients', 
                       side_effect=Exception("Unexpected error")):
                 
                 suggestions = await service._find_ingredient_suggestions("Tomatoes")
@@ -157,7 +157,7 @@ class TestOCRIngredientSuggestions(OCRTestBase):
                 count=10  # More than default max
             )
             
-            with patch('domains.receipt.services.search_ingredients', return_value=mock_results):
+            with patch('domains.ocr.services.search_ingredients', return_value=mock_results):
                 # Test default limit (3)
                 suggestions = await service._find_ingredient_suggestions("Tomatoes")
                 assert len(suggestions) <= 3
@@ -177,7 +177,7 @@ class TestOCRIngredientSuggestions(OCRTestBase):
                 count=5
             )
             
-            with patch('domains.receipt.services.search_ingredients', return_value=mock_results):
+            with patch('domains.ocr.services.search_ingredients', return_value=mock_results):
                 suggestions = await service._find_ingredient_suggestions("Tomatoes")
                 
                 # Verify suggestions are sorted by confidence (descending)
@@ -204,7 +204,7 @@ class TestOCRIngredientSuggestions(OCRTestBase):
                     count=1
                 )
                 
-                with patch('domains.receipt.services.search_ingredients', return_value=mock_results):
+                with patch('domains.ocr.services.search_ingredients', return_value=mock_results):
                     suggestions = await service._find_ingredient_suggestions(text)
                     
                     # Should handle special characters without errors

@@ -9,7 +9,7 @@ import pytest
 import os
 from pathlib import Path
 
-from domains.receipt.services import OCRService, extract_text_from_image, process_receipt_image
+from domains.ocr.services import OCRService, extract_text_from_image, process_receipt_image
 from tests.ocr.config import OCRTestConfig
 
 

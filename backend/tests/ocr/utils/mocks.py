@@ -10,7 +10,7 @@ from uuid import uuid4
 from contextlib import contextmanager
 import pytest
 
-from domains.receipt.schemas import (
+from domains.ocr.schemas import (
     OCRTextResponse,
     OCRProcessedResponse,
     ReceiptItem,
@@ -149,7 +149,7 @@ def mock_ocr_environment():
         'PIL.ImageEnhance': MagicMock(),
         'PIL.ImageFilter': MagicMock(),
     }):
-        with patch('domains.receipt.services.OCR_AVAILABLE', True):
+        with patch('domains.ocr.services.OCR_AVAILABLE', True):
             yield
 
 
@@ -168,7 +168,7 @@ def mock_image():
 @pytest.fixture
 def mock_ingredient_search():
     """Pytest fixture for mocked ingredient search."""
-    with patch('domains.receipt.services.search_ingredients') as mock_search:
+    with patch('domains.ocr.services.search_ingredients') as mock_search:
         mock_search.return_value = OCRMockFactory.create_mock_search_result()
         yield mock_search
 
@@ -196,7 +196,7 @@ class MockContextManager:
             mock_tesseract.image_to_data.return_value = OCRMockFactory.create_mock_tesseract_data()
             mock_tesseract.Output.DICT = 'dict'
             
-            tesseract_patch = patch('domains.receipt.services.pytesseract', mock_tesseract)
+            tesseract_patch = patch('domains.ocr.services.pytesseract', mock_tesseract)
             self.patches.append(tesseract_patch)
             tesseract_patch.start()
         
@@ -205,12 +205,12 @@ class MockContextManager:
             mock_image_class = MagicMock()
             mock_image_class.open.return_value = OCRMockFactory.create_mock_image()
             
-            pil_patch = patch('domains.receipt.services.Image', mock_image_class)
+            pil_patch = patch('domains.ocr.services.Image', mock_image_class)
             self.patches.append(pil_patch)
             pil_patch.start()
         
         # Mock OCR availability
-        ocr_available_patch = patch('domains.receipt.services.OCR_AVAILABLE', True)
+        ocr_available_patch = patch('domains.ocr.services.OCR_AVAILABLE', True)
         self.patches.append(ocr_available_patch)
         ocr_available_patch.start()
         

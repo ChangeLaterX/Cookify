@@ -9,7 +9,7 @@ from unittest.mock import patch, MagicMock
 import shutil
 import os
 
-from domains.receipt.services import OCRService, OCRError
+from domains.ocr.services import OCRService, OCRError
 from tests.ocr.config import OCRTestBase
 from tests.ocr.utils.mocks import MockContextManager, with_mocked_ocr
 
@@ -35,7 +35,7 @@ class TestOCRServiceInitialization(OCRTestBase):
 
     def test_ocr_service_initialization_without_dependencies(self):
         """Test OCR service raises error when dependencies are missing."""
-        with patch('domains.receipt.services.OCR_AVAILABLE', False):
+        with patch('domains.ocr.services.OCR_AVAILABLE', False):
             with pytest.raises(OCRError) as exc_info:
                 OCRService()
             
@@ -88,12 +88,12 @@ class TestOCRServiceDependencyChecks(OCRTestBase):
 
     def test_ocr_available_flag_with_dependencies(self):
         """Test OCR_AVAILABLE flag when dependencies are present."""
-        with patch('domains.receipt.services.pytesseract', MagicMock()), \
-             patch('domains.receipt.services.Image', MagicMock()):
+        with patch('domains.ocr.services.pytesseract', MagicMock()), \
+             patch('domains.ocr.services.Image', MagicMock()):
             
             # Re-import to trigger availability check
             import importlib
-            from domains.receipt import services
+            from domains.ocr import services
             importlib.reload(services)
             
             # OCR should be available
@@ -104,7 +104,7 @@ class TestOCRServiceDependencyChecks(OCRTestBase):
         with patch.dict('sys.modules', {'pytesseract': None}):
             # Re-import to trigger availability check
             import importlib
-            from domains.receipt import services
+            from domains.ocr import services
             importlib.reload(services)
             
             # OCR should not be available
@@ -115,7 +115,7 @@ class TestOCRServiceDependencyChecks(OCRTestBase):
         with patch.dict('sys.modules', {'PIL': None, 'PIL.Image': None}):
             # Re-import to trigger availability check
             import importlib
-            from domains.receipt import services
+            from domains.ocr import services
             importlib.reload(services)
             
             # OCR should not be available
@@ -124,7 +124,7 @@ class TestOCRServiceDependencyChecks(OCRTestBase):
     def test_global_service_instance_creation(self):
         """Test that global service instance is created correctly."""
         with MockContextManager():
-            from domains.receipt.services import ocr_service
+            from domains.ocr.services import ocr_service
             
             # Service should be created when dependencies are available
             assert ocr_service is not None
@@ -133,10 +133,10 @@ class TestOCRServiceDependencyChecks(OCRTestBase):
 
     def test_global_service_instance_none_when_unavailable(self):
         """Test that global service instance is None when dependencies unavailable."""
-        with patch('domains.receipt.services.OCR_AVAILABLE', False):
+        with patch('domains.ocr.services.OCR_AVAILABLE', False):
             # Re-import to trigger service creation
             import importlib
-            from domains.receipt import services
+            from domains.ocr import services
             importlib.reload(services)
             
             # Service should be None

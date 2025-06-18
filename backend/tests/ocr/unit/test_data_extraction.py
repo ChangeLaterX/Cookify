@@ -7,7 +7,7 @@ This module tests the extraction of structured data from receipt text.
 import pytest
 from unittest.mock import patch
 
-from domains.receipt.services import OCRService
+from domains.ocr.services import OCRService
 from tests.ocr.config import OCRTestBase
 from tests.ocr.utils.mocks import MockContextManager
 from tests.ocr.utils.test_data import get_test_data

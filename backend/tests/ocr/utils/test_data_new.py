@@ -10,7 +10,7 @@ from uuid import uuid4
 import json
 import random
 
-from domains.receipt.schemas import (
+from domains.ocr.schemas import (
     OCRTextResponse,
     OCRProcessedResponse,
     ReceiptItem,

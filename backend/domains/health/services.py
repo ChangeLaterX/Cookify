@@ -182,7 +182,7 @@ class HealthCheckService:
     async def _check_receipt_service(self) -> ServiceHealthStatus:
         """Check receipt/OCR service health."""
         try:
-            from domains.receipt.services import OCR_AVAILABLE
+            from domains.ocr.services import OCR_AVAILABLE
             
             if OCR_AVAILABLE:
                 return ServiceHealthStatus(

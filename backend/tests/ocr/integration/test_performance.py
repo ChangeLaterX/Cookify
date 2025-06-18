@@ -9,7 +9,7 @@ import time
 import statistics
 from typing import List, Dict, Any
 
-from domains.receipt.services import extract_text_from_image, process_receipt_image
+from domains.ocr.services import extract_text_from_image, process_receipt_image
 from tests.ocr.config import OCRTestConfig
 
 
@@ -166,7 +166,7 @@ class TestOCRPerformance:
     @pytest.mark.asyncio
     async def test_ocr_accuracy_vs_speed_tradeoffs(self):
         """Test accuracy vs speed tradeoffs in OCR configuration."""
-        from domains.receipt.services import OCRService
+        from domains.ocr.services import OCRService
         
         config = OCRTestConfig()
         image_path = config.get_sample_image_path("sample_receipt.png")

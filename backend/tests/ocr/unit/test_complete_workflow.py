@@ -8,13 +8,13 @@ import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
 from io import BytesIO
 
-from domains.receipt.services import (
+from domains.ocr.services import (
     extract_text_from_image,
     process_receipt_image,
     OCRError,
     ocr_service
 )
-from domains.receipt.schemas import OCRTextResponse, OCRProcessedResponse
+from domains.ocr.schemas import OCRTextResponse, OCRProcessedResponse
 from tests.ocr.config import OCRTestBase
 from tests.ocr.utils.mocks import MockContextManager, with_mocked_ocr
 from tests.ocr.utils.test_data import TestDataGenerator
@@ -70,7 +70,7 @@ class TestOCRCompleteWorkflow(OCRTestBase):
     async def test_public_api_service_unavailable(self):
         """Test public API functions when OCR service is unavailable."""
         # Mock ocr_service as None (unavailable)
-        with patch('domains.receipt.services.ocr_service', None):
+        with patch('domains.ocr.services.ocr_service', None):
             test_image_data = b"fake_image_data"
             
             # Test extract_text_from_image
@@ -121,7 +121,7 @@ class TestOCRCompleteWorkflow(OCRTestBase):
             
             with patch.object(ocr_service, 'extract_text_from_image',
                              return_value=mock_ocr_response), \
-                 patch('domains.receipt.services.search_ingredients',
+                 patch('domains.ocr.services.search_ingredients',
                        side_effect=mock_ingredients):
                 
                 result = await process_receipt_image(test_image_data)
@@ -167,7 +167,7 @@ class TestOCRCompleteWorkflow(OCRTestBase):
             
             with patch.object(ocr_service, 'extract_text_from_image',
                              return_value=mock_ocr_response), \
-                 patch('domains.receipt.services.search_ingredients',
+                 patch('domains.ocr.services.search_ingredients',
                        return_value=TestDataGenerator.generate_mock_ingredient_search_results("test", 1)):
                 
                 result = await process_receipt_image(test_image_data)
@@ -242,7 +242,7 @@ class TestOCRCompleteWorkflow(OCRTestBase):
             
             with patch.object(ocr_service, 'extract_text_from_image',
                              return_value=mock_ocr_response), \
-                 patch('domains.receipt.services.search_ingredients',
+                 patch('domains.ocr.services.search_ingredients',
                        return_value=TestDataGenerator.generate_mock_ingredient_search_results("food", 1)):
                 
                 result = await process_receipt_image(test_image_data)

@@ -91,7 +91,7 @@ class OCRTestRunner:
             cmd.append('-v')
             
         if coverage:
-            cmd.extend(['--cov=domains.receipt.services', '--cov-report=html', '--cov-report=term'])
+            cmd.extend(['--cov=domains.ocr.services', '--cov-report=html', '--cov-report=term'])
             
         cmd.extend(['-x', '--tb=short'])  # Stop on first failure, short traceback
         
@@ -130,7 +130,7 @@ class OCRTestRunner:
             cmd.append('-v')
             
         if coverage:
-            cmd.extend(['--cov=domains.receipt.services', '--cov-report=html', '--cov-report=term'])
+            cmd.extend(['--cov=domains.ocr.services', '--cov-report=html', '--cov-report=term'])
             
         cmd.extend(['-x', '--tb=short'])
         
@@ -221,7 +221,7 @@ class OCRTestRunner:
         cmd = [
             'python', '-m', 'pytest',
             str(self.test_root),
-            '--cov=domains.receipt.services',
+            '--cov=domains.ocr.services',
             '--cov-report=html:htmlcov',
             '--cov-report=term-missing',
             '--cov-report=xml',

@@ -9,7 +9,7 @@ from unittest.mock import patch, MagicMock, AsyncMock
 from io import BytesIO
 from PIL import Image
 
-from domains.receipt.services import OCRService, OCRError
+from domains.ocr.services import OCRService, OCRError
 from tests.ocr.config import OCRTestBase
 from tests.ocr.utils.mocks import MockContextManager, with_mocked_ocr
 from tests.ocr.utils.test_data import TestDataGenerator
@@ -20,7 +20,7 @@ class TestOCRErrorHandling(OCRTestBase):
 
     def test_ocr_service_missing_dependencies(self):
         """Test OCR service initialization with missing dependencies."""
-        with patch('domains.receipt.services.OCR_AVAILABLE', False):
+        with patch('domains.ocr.services.OCR_AVAILABLE', False):
             with pytest.raises(OCRError) as exc_info:
                 OCRService()
             
@@ -58,7 +58,7 @@ class TestOCRErrorHandling(OCRTestBase):
             service = OCRService()
             
             # Mock PIL.Image as None (unavailable)
-            with patch('domains.receipt.services.Image', None):
+            with patch('domains.ocr.services.Image', None):
                 test_image_data = TestDataGenerator.generate_sample_image_bytes()
                 
                 with pytest.raises(OCRError) as exc_info:
@@ -73,7 +73,7 @@ class TestOCRErrorHandling(OCRTestBase):
             service = OCRService()
             
             # Mock pytesseract as None (unavailable)
-            with patch('domains.receipt.services.pytesseract', None):
+            with patch('domains.ocr.services.pytesseract', None):
                 test_image_data = TestDataGenerator.generate_sample_image_bytes()
                 
                 with pytest.raises(OCRError) as exc_info:
@@ -88,9 +88,9 @@ class TestOCRErrorHandling(OCRTestBase):
             service = OCRService()
             
             # Mock tesseract to raise execution error
-            with patch('domains.receipt.services.pytesseract.image_to_string',
+            with patch('domains.ocr.services.pytesseract.image_to_string',
                       side_effect=Exception("Tesseract execution failed")), \
-                 patch('domains.receipt.services.pytesseract.image_to_data',
+                 patch('domains.ocr.services.pytesseract.image_to_data',
                       side_effect=Exception("Tesseract data extraction failed")):
                 
                 test_image_data = TestDataGenerator.generate_sample_image_bytes()
@@ -196,9 +196,9 @@ class TestOCRErrorHandling(OCRTestBase):
                 
                 # Should not crash, should use fallback processing
                 # We'll mock the entire OCR process since we're testing preprocessing error handling
-                with patch('domains.receipt.services.pytesseract.image_to_string',
+                with patch('domains.ocr.services.pytesseract.image_to_string',
                           return_value="Fallback OCR result"), \
-                     patch('domains.receipt.services.pytesseract.image_to_data',
+                     patch('domains.ocr.services.pytesseract.image_to_data',
                           return_value={'conf': ['80'], 'text': ['Fallback']}):
                     
                     result = await service.extract_text_from_image(test_image_data)
@@ -250,7 +250,7 @@ class TestOCRErrorHandling(OCRTestBase):
             ]
             
             for error in error_cases:
-                with patch('domains.receipt.services.search_ingredients', side_effect=error):
+                with patch('domains.ocr.services.search_ingredients', side_effect=error):
                     suggestions = await service._find_ingredient_suggestions("Tomatoes")
                     
                     # Should return empty list gracefully
@@ -308,9 +308,9 @@ class TestOCRErrorHandling(OCRTestBase):
             mock_image.size = (4000, 4000)  # Large image
             
             with patch('PIL.Image.open', return_value=mock_image), \
-                 patch('domains.receipt.services.pytesseract.image_to_string',
+                 patch('domains.ocr.services.pytesseract.image_to_string',
                       return_value="Large image OCR result"), \
-                 patch('domains.receipt.services.pytesseract.image_to_data',
+                 patch('domains.ocr.services.pytesseract.image_to_data',
                       return_value={'conf': ['75'], 'text': ['Large']}):
                 
                 result = await service.extract_text_from_image(large_image_data)

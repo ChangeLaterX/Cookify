@@ -9,7 +9,6 @@ import re
 import asyncio
 from typing import List, Optional, Tuple
 from io import BytesIO
-from difflib import SequenceMatcher
 
 try:
     import pytesseract
@@ -20,12 +19,10 @@ except ImportError:
     Image = None
     OCR_AVAILABLE = False
 
-from domains.ingredients.services import search_ingredients, IngredientError
 from .schemas import (
     OCRTextResponse,
     OCRProcessedResponse,
     ReceiptItem,
-    OCRItemSuggestion,
 )
 
 logger = logging.getLogger(__name__)
@@ -403,71 +400,18 @@ class OCRService:
         
         return items
     
-    async def _find_ingredient_suggestions(
-        self, 
-        item_text: str, 
-        max_suggestions: int = 3
-    ) -> List[OCRItemSuggestion]:
-        """
-        Find ingredient suggestions for a receipt item.
-        
-        Args:
-            item_text: Text of the receipt item
-            max_suggestions: Maximum number of suggestions to return
-            
-        Returns:
-            List of ingredient suggestions
-        """
-        suggestions = []
-        
-        try:
-            # Search for similar ingredients
-            search_result = await search_ingredients(
-                query=item_text,
-                limit=10,  # Get more results for better matching
-                offset=0
-            )
-            
-            for ingredient in search_result.ingredients:
-                # Calculate similarity score
-                similarity = SequenceMatcher(
-                    None, 
-                    item_text.lower(), 
-                    ingredient.name.lower()
-                ).ratio()
-                
-                # Only include if similarity is above threshold
-                if similarity > 0.3:  # 30% similarity threshold
-                    suggestions.append(OCRItemSuggestion(
-                        ingredient_id=ingredient.ingredient_id,
-                        ingredient_name=ingredient.name,
-                        confidence_score=similarity * 100,
-                        detected_text=item_text
-                    ))
-            
-            # Sort by confidence and limit results
-            suggestions.sort(key=lambda x: x.confidence_score, reverse=True)
-            return suggestions[:max_suggestions]
-            
-        except IngredientError as e:
-            logger.warning(f"Failed to search ingredients for '{item_text}': {e.message}")
-            return []
-        except Exception as e:
-            logger.error(f"Unexpected error searching ingredients for '{item_text}': {str(e)}")
-            return []
-    
-    async def process_receipt_with_suggestions(
+    async def process_receipt_without_suggestions(
         self, 
         image_data: bytes
     ) -> OCRProcessedResponse:
         """
-        Process receipt image and provide ingredient suggestions.
+        Process receipt image and extract items without database suggestions.
         
         Args:
             image_data: Raw image data as bytes
             
         Returns:
-            OCRProcessedResponse with extracted items and ingredient suggestions
+            OCRProcessedResponse with extracted items (no ingredient suggestions)
             
         Raises:
             OCRError: If processing fails
@@ -481,16 +425,13 @@ class OCRService:
             # Extract potential items from text
             raw_items = self._extract_receipt_items(ocr_result.extracted_text)
             
-            # Process each item and find ingredient suggestions
+            # Process each item without ingredient suggestions
             processed_items = []
             for item_text in raw_items:
                 # Extract quantity, unit, and price
                 quantity, unit, price = self._extract_quantity_and_price(item_text)
                 
-                # Find ingredient suggestions
-                suggestions = await self._find_ingredient_suggestions(item_text)
-                
-                # Clean product name for better matching
+                # Clean product name
                 clean_name = re.sub(r'\s*\$\d+[.,]\d{2}\s*$', '', item_text)  # remove price
                 clean_name = re.sub(r'\s*\(\d+.*?\)\s*', ' ', clean_name)  # remove quantity info
                 clean_name = re.sub(r'\s+', ' ', clean_name).strip()  # normalize whitespace
@@ -500,7 +441,7 @@ class OCRService:
                     quantity=quantity,
                     unit=unit,
                     price=price,
-                    suggestions=suggestions
+                    suggestions=[]  # No suggestions - empty list
                 )
                 processed_items.append(receipt_item)
             
@@ -861,11 +802,11 @@ async def extract_text_from_image(image_data: bytes) -> OCRTextResponse:
 
 
 async def process_receipt_image(image_data: bytes) -> OCRProcessedResponse:
-    """Process receipt image and provide ingredient suggestions."""
+    """Process receipt image without ingredient suggestions."""
     if not ocr_service:
         raise OCRError(
             "OCR service not available. Please install required dependencies.",
             "OCR_SERVICE_UNAVAILABLE"
         )
     
-    return await ocr_service.process_receipt_with_suggestions(image_data)
+    return await ocr_service.process_receipt_without_suggestions(image_data)

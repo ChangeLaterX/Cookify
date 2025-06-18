@@ -58,12 +58,12 @@ class ReceiptItem(BaseModel):
 
 
 class OCRProcessedResponse(BaseModel):
-    """Schema for processed OCR response with ingredient suggestions."""
+    """Schema for processed OCR response without ingredient suggestions."""
     
     raw_text: str = Field(..., description="Raw extracted text")
     detected_items: List[ReceiptItem] = Field(
         default_factory=list,
-        description="Processed receipt items with ingredient suggestions"
+        description="Processed receipt items without ingredient suggestions"
     )
     processing_time_ms: Optional[int] = Field(None, description="Total processing time in milliseconds")
     total_items_detected: int = Field(0, description="Number of items detected in receipt")

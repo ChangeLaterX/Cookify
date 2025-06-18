@@ -10,7 +10,7 @@ from uuid import uuid4
 from contextlib import contextmanager
 import pytest
 
-from domains.receipt.schemas import (
+from domains.ocr.schemas import (
     OCRTextResponse,
     OCRProcessedResponse,
     ReceiptItem,
@@ -175,20 +175,20 @@ class MockContextManager:
     def __enter__(self):
         """Enter the mock context."""
         # Mock OCR availability
-        ocr_patch = patch('domains.receipt.services.OCR_AVAILABLE', self.ocr_available)
+        ocr_patch = patch('domains.ocr.services.OCR_AVAILABLE', self.ocr_available)
         self.patches.append(ocr_patch)
         ocr_patch.start()
         
         if self.ocr_available:
             # Mock PIL Image
-            image_patch = patch('domains.receipt.services.Image')
+            image_patch = patch('domains.ocr.services.Image')
             self.patches.append(image_patch)
             mock_image_class = image_patch.start()
             mock_image_class.open.return_value = OCRMockFactory.create_mock_image()
             self.mocks['image_class'] = mock_image_class
             
             # Mock pytesseract
-            tesseract_patch = patch('domains.receipt.services.pytesseract')
+            tesseract_patch = patch('domains.ocr.services.pytesseract')
             self.patches.append(tesseract_patch)
             mock_tesseract = tesseract_patch.start()
             

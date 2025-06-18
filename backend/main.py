@@ -19,8 +19,11 @@ from shared.utils.validation_env import load_validation_config, get_validation_s
 # Domain routers
 from domains.auth.routes import router as auth_router
 from domains.ingredients.routes import router as ingredients_router
-from domains.receipt.routes import router as receipt_router
+from domains.ocr.routes import router as receipt_router
 from domains.health.routes import router as health_router
+
+# Scripts router
+from scripts.routes import router as scripts_router
 
 # Setup logging first
 setup_logging()
@@ -72,6 +75,7 @@ def create_application() -> FastAPI:
     application.include_router(ingredients_router, prefix="/api")
     application.include_router(receipt_router, prefix="/api")
     application.include_router(health_router, prefix="/api")
+    application.include_router(scripts_router, prefix="/api")
     
     # Add startup and shutdown events
     application.add_event_handler("startup", on_startup)
@@ -87,6 +91,17 @@ async def on_startup() -> None:
     
     # Initialize validation framework
     load_validation_config()
+    
+    # Run startup scripts (ingredient cache, etc.)
+    try:
+        from scripts.startup import run_startup_scripts
+        scripts_success = await run_startup_scripts()
+        if scripts_success:
+            logger.info("✅ All startup scripts completed successfully")
+        else:
+            logger.warning("⚠️ Some startup scripts failed - check logs for details")
+    except Exception as e:
+        logger.error(f"❌ Error running startup scripts: {str(e)}")
     
     logger.info(f"Debug mode: {settings.DEBUG}")
     logger.info(f"CORS origins: {settings.CORS_ORIGINS}")

@@ -103,7 +103,7 @@ OCR_TEST_INTEGRATION=true pytest tests/ocr/integration/ -v
 pytest tests/ocr/ -v
 
 # With coverage
-pytest tests/ocr/ --cov=domains.receipt.services --cov-report=html
+pytest tests/ocr/ --cov=domains.ocr.services --cov-report=html
 ```
 
 #### Running Specific Tests
