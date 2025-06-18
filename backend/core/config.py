@@ -398,7 +398,7 @@ class Settings(BaseSettings):
     HEALTH_ALERT_COOLDOWN_MINUTES: int = 15  # Cooldown between similar alerts
 
     # Health Check Service Names
-    HEALTH_SERVICE_NAMES: List[str] = ["auth", "ingredients", "receipt", "database", "system"]
+    HEALTH_SERVICE_NAMES: List[str] = ["auth", "ingredients", "receipt", "database", "system", "cache"]
 
     # Health Endpoint Settings
     HEALTH_ENDPOINT_PREFIX: str = "/health"  # Health endpoints prefix

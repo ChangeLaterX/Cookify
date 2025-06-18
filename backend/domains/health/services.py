@@ -19,6 +19,7 @@ except ImportError:
 
 from .schemas import ServiceHealthStatus, ServiceStatus, HealthResponse, DetailedHealthResponse
 from core.config import settings
+from scripts.ingredient_file_manager import get_ingredient_file_status
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +44,8 @@ class HealthCheckService:
                 self.service_checkers[service_name] = self._check_database_connection
             elif service_name == "system":
                 self.service_checkers[service_name] = self._check_system_resources
+            elif service_name == "cache":
+                self.service_checkers[service_name] = self._check_cache_status
     
     async def check_all_services(self) -> DetailedHealthResponse:
         """
@@ -249,6 +252,45 @@ class HealthCheckService:
                 message="Database connection failed",
                 response_time_ms=0,
                 details=None,
+                error=str(e)
+            )
+    
+    async def _check_cache_status(self) -> ServiceHealthStatus:
+        """Check ingredient file cache status."""
+        import traceback
+        try:
+            status = get_ingredient_file_status()
+            file_exists = status.get("file_exists", False)
+            needs_update = status.get("needs_update", True)
+            ingredient_count = status.get("ingredient_count", 0)
+            last_updated = status.get("last_updated")
+            
+            # Convert all status values to strings for Pydantic validation
+            details = {
+                "file_exists": str(file_exists),
+                "file_path": str(status.get("file_path", "")),
+                "last_updated": str(last_updated) if last_updated else "never",
+                "ingredient_count": str(ingredient_count),
+                "needs_update": str(needs_update),
+                "update_interval_days": str(status.get("update_interval_days", 7))
+            }
+            
+            msg = "Ingredient file cache is healthy" if file_exists and not needs_update else "Ingredient file cache needs update or is missing"
+            health_status = ServiceStatus.HEALTHY if file_exists and not needs_update else ServiceStatus.DEGRADED if file_exists else ServiceStatus.UNHEALTHY
+            
+            return ServiceHealthStatus(
+                name="cache",
+                status=health_status,
+                message=msg,
+                details=details,
+                error=None if file_exists else "Ingredient file missing or inaccessible"
+            )
+        except Exception as e:
+            return ServiceHealthStatus(
+                name="cache",
+                status=ServiceStatus.UNHEALTHY,
+                message="Failed to check ingredient file cache status",
+                details={"traceback": traceback.format_exc()},
                 error=str(e)
             )
     
