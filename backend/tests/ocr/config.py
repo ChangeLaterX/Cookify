@@ -77,10 +77,80 @@ class OCRTestConfig:
         return env
     
     @classmethod
-    def get_performance_threshold(cls, threshold_name: str) -> Any:
-        """Get a performance threshold value, with environment-aware defaults."""
+    def is_ci_environment(cls) -> bool:
+        """Check if running in CI/CD environment."""
+        ci_indicators = [
+            'CI',
+            'GITHUB_ACTIONS',
+            'GITLAB_CI', 
+            'JENKINS_URL',
+            'TRAVIS',
+            'CIRCLECI'
+        ]
+        return any(os.getenv(indicator) for indicator in ci_indicators)
+    
+    @classmethod
+    def get_tesseract_info(cls) -> Dict[str, Any]:
+        """Get detailed Tesseract installation information."""
+        import subprocess
+        
+        info = {
+            'available': cls().TESSERACT_AVAILABLE,
+            'path': shutil.which('tesseract'),
+            'version': None,
+            'languages': []
+        }
+        
+        if info['available']:
+            try:
+                # Get version
+                result = subprocess.run(['tesseract', '--version'], 
+                                      capture_output=True, text=True)
+                if result.returncode == 0:
+                    info['version'] = result.stderr.split('\n')[0]
+                
+                # Get available languages
+                result = subprocess.run(['tesseract', '--list-langs'], 
+                                      capture_output=True, text=True)
+                if result.returncode == 0:
+                    languages = result.stdout.strip().split('\n')[1:]  # Skip header
+                    info['languages'] = languages
+                    
+            except Exception as e:
+                info['error'] = str(e)
+        
+        return info
+    
+    @classmethod
+    def should_skip_ocr_tests(cls, test_type: str = 'integration') -> tuple[bool, str]:
+        """
+        Determine if OCR tests should be skipped with reason.
+        
+        Args:
+            test_type: Type of test ('unit', 'integration', 'performance')
+        
+        Returns:
+            Tuple of (should_skip, reason)
+        """
         config = cls()
-        return config.PERFORMANCE_THRESHOLDS.get(threshold_name)
+        
+        # Unit tests can always run (they use mocks)
+        if test_type == 'unit':
+            return False, ""
+        
+        # Check Tesseract availability for integration/performance tests
+        if not config.TESSERACT_AVAILABLE:
+            return True, "Tesseract OCR not available"
+        
+        # Check if explicitly disabled
+        if config.MOCK_MODE and test_type in ['integration', 'performance']:
+            return True, f"OCR_TEST_MOCK_MODE=true, skipping {test_type} tests"
+        
+        # Check if integration tests are disabled
+        if not config.INTEGRATION_MODE and test_type in ['integration', 'performance']:
+            return True, f"OCR_TEST_INTEGRATION=false, skipping {test_type} tests"
+        
+        return False, ""
     
     @classmethod
     def log_performance_context(cls) -> str:
@@ -160,18 +230,16 @@ RECEIPT_TEXT_VARIATIONS = {
         }
     },
     "complex_receipt": {
-        "text": """
-        FRESH MARKET GROCERY
-        Receipt #: 001234567
-        
-        Tomatoes (2 lbs)      $3.98
-        Onions (1 lb)         $1.49
-        Bell Peppers (4)      $4.76
-        
-        Subtotal:            $10.23
-        Tax:                 $0.82
-        Total:               $11.05
-        """,
+        "text": """FRESH MARKET GROCERY
+Receipt #: 001234567
+
+Tomatoes (2 lbs)      $3.98
+Onions (1 lb)         $1.49
+Bell Peppers (4)      $4.76
+
+Subtotal:            $10.23
+Tax:                 $0.82
+Total:               $11.05""",
         "expected_items": ["Tomatoes", "Onions", "Bell Peppers"]
     }
 }

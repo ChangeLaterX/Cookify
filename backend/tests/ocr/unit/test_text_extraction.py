@@ -14,6 +14,14 @@ from domains.ocr.schemas import OCRTextResponse
 from tests.ocr.config import OCRTestBase
 from tests.ocr.utils.mocks import MockContextManager, OCRMockFactory, OCRResponseFactory
 
+# Mark this as unit tests for CI/CD
+pytestmark = [
+    pytest.mark.unit,
+    pytest.mark.ocr,
+    pytest.mark.ocr_unit,
+    pytest.mark.ci_safe
+]
+
 
 class TestOCRTextExtraction(OCRTestBase):
     """Test text extraction from images."""

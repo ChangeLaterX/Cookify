@@ -1,0 +1,78 @@
+# Docker Compose for CI/CD Testing
+# This configuration ensures OCR tests can run in containerized CI environments
+
+version: '3.8'
+
+services:
+  backend-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      # Test-specific environment variables
+      - TEST_ENVIRONMENT=ci
+      - OCR_TEST_MOCK_MODE=false
+      - OCR_TEST_INTEGRATION=true
+      # More lenient performance thresholds for CI
+      - OCR_TEST_MAX_AVG_LATENCY_MS=60000
+      - OCR_TEST_MAX_E2E_AVG_MS=90000
+      - OCR_TEST_MAX_E2E_MAX_MS=120000
+      - OCR_TEST_MIN_THROUGHPUT_TPS=0.02
+      # Database settings for testing
+      - DATABASE_URL=sqlite:///./test.db
+    volumes:
+      - ../data:/app/test_data:ro
+    command: >
+      sh -c "
+        echo 'Verifying Tesseract installation...' &&
+        tesseract --version &&
+        tesseract --list-langs &&
+        echo 'Running OCR tests...' &&
+        pytest tests/ocr/ --tb=short -v
+      "
+    networks:
+      - test-network
+
+  backend-test-unit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - TEST_ENVIRONMENT=ci
+      - OCR_TEST_MOCK_MODE=true
+      - OCR_TEST_INTEGRATION=false
+      - DATABASE_URL=sqlite:///./test.db
+    command: >
+      sh -c "
+        echo 'Running unit tests (OCR mocked)...' &&
+        pytest tests/ -m 'not integration' --tb=short -v
+      "
+    networks:
+      - test-network
+
+  backend-test-integration:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - TEST_ENVIRONMENT=ci
+      - OCR_TEST_MOCK_MODE=false
+      - OCR_TEST_INTEGRATION=true
+      - OCR_TEST_MAX_AVG_LATENCY_MS=90000
+      - OCR_TEST_MAX_E2E_AVG_MS=120000
+      - DATABASE_URL=sqlite:///./test.db
+    volumes:
+      - ../data:/app/test_data:ro
+    command: >
+      sh -c "
+        echo 'Verifying Tesseract installation...' &&
+        tesseract --version &&
+        echo 'Running integration tests...' &&
+        pytest tests/ -m 'integration' --tb=short -v
+      "
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge

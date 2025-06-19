@@ -14,10 +14,16 @@ from tests.ocr.config import OCRTestConfig
 
 
 # Skip integration tests if tesseract not available or in mock mode
-pytestmark = pytest.mark.skipif(
-    not OCRTestConfig.should_run_integration_tests(),
-    reason="Integration tests require tesseract and INTEGRATION_MODE=true"
-)
+pytestmark = [
+    pytest.mark.integration,
+    pytest.mark.ocr,
+    pytest.mark.ocr_integration,
+    pytest.mark.requires_tesseract,
+    pytest.mark.skipif(
+        not OCRTestConfig.should_run_integration_tests(),
+        reason="Integration tests require tesseract and INTEGRATION_MODE=true"
+    )
+]
 
 
 class TestOCRIntegration:

@@ -1,0 +1,213 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  PYTHON_VERSION: "3.10"
+  NODE_VERSION: "18"
+
+jobs:
+  test-backend:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        test-mode: [unit, integration]
+        include:
+          - test-mode: unit
+            tesseract: false
+            ocr-integration: false
+          - test-mode: integration
+            tesseract: true
+            ocr-integration: true
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          libmagic1 \
+          libmagic-dev
+    
+    - name: Install Tesseract OCR (if needed)
+      if: matrix.tesseract == true
+      run: |
+        sudo apt-get install -y \
+          tesseract-ocr \
+          tesseract-ocr-deu \
+          tesseract-ocr-eng \
+          libtesseract-dev
+        
+        # Verify Tesseract installation
+        tesseract --version
+        tesseract --list-langs
+    
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install Python dependencies
+      working-directory: ./backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Set environment variables for testing
+      run: |
+        echo "OCR_TEST_MOCK_MODE=${{ matrix.tesseract == false }}" >> $GITHUB_ENV
+        echo "OCR_TEST_INTEGRATION=${{ matrix.ocr-integration }}" >> $GITHUB_ENV
+        echo "TEST_ENVIRONMENT=ci" >> $GITHUB_ENV
+        # More lenient timeouts for CI environment
+        echo "OCR_TEST_MAX_AVG_LATENCY_MS=60000" >> $GITHUB_ENV
+        echo "OCR_TEST_MAX_E2E_AVG_MS=90000" >> $GITHUB_ENV
+        echo "OCR_TEST_MAX_E2E_MAX_MS=120000" >> $GITHUB_ENV
+        echo "OCR_TEST_MIN_THROUGHPUT_TPS=0.02" >> $GITHUB_ENV
+    
+    - name: Run unit tests
+      if: matrix.test-mode == 'unit'
+      working-directory: ./backend
+      run: |
+        pytest tests/ \
+          -m "not integration" \
+          --tb=short \
+          -v \
+          --junitxml=test-results-unit.xml \
+          --cov=domains \
+          --cov-report=xml:coverage-unit.xml \
+          --cov-report=term-missing
+    
+    - name: Run integration tests
+      if: matrix.test-mode == 'integration'
+      working-directory: ./backend
+      run: |
+        pytest tests/ \
+          -m "integration" \
+          --tb=short \
+          -v \
+          --junitxml=test-results-integration.xml \
+          --cov=domains \
+          --cov-report=xml:coverage-integration.xml \
+          --cov-report=term-missing
+    
+    - name: Run OCR-specific tests
+      if: matrix.test-mode == 'integration'
+      working-directory: ./backend
+      run: |
+        pytest tests/ocr/ \
+          --tb=short \
+          -v \
+          --junitxml=test-results-ocr.xml
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results-${{ matrix.test-mode }}
+        path: |
+          backend/test-results-*.xml
+          backend/coverage-*.xml
+    
+    - name: Upload coverage to Codecov
+      if: matrix.test-mode == 'unit'
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./backend/coverage-unit.xml
+        flags: backend
+        name: backend-coverage
+
+  test-frontend:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run frontend tests
+      run: npm run lint
+    
+    - name: Build frontend
+      run: npm run build:web
+
+  docker-build:
+    name: Docker Build Test
+    runs-on: ubuntu-latest
+    needs: [test-backend]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build Docker image
+      working-directory: ./backend
+      run: |
+        docker build -t cookify-backend:test .
+    
+    - name: Test Docker container
+      working-directory: ./backend
+      run: |
+        # Start container in background
+        docker run -d --name test-container \
+          -e OCR_TEST_MOCK_MODE=true \
+          -p 8000:8000 \
+          cookify-backend:test
+        
+        # Wait for container to be ready
+        sleep 10
+        
+        # Test health endpoint
+        curl -f http://localhost:8000/health || exit 1
+        
+        # Clean up
+        docker stop test-container
+        docker rm test-container
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Run security scan with Bandit
+      working-directory: ./backend
+      run: |
+        pip install bandit[toml]
+        bandit -r domains/ -f json -o bandit-report.json
+    
+    - name: Upload security scan results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-scan-results
+        path: backend/bandit-report.json

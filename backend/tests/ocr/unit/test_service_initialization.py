@@ -13,6 +13,14 @@ from domains.ocr.services import OCRService, OCRError
 from tests.ocr.config import OCRTestBase
 from tests.ocr.utils.mocks import MockContextManager, with_mocked_ocr
 
+# Mark this as unit tests for CI/CD
+pytestmark = [
+    pytest.mark.unit,
+    pytest.mark.ocr,
+    pytest.mark.ocr_unit,
+    pytest.mark.ci_safe
+]
+
 
 class TestOCRServiceInitialization(OCRTestBase):
     """Test OCR service initialization and dependency management."""

@@ -21,6 +21,10 @@ This directory contains comprehensive documentation for the Cookify meal plannin
 - **[Authentication API](./auth-api.md)** - Detailed documentation for all authentication endpoints
 - **[Ingredients API](./ingredients-api.md)** - Complete documentation for ingredients master data endpoints
 
+### OCR Documentation
+- **[OCR Accuracy Guide](../backend/docs/ocr-accuracy-guide.md)** - Comprehensive guide to OCR performance, limitations, and optimization
+- **[OCR Security Implementation](../backend/docs/ocr-security-implementation.md)** - Security features and best practices for OCR endpoints
+
 ### Developer Guides
 - **[Logging Guide](../backend/docs/logging_guide.md)** - Best practices and standards for logging in the application
 
