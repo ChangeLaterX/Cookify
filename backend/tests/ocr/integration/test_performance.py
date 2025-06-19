@@ -23,6 +23,11 @@ pytestmark = pytest.mark.skipif(
 class TestOCRPerformance:
     """Performance and benchmarking tests for OCR functionality."""
 
+    @classmethod
+    def setup_class(cls):
+        """Setup class and log performance test context."""
+        print(OCRTestConfig.log_performance_context())
+
     @pytest.mark.asyncio
     async def test_ocr_latency_benchmarks(self):
         """Benchmark OCR latency across different image types."""
@@ -66,9 +71,14 @@ class TestOCRPerformance:
                     'samples': latencies
                 }
                 
-                # Performance assertions
-                assert avg_latency < 15000, f"{test_type}: Average latency {avg_latency:.1f}ms too high"
-                assert std_dev < 5000, f"{test_type}: Latency variance {std_dev:.1f}ms too high"
+                # Performance assertions - using configurable thresholds
+                max_avg_latency = OCRTestConfig.get_performance_threshold('avg_latency_ms')
+                max_std_dev = OCRTestConfig.get_performance_threshold('latency_std_dev_ms')
+                
+                assert avg_latency < max_avg_latency, \
+                    f"{test_type}: Average latency {avg_latency:.1f}ms exceeds threshold {max_avg_latency}ms"
+                assert std_dev < max_std_dev, \
+                    f"{test_type}: Latency variance {std_dev:.1f}ms exceeds threshold {max_std_dev}ms"
         
         # Log performance results for analysis
         for test_type, stats in latency_results.items():
@@ -116,9 +126,14 @@ class TestOCRPerformance:
                 
                 print(f"\nConcurrency {concurrency}: {throughput:.2f} tasks/second")
                 
-                # Performance expectations
-                assert throughput > 0.1, f"Throughput too low: {throughput:.2f} tasks/second"
-                assert total_time < 60, f"Total time too high: {total_time:.1f} seconds"
+                # Performance expectations - using configurable thresholds
+                min_throughput = OCRTestConfig.get_performance_threshold('min_throughput_tps')
+                max_total_time = OCRTestConfig.get_performance_threshold('throughput_total_time_s')
+                
+                assert throughput > min_throughput, \
+                    f"Throughput too low: {throughput:.2f} tasks/second (min: {min_throughput})"
+                assert total_time < max_total_time, \
+                    f"Total time too high: {total_time:.1f} seconds (max: {max_total_time}s)"
 
     @pytest.mark.asyncio
     async def test_memory_usage_over_time(self):
@@ -160,8 +175,10 @@ class TestOCRPerformance:
             print(f"  Peak: {max_memory:.1f}MB")
             print(f"  Growth: {memory_growth:.1f}MB")
             
-            # Memory growth should be reasonable
-            assert memory_growth < 100, f"Excessive memory growth: {memory_growth:.1f}MB"
+            # Memory growth should be reasonable - using configurable threshold
+            max_memory_growth = OCRTestConfig.get_performance_threshold('memory_growth_mb')
+            assert memory_growth < max_memory_growth, \
+                f"Excessive memory growth: {memory_growth:.1f}MB (max: {max_memory_growth}MB)"
 
     @pytest.mark.asyncio
     async def test_ocr_accuracy_vs_speed_tradeoffs(self):
@@ -242,7 +259,7 @@ class TestOCRPerformance:
                 
                 # Verify result quality
                 assert result.total_items_detected >= 0
-                assert result.processing_time_ms > 0
+                assert result.processing_time_ms is not None and result.processing_time_ms > 0
                 assert result.raw_text is not None
             
             # Analyze performance
@@ -254,9 +271,14 @@ class TestOCRPerformance:
             print(f"  Average: {avg_time:.1f}ms")
             print(f"  Range: {min_time:.1f}ms - {max_time:.1f}ms")
             
-            # Performance expectations for complete workflow
-            assert avg_time < 20000, f"End-to-end processing too slow: {avg_time:.1f}ms"
-            assert max_time < 30000, f"Worst case too slow: {max_time:.1f}ms"
+            # Performance expectations for complete workflow - using configurable thresholds
+            max_avg_time = OCRTestConfig.get_performance_threshold('e2e_avg_time_ms')
+            max_worst_time = OCRTestConfig.get_performance_threshold('e2e_max_time_ms')
+            
+            assert avg_time < max_avg_time, \
+                f"End-to-end processing too slow: {avg_time:.1f}ms (max: {max_avg_time}ms)"
+            assert max_time < max_worst_time, \
+                f"Worst case too slow: {max_time:.1f}ms (max: {max_worst_time}ms)"
 
     @pytest.mark.asyncio
     async def test_scalability_with_image_sizes(self):
@@ -312,7 +334,9 @@ class TestOCRPerformance:
                     print(f"  Processing Time: {data['processing_time_ms']:.1f}ms")
                     print(f"  Confidence: {data['confidence']:.1f}%")
                 
-                # Verify performance scaling is reasonable
+                # Verify performance scaling is reasonable - using configurable threshold
+                max_processing_time = OCRTestConfig.get_performance_threshold('scalability_max_time_ms')
+                
                 for size_name, data in performance_data.items():
-                    assert data['processing_time_ms'] < 25000, \
-                        f"{size_name}: Processing time {data['processing_time_ms']:.1f}ms too high"
+                    assert data['processing_time_ms'] < max_processing_time, \
+                        f"{size_name}: Processing time {data['processing_time_ms']:.1f}ms exceeds threshold {max_processing_time}ms"

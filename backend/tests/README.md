@@ -138,3 +138,35 @@ class TestUserRegistration(AuthTestBase):
 - 🚀 **Flexibel**: Verschiedene Test-Runner je nach Bedarf
 - 📊 **Coverage**: Integrierte Coverage-Reports
 - 🏷️ **Marker**: Einfache Test-Filterung
+
+## Performance Tests
+
+### Konfiguration
+
+Die OCR Performance-Tests verwenden jetzt konfigurierbare Schwellenwerte für verschiedene Umgebungen:
+
+```bash
+# Schnelle Konfiguration für verschiedene Umgebungen
+./backend/scripts/configure_performance_tests.sh development
+./backend/scripts/configure_performance_tests.sh production
+./backend/scripts/configure_performance_tests.sh ci
+
+# Aktuelle Konfiguration anzeigen
+./backend/scripts/configure_performance_tests.sh show
+```
+
+### Manuelle Konfiguration
+
+```bash
+# Beispiel für Produktionsumgebung
+export OCR_TEST_MAX_AVG_LATENCY_MS=60000        # 60 Sekunden
+export OCR_TEST_MAX_E2E_AVG_MS=90000            # 90 Sekunden
+export OCR_TEST_MIN_THROUGHPUT_TPS=0.02         # 0.02 tasks/sec
+
+# Performance Tests ausführen
+pytest backend/tests/ocr/integration/test_performance.py -v
+```
+
+Siehe [Performance Test Configuration Guide](../docs/performance_test_configuration.md) für detaillierte Informationen.
+
+## Standard Test-Ausführung

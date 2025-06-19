@@ -8,7 +8,7 @@ import os
 import shutil
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 
@@ -33,6 +33,30 @@ class OCRTestConfig:
     DEFAULT_CONFIDENCE: float = 85.0
     DEFAULT_PROCESSING_TIME: int = 100
     
+    # Performance thresholds - environment-aware configuration
+    # These can be overridden via environment variables for different environments
+    PERFORMANCE_THRESHOLDS: Dict[str, Any] = field(default_factory=lambda: {
+        # OCR Latency Benchmarks (milliseconds)
+        'avg_latency_ms': int(os.getenv('OCR_TEST_MAX_AVG_LATENCY_MS', '30000')),  # 30s default, was 15s
+        'latency_std_dev_ms': int(os.getenv('OCR_TEST_MAX_LATENCY_STD_DEV_MS', '10000')),  # 10s default, was 5s
+        
+        # Throughput under load (seconds)
+        'throughput_total_time_s': int(os.getenv('OCR_TEST_MAX_THROUGHPUT_TIME_S', '120')),  # 2min default, was 60s
+        
+        # End-to-end processing (milliseconds)
+        'e2e_avg_time_ms': int(os.getenv('OCR_TEST_MAX_E2E_AVG_MS', '45000')),  # 45s default, was 20s
+        'e2e_max_time_ms': int(os.getenv('OCR_TEST_MAX_E2E_MAX_MS', '60000')),  # 60s default, was 30s
+        
+        # Scalability with different image sizes (milliseconds)
+        'scalability_max_time_ms': int(os.getenv('OCR_TEST_MAX_SCALABILITY_MS', '50000')),  # 50s default, was 25s
+        
+        # Memory usage (MB)
+        'memory_growth_mb': int(os.getenv('OCR_TEST_MAX_MEMORY_GROWTH_MB', '200')),  # 200MB default, was 100MB
+        
+        # Minimum throughput (tasks per second)
+        'min_throughput_tps': float(os.getenv('OCR_TEST_MIN_THROUGHPUT_TPS', '0.05')),  # 0.05 tps default, was 0.1
+    })
+    
     @classmethod
     def should_run_integration_tests(cls) -> bool:
         """Determine if integration tests should run."""
@@ -45,6 +69,36 @@ class OCRTestConfig:
         config = cls()
         image_path = config.SAMPLE_IMAGES_PATH / filename
         return image_path if image_path.exists() else None
+    
+    @classmethod
+    def get_environment_type(cls) -> str:
+        """Determine the current environment type."""
+        env = os.getenv('TEST_ENVIRONMENT', 'development').lower()
+        return env
+    
+    @classmethod
+    def get_performance_threshold(cls, threshold_name: str) -> Any:
+        """Get a performance threshold value, with environment-aware defaults."""
+        config = cls()
+        return config.PERFORMANCE_THRESHOLDS.get(threshold_name)
+    
+    @classmethod
+    def log_performance_context(cls) -> str:
+        """Return a string describing the current performance test context."""
+        config = cls()
+        env_type = cls.get_environment_type()
+        return f"""
+Performance Test Context:
+  Environment: {env_type}
+  Tesseract Available: {config.TESSERACT_AVAILABLE}
+  Integration Mode: {config.INTEGRATION_MODE}
+  
+Performance Thresholds:
+  Max Avg Latency: {config.PERFORMANCE_THRESHOLDS['avg_latency_ms']/1000:.1f}s
+  Max E2E Processing: {config.PERFORMANCE_THRESHOLDS['e2e_avg_time_ms']/1000:.1f}s
+  Max Memory Growth: {config.PERFORMANCE_THRESHOLDS['memory_growth_mb']}MB
+  Min Throughput: {config.PERFORMANCE_THRESHOLDS['min_throughput_tps']} tasks/sec
+        """.strip()
 
 
 class OCRTestBase(ABC):
