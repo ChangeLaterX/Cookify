@@ -3,7 +3,6 @@ Receipt Services with OCR Integration.
 Handles OCR text extraction and ingredient matching for receipt processing.
 """
 
-import logging
 import time
 import re
 import asyncio
@@ -12,6 +11,7 @@ from io import BytesIO
 from pathlib import Path
 
 from core.config import settings
+from core.logging import get_logger
 
 try:
     import pytesseract
@@ -56,7 +56,7 @@ from .schemas import (
     OCRItemSuggestion,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def _load_ingredient_names_from_file() -> List[str]:
@@ -416,7 +416,22 @@ class OCRService:
             processing_time_ms = int((time.time() - start_time) * 1000)
 
             logger.info(
-                f"OCR completed in {processing_time_ms}ms with {best_confidence:.1f}% confidence"
+                "OCR text extraction completed",
+                context={
+                    "processing_time_ms": processing_time_ms,
+                    "confidence_score": best_confidence,
+                    "extracted_text_length": len(best_result.strip()) if best_result else 0,
+                    "configs_tried": len(configs),
+                    "image_preprocessed": True
+                },
+                data={
+                    "performance_metrics": {
+                        "processing_time_ms": processing_time_ms,
+                        "confidence_score": best_confidence,
+                        "text_extraction_success": best_result is not None,
+                        "fallback_used": best_result is None
+                    }
+                }
             )
 
             return OCRTextResponse(
@@ -426,7 +441,16 @@ class OCRService:
             )
 
         except Exception as e:
-            logger.error(f"OCR processing failed: {str(e)}")
+            processing_time_ms = int((time.time() - start_time) * 1000)
+            logger.error(
+                "OCR processing failed",
+                context={
+                    "processing_time_ms": processing_time_ms,
+                    "error_message": str(e),
+                    "ocr_available": OCR_AVAILABLE,
+                    "image_size_available": 'image_data' in locals()
+                }
+            )
             raise OCRError(
                 f"Failed to process image: {str(e)}", "OCR_PROCESSING_FAILED"
             )
@@ -795,9 +819,27 @@ class OCRService:
                 processed_items.append(receipt_item)
 
             processing_time_ms = int((time.time() - start_time) * 1000)
+            ocr_time = ocr_result.processing_time_ms or 0
+            text_processing_time = processing_time_ms - ocr_time
 
             logger.info(
-                f"Receipt processing completed: {len(processed_items)} items found in {processing_time_ms}ms"
+                "Receipt processing completed",
+                context={
+                    "items_detected": len(processed_items),
+                    "processing_time_ms": processing_time_ms,
+                    "raw_text_length": len(ocr_result.extracted_text),
+                    "ocr_confidence": ocr_result.confidence,
+                    "ocr_processing_time_ms": ocr_time
+                },
+                data={
+                    "performance_metrics": {
+                        "total_processing_time_ms": processing_time_ms,
+                        "ocr_processing_time_ms": ocr_time,
+                        "text_processing_time_ms": text_processing_time,
+                        "items_detected": len(processed_items),
+                        "ocr_confidence": ocr_result.confidence
+                    }
+                }
             )
 
             return OCRProcessedResponse(

@@ -2,12 +2,13 @@
 Update API routes for cache and data refresh operations.
 """
 
-import logging
+import time
 from typing import Dict, Any
 
 from fastapi import APIRouter, HTTPException, status, Query, BackgroundTasks
 from fastapi.responses import JSONResponse
 
+from core.logging import get_logger
 from .schemas import IngredientCacheUpdateResponse
 from .services import (
     update_ingredient_cache,
@@ -16,7 +17,7 @@ from .services import (
     UpdateError
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 router = APIRouter(prefix="/update", tags=["Update Operations"])
 

@@ -3,16 +3,17 @@ FastAPI Routes for Health Domain.
 Provides HTTP endpoints for system health monitoring.
 """
 
-import logging
+import time
 from fastapi import APIRouter, status
 from datetime import datetime
 
 from core.config import settings
+from core.logging import get_logger
 from .schemas import DetailedHealthResponse, HealthResponse
 from .services import health_service
 from .metrics import get_metrics_collector
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Create router for health endpoints
 router = APIRouter(prefix=settings.HEALTH_PREFIX, tags=[settings.HEALTH_TAG])
@@ -39,17 +40,42 @@ async def detailed_health_check() -> DetailedHealthResponse:
     - Database connection (PostgreSQL)
     - System resources (CPU, Memory, Disk)
     """
-    logger.info("Performing detailed health check of all services")
+    start_time = time.time()
+    
+    logger.info(
+        "Starting detailed health check",
+        context={
+            "endpoint": "/health",
+            "check_type": "detailed"
+        }
+    )
     
     health_result = await health_service.check_all_services()
+    
+    check_duration_ms = int((time.time() - start_time) * 1000)
     
     # Record metrics
     metrics_collector = get_metrics_collector()
     metrics_collector.record_health_check(health_result)
     
     logger.info(
-        f"Health check completed: {health_result.status.value} "
-        f"({len(health_result.services)} services checked)"
+        "Detailed health check completed",
+        context={
+            "endpoint": "/health",
+            "check_type": "detailed",
+            "overall_status": health_result.status.value,
+            "services_checked": len(health_result.services),
+            "check_duration_ms": check_duration_ms
+        },
+        data={
+            "health_check_results": {
+                "overall_status": health_result.status.value,
+                "services_checked": len(health_result.services),
+                "healthy_services": len([s for s in health_result.services if s.status == "healthy"]),
+                "unhealthy_services": len([s for s in health_result.services if s.status != "healthy"]),
+                "check_duration_ms": check_duration_ms
+            }
+        }
     )
     
     return health_result
@@ -72,11 +98,36 @@ async def quick_health_check() -> HealthResponse:
     This is a lightweight endpoint that performs minimal checks,
     suitable for load balancer health checks or frequent monitoring.
     """
-    logger.info("Performing quick health check")
+    start_time = time.time()
+    
+    logger.info(
+        "Starting quick health check",
+        context={
+            "endpoint": "/health/quick",
+            "check_type": "quick"
+        }
+    )
     
     health_result = await health_service.quick_health_check()
     
-    logger.info(f"Quick health check completed: {health_result.status.value}")
+    check_duration_ms = int((time.time() - start_time) * 1000)
+    
+    logger.info(
+        "Quick health check completed",
+        context={
+            "endpoint": "/health/quick",
+            "check_type": "quick",
+            "status": health_result.status.value,
+            "check_duration_ms": check_duration_ms
+        },
+        data={
+            "health_check_results": {
+                "status": health_result.status.value,
+                "check_duration_ms": check_duration_ms,
+                "timestamp": health_result.timestamp
+            }
+        }
+    )
     
     return health_result
 

@@ -3,12 +3,13 @@ FastAPI Routes for Receipt Domain.
 Provides HTTP endpoints for receipt OCR processing and ingredient matching.
 """
 
-import logging
+import time
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 from fastapi.responses import JSONResponse
 
+from core.logging import get_logger
 from .schemas import (
     OCRTextResponse,
     OCRProcessedResponse,
@@ -22,7 +23,7 @@ from .services import (
     OCRError,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Create router for receipt endpoints
 router = APIRouter(prefix="/ocr", tags=["OCR"])
@@ -50,9 +51,20 @@ async def extract_receipt_text(
     Raises:
         HTTPException: 400 if file invalid, 500 if OCR processing fails
     """
+    request_start_time = time.time()
+    image_data: bytes = b""
+    
     try:
         # Validate file type
         if not image.content_type or not image.content_type.startswith("image/"):
+            logger.warning(
+                "Invalid file type uploaded",
+                context={
+                    "filename": image.filename,
+                    "content_type": image.content_type,
+                    "endpoint": "/ocr/extract-text"
+                }
+            )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail={
@@ -65,25 +77,69 @@ async def extract_receipt_text(
         image_data = await image.read()
 
         if len(image_data) == 0:
+            logger.warning(
+                "Empty file uploaded",
+                context={
+                    "filename": image.filename,
+                    "endpoint": "/ocr/extract-text"
+                }
+            )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail={"error": "Empty file uploaded", "error_code": "EMPTY_FILE"},
             )
 
         logger.info(
-            f"Processing OCR for image: {image.filename} ({len(image_data)} bytes)"
+            "Starting OCR text extraction",
+            context={
+                "filename": image.filename,
+                "file_size_bytes": len(image_data),
+                "content_type": image.content_type,
+                "endpoint": "/ocr/extract-text"
+            }
         )
 
         # Extract text using OCR
         result = await extract_text_from_image(image_data)
 
+        request_duration_ms = int((time.time() - request_start_time) * 1000)
+
         logger.info(
-            f"OCR text extraction completed: {len(result.extracted_text)} characters"
+            "OCR text extraction completed successfully",
+            context={
+                "filename": image.filename,
+                "file_size_bytes": len(image_data),
+                "extracted_text_length": len(result.extracted_text),
+                "confidence_score": result.confidence,
+                "ocr_processing_time_ms": result.processing_time_ms,
+                "total_request_time_ms": request_duration_ms,
+                "endpoint": "/ocr/extract-text"
+            },
+            data={
+                "performance_metrics": {
+                    "file_size_bytes": len(image_data),
+                    "ocr_processing_time_ms": result.processing_time_ms,
+                    "total_request_time_ms": request_duration_ms,
+                    "confidence_score": result.confidence
+                }
+            }
         )
+        
         return result
 
     except OCRError as e:
-        logger.error(f"OCR error processing {image.filename}: {e.message}")
+        request_duration_ms = int((time.time() - request_start_time) * 1000)
+        logger.error(
+            "OCR processing failed",
+            context={
+                "filename": image.filename,
+                "file_size_bytes": len(image_data) if image_data else None,
+                "error_code": e.error_code,
+                "error_message": e.message,
+                "total_request_time_ms": request_duration_ms,
+                "endpoint": "/ocr/extract-text"
+            }
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"error": e.message, "error_code": e.error_code},
@@ -91,7 +147,17 @@ async def extract_receipt_text(
     except HTTPException:
         raise  # Re-raise HTTP exceptions
     except Exception as e:
-        logger.error(f"Unexpected error processing {image.filename}: {str(e)}")
+        request_duration_ms = int((time.time() - request_start_time) * 1000)
+        logger.error(
+            "Unexpected error during OCR text extraction",
+            context={
+                "filename": image.filename,
+                "file_size_bytes": len(image_data) if image_data else None,
+                "error_message": str(e),
+                "total_request_time_ms": request_duration_ms,
+                "endpoint": "/ocr/extract-text"
+            }
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"error": "Internal server error", "error_code": "INTERNAL_ERROR"},
@@ -120,9 +186,20 @@ async def process_receipt_with_ocr(
     Raises:
         HTTPException: 400 if file invalid, 500 if processing fails
     """
+    request_start_time = time.time()
+    image_data: bytes = b""
+    
     try:
         # Validate file type
         if not image.content_type or not image.content_type.startswith("image/"):
+            logger.warning(
+                "Invalid file type uploaded for receipt processing",
+                context={
+                    "filename": image.filename,
+                    "content_type": image.content_type,
+                    "endpoint": "/ocr/process"
+                }
+            )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail={
@@ -135,20 +212,55 @@ async def process_receipt_with_ocr(
         image_data = await image.read()
 
         if len(image_data) == 0:
+            logger.warning(
+                "Empty file uploaded for receipt processing",
+                context={
+                    "filename": image.filename,
+                    "endpoint": "/ocr/process"
+                }
+            )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail={"error": "Empty file uploaded", "error_code": "EMPTY_FILE"},
             )
 
         logger.info(
-            f"Processing receipt with OCR: {image.filename} ({len(image_data)} bytes)"
+            "Starting receipt processing with OCR",
+            context={
+                "filename": image.filename,
+                "file_size_bytes": len(image_data),
+                "content_type": image.content_type,
+                "endpoint": "/ocr/process"
+            }
         )
 
         # Process receipt with ingredient suggestions
         result = await process_receipt_image(image_data)
 
+        request_duration_ms = int((time.time() - request_start_time) * 1000)
+
         logger.info(
-            f"Receipt processing completed: {result.total_items_detected} items detected"
+            "Receipt processing completed successfully",
+            context={
+                "filename": image.filename,
+                "file_size_bytes": len(image_data),
+                "total_items_detected": result.total_items_detected,
+                "ocr_processing_time_ms": result.processing_time_ms,
+                "total_request_time_ms": request_duration_ms,
+                "endpoint": "/ocr/process"
+            },
+            data={
+                "performance_metrics": {
+                    "file_size_bytes": len(image_data),
+                    "ocr_processing_time_ms": result.processing_time_ms,
+                    "total_request_time_ms": request_duration_ms,
+                    "items_detected": result.total_items_detected
+                },
+                "processing_results": {
+                    "items_with_suggestions": len([item for item in result.detected_items if item.suggestions]),
+                    "items_without_suggestions": len([item for item in result.detected_items if not item.suggestions])
+                }
+            }
         )
 
         return OCRApiResponse(
@@ -159,7 +271,18 @@ async def process_receipt_with_ocr(
         )
 
     except OCRError as e:
-        logger.error(f"OCR error processing receipt {image.filename}: {e.message}")
+        request_duration_ms = int((time.time() - request_start_time) * 1000)
+        logger.error(
+            "OCR error during receipt processing",
+            context={
+                "filename": image.filename,
+                "file_size_bytes": len(image_data) if image_data else None,
+                "error_code": e.error_code,
+                "error_message": e.message,
+                "total_request_time_ms": request_duration_ms,
+                "endpoint": "/ocr/process"
+            }
+        )
         return OCRApiResponse(
             success=False,
             data=None,
@@ -167,7 +290,17 @@ async def process_receipt_with_ocr(
             error=f"{e.message} ({e.error_code})",
         )
     except Exception as e:
-        logger.error(f"Unexpected error processing receipt {image.filename}: {str(e)}")
+        request_duration_ms = int((time.time() - request_start_time) * 1000)
+        logger.error(
+            "Unexpected error during receipt processing",
+            context={
+                "filename": image.filename,
+                "file_size_bytes": len(image_data) if image_data else None,
+                "error_message": str(e),
+                "total_request_time_ms": request_duration_ms,
+                "endpoint": "/ocr/process"
+            }
+        )
         return OCRApiResponse(
             success=False,
             data=None,
