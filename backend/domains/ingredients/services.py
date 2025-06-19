@@ -49,10 +49,10 @@ async def get_all_ingredients(
         IngredientError: If database query fails
     """
     if limit is None:
-        limit = settings.API_DEFAULT_PAGE_SIZE
+        limit = settings.INGREDIENTS_DEFAULT_LIMIT
         
-    # Enforce maximum page size
-    limit = min(limit, settings.API_MAX_PAGE_SIZE)
+    # Enforce maximum page size for ingredients
+    limit = min(limit, settings.INGREDIENTS_MAX_LIMIT)
     try:
         supabase: Client = get_supabase_client()
 
@@ -326,10 +326,10 @@ async def search_ingredients(
         IngredientError: If search fails
     """
     if limit is None:
-        limit = settings.API_DEFAULT_PAGE_SIZE
+        limit = settings.INGREDIENTS_SEARCH_DEFAULT_LIMIT
         
-    # Enforce maximum page size
-    limit = min(limit, settings.API_MAX_PAGE_SIZE)
+    # Enforce maximum page size for ingredient search
+    limit = min(limit, settings.INGREDIENTS_SEARCH_MAX_LIMIT)
     try:
         supabase: Client = get_supabase_client()
 

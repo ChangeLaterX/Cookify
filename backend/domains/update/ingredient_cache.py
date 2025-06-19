@@ -106,22 +106,47 @@ class IngredientNamesManager:
             
             supabase = get_supabase_client()
             
-            # Query only the names, sorted alphabetically
-            response = (
+            # First, get the total count
+            count_response = (
                 supabase.table("ingredient_master")
-                .select("name")
-                .order("name")
+                .select("*", count="exact")
+                .limit(1)
                 .execute()
             )
             
-            if not response.data:
-                logger.warning("No ingredients found in database")
-                return []
+            total_count = count_response.count if count_response.count else 0
+            logger.info(f"Total ingredients in database: {total_count}")
             
-            ingredient_names = [item["name"] for item in response.data]
+            # Load all ingredients in batches to avoid limits
+            all_ingredients = []
+            batch_size = 1000
+            offset = 0
             
-            logger.info(f"Successfully loaded {len(ingredient_names)} ingredient names")
-            return ingredient_names
+            while offset < total_count:
+                logger.info(f"Loading batch {offset}-{offset + batch_size} of {total_count}")
+                
+                response = (
+                    supabase.table("ingredient_master")
+                    .select("name")
+                    .order("name")
+                    .range(offset, offset + batch_size - 1)
+                    .execute()
+                )
+                
+                if not response.data:
+                    break
+                    
+                batch_names = [item["name"] for item in response.data]
+                all_ingredients.extend(batch_names)
+                
+                # If we got fewer items than batch_size, we've reached the end
+                if len(response.data) < batch_size:
+                    break
+                    
+                offset += batch_size
+            
+            logger.info(f"Successfully loaded {len(all_ingredients)} ingredient names from database")
+            return all_ingredients
             
         except Exception as e:
             logger.error(f"Failed to load ingredients from database: {str(e)}")

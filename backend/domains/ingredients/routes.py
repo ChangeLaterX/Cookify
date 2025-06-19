@@ -45,7 +45,12 @@ router = APIRouter(prefix=settings.INGREDIENTS_PREFIX, tags=[settings.INGREDIENT
     description=settings.INGREDIENTS_MASTER_LIST_DESCRIPTION,
 )
 async def list_ingredients(
-    limit: int = Query(10, ge=1, le=100, description="Maximum number of results"),
+    limit: int = Query(
+        default=settings.INGREDIENTS_DEFAULT_LIMIT, 
+        ge=1, 
+        le=settings.INGREDIENTS_MAX_LIMIT, 
+        description="Maximum number of results"
+    ),
     offset: int = Query(0, ge=0, description="Number of results to skip"),
 ) -> IngredientListApiResponse:
     """
@@ -328,7 +333,12 @@ async def delete_existing_ingredient(
 )
 async def search_ingredients_by_name(
     q: str = Query(..., min_length=1, max_length=255, description="Search query"),
-    limit: int = Query(10, ge=1, le=100, description="Maximum number of results"),
+    limit: int = Query(
+        default=settings.INGREDIENTS_SEARCH_DEFAULT_LIMIT, 
+        ge=1, 
+        le=settings.INGREDIENTS_SEARCH_MAX_LIMIT, 
+        description="Maximum number of results"
+    ),
     offset: int = Query(0, ge=0, description="Number of results to skip"),
 ) -> IngredientListApiResponse:
     """

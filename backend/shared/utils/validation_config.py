@@ -12,9 +12,9 @@ from core.config import settings
 @dataclass
 class PasswordValidationConfig:
     """Configuration for password complexity validation."""
-    
-    min_length: int = settings.VALIDATION_PASSWORD_MIN_LENGTH
-    max_length: int = settings.VALIDATION_PASSWORD_MAX_LENGTH
+
+    min_length: int = settings.PASSWORD_MIN_LENGTH
+    max_length: int = settings.PASSWORD_MAX_LENGTH
     require_uppercase: bool = True
     require_lowercase: bool = True
     require_digits: bool = True

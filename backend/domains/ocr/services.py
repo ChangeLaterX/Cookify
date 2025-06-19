@@ -9,26 +9,160 @@ import re
 import asyncio
 from typing import List, Optional, Tuple
 from io import BytesIO
+from pathlib import Path
 
 from core.config import settings
 
 try:
     import pytesseract
-    from PIL import Image
+    from PIL import Image, ImageEnhance, ImageFilter
 
     OCR_AVAILABLE = True
 except ImportError:
     pytesseract = None
-    Image = None
+    Image = None  # type: ignore
+    ImageEnhance = None  # type: ignore
+    ImageFilter = None  # type: ignore
     OCR_AVAILABLE = False
+
+# Fuzzy matching support
+try:
+    from difflib import SequenceMatcher
+    FUZZY_MATCHING_AVAILABLE = True
+except ImportError:
+    SequenceMatcher = None  # type: ignore
+    FUZZY_MATCHING_AVAILABLE = False
+
+# Import ingredient name loading
+try:
+    from domains.update.ingredient_cache import get_ingredient_names_for_ocr
+    INGREDIENT_CACHE_AVAILABLE = True
+except ImportError:
+    get_ingredient_names_for_ocr = None  # type: ignore
+    INGREDIENT_CACHE_AVAILABLE = False
+
+# Import ingredient search function
+try:
+    from domains.ingredients.services import search_ingredients
+    INGREDIENT_SEARCH_AVAILABLE = True
+except ImportError:
+    search_ingredients = None  # type: ignore
+    INGREDIENT_SEARCH_AVAILABLE = False
 
 from .schemas import (
     OCRTextResponse,
     OCRProcessedResponse,
     ReceiptItem,
+    OCRItemSuggestion,
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _load_ingredient_names_from_file() -> List[str]:
+    """
+    Load ingredient names from the ingredient_names.txt file.
+    
+    Returns:
+        List of ingredient names (without comments and empty lines)
+    """
+    # First try to use the ingredient cache system
+    if INGREDIENT_CACHE_AVAILABLE and get_ingredient_names_for_ocr is not None:
+        try:
+            return get_ingredient_names_for_ocr()
+        except Exception as e:
+            logger.warning(f"Failed to load ingredients from cache: {e}, falling back to file")
+    
+    # Fallback to reading directly from file
+    try:
+        # Use absolute path relative to backend directory
+        backend_dir = Path(__file__).parent.parent.parent
+        ingredient_file = backend_dir / "data" / "ingredient_names.txt"
+        
+        if not ingredient_file.exists():
+            logger.warning(f"Ingredient names file not found: {ingredient_file}")
+            return []
+        
+        ingredients = []
+        with open(ingredient_file, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                # Skip comments and empty lines
+                if line and not line.startswith('#'):
+                    ingredients.append(line.lower())
+        
+        logger.info(f"Loaded {len(ingredients)} ingredient names from file")
+        return ingredients
+    
+    except Exception as e:
+        logger.error(f"Failed to load ingredient names from file: {e}")
+        return []
+
+
+def _compute_similarity(text1: str, text2: str) -> float:
+    """
+    Compute similarity between two strings using SequenceMatcher.
+    
+    Args:
+        text1: First string
+        text2: Second string
+        
+    Returns:
+        Similarity score between 0.0 and 1.0
+    """
+    if not text1 or not text2:
+        return 0.0
+    
+    text1_lower = text1.lower().strip()
+    text2_lower = text2.lower().strip()
+    
+    # Exact match
+    if text1_lower == text2_lower:
+        return 1.0
+    
+    # Substring match
+    if text1_lower in text2_lower or text2_lower in text1_lower:
+        return 0.9
+    
+    # Fuzzy matching using SequenceMatcher (if available)
+    if FUZZY_MATCHING_AVAILABLE and SequenceMatcher is not None:
+        try:
+            similarity = SequenceMatcher(None, text1_lower, text2_lower).ratio()
+            return similarity
+        except Exception:
+            return 0.0
+    
+    # Fallback: basic character comparison
+    return 0.0
+
+
+# Global ingredient names cache
+_ingredient_names_cache: Optional[List[str]] = None
+_cache_last_loaded: float = 0.0
+_cache_ttl = 300  # 5 minutes
+
+
+def _get_ingredient_names() -> List[str]:
+    """
+    Get ingredient names with caching.
+    
+    Returns:
+        List of ingredient names
+    """
+    global _ingredient_names_cache, _cache_last_loaded
+    
+    current_time = time.time()
+    
+    # Load from cache if available and not expired
+    if (_ingredient_names_cache is not None and 
+        current_time - _cache_last_loaded < _cache_ttl):
+        return _ingredient_names_cache
+    
+    # Load fresh data
+    _ingredient_names_cache = _load_ingredient_names_from_file()
+    _cache_last_loaded = current_time
+    
+    return _ingredient_names_cache
 
 
 class OCRError(Exception):
@@ -79,6 +213,100 @@ class OCRService:
             "fallback_psm_11": f"{settings.OCR_FALLBACK_PSM_11_CONFIG} -c tesseract_char_whitelist={settings.OCR_CHAR_WHITELIST}",
             "default": settings.OCR_DEFAULT_CONFIG,  # System default as last resort
         }
+        
+        # Load ingredient names at initialization
+        self._ingredient_names = _get_ingredient_names()
+        logger.info(f"OCR Service initialized with {len(self._ingredient_names)} ingredient names")
+
+    async def _find_ingredient_suggestions(
+        self, 
+        item_text: str, 
+        max_suggestions: int = 3,
+        similarity_threshold: float = 0.3
+    ) -> List[OCRItemSuggestion]:
+        """
+        Find ingredient suggestions for a detected receipt item.
+        
+        Args:
+            item_text: Detected text from receipt
+            max_suggestions: Maximum number of suggestions to return
+            similarity_threshold: Minimum similarity score (0.0 to 1.0)
+            
+        Returns:
+            List of ingredient suggestions sorted by confidence
+        """
+        suggestions = []
+        
+        try:
+            # Clean the item text for better matching
+            clean_text = re.sub(r'\s*\([^)]*\)\s*', ' ', item_text)  # Remove parentheses content
+            clean_text = re.sub(r'\s*\$[\d.,]+\s*', ' ', clean_text)  # Remove prices
+            clean_text = re.sub(r'[^\w\s]', ' ', clean_text)  # Remove special chars
+            clean_text = re.sub(r'\s+', ' ', clean_text).strip().lower()
+            
+            if not clean_text:
+                return []
+            
+            # Method 1: Use database search if available
+            if INGREDIENT_SEARCH_AVAILABLE and search_ingredients is not None:
+                try:
+                    # Search for ingredients using the database
+                    search_result = await search_ingredients(clean_text, limit=10)
+                    
+                    for ingredient in search_result.ingredients:
+                        # Calculate similarity score
+                        similarity = _compute_similarity(clean_text, ingredient.name)
+                        confidence_score = similarity * 100
+                        
+                        if confidence_score >= similarity_threshold * 100:
+                            suggestion = OCRItemSuggestion(
+                                ingredient_id=ingredient.ingredient_id,
+                                ingredient_name=ingredient.name,
+                                confidence_score=confidence_score,
+                                detected_text=clean_text
+                            )
+                            suggestions.append(suggestion)
+                
+                except Exception as e:
+                    logger.debug(f"Database ingredient search failed for '{clean_text}': {e}")
+            
+            # Method 2: Use local ingredient names file for fuzzy matching
+            if len(suggestions) < max_suggestions and self._ingredient_names:
+                try:
+                    local_matches = []
+                    
+                    for ingredient_name in self._ingredient_names:
+                        similarity = _compute_similarity(clean_text, ingredient_name)
+                        if similarity >= similarity_threshold:
+                            local_matches.append((ingredient_name, similarity))
+                    
+                    # Sort by similarity and take the best matches
+                    local_matches.sort(key=lambda x: x[1], reverse=True)
+                    
+                    # Add local matches if we don't have enough suggestions
+                    for ingredient_name, similarity in local_matches[:max_suggestions - len(suggestions)]:
+                        # Create a mock UUID for local matches
+                        from uuid import uuid5, NAMESPACE_DNS
+                        mock_id = uuid5(NAMESPACE_DNS, f"local-ingredient-{ingredient_name}")
+                        
+                        suggestion = OCRItemSuggestion(
+                            ingredient_id=mock_id,
+                            ingredient_name=ingredient_name.title(),
+                            confidence_score=similarity * 100,
+                            detected_text=clean_text
+                        )
+                        suggestions.append(suggestion)
+                
+                except Exception as e:
+                    logger.debug(f"Local ingredient matching failed for '{clean_text}': {e}")
+            
+            # Sort by confidence score and limit results
+            suggestions.sort(key=lambda x: x.confidence_score, reverse=True)
+            return suggestions[:max_suggestions]
+            
+        except Exception as e:
+            logger.error(f"Error finding ingredient suggestions for '{item_text}': {e}")
+            return []
 
     async def extract_text_from_image(self, image_data: bytes) -> OCRTextResponse:
         """
@@ -123,7 +351,7 @@ class OCRService:
             ]
 
             best_result = None
-            best_confidence = 0
+            best_confidence = 0.0
 
             for config in configs:
                 try:
@@ -482,107 +710,13 @@ class OCRService:
                 )
 
                 if cleaned_line and len(cleaned_line) >= 3:
-                    # Enhanced food keywords list with common variations
-                    food_keywords = [
-                        # Vegetables
-                        "tomato",
-                        "onion",
-                        "garlic",
-                        "pepper",
-                        "carrot",
-                        "potato",
-                        "spinach",
-                        "lettuce",
-                        "cabbage",
-                        "broccoli",
-                        "cauliflower",
-                        "mushroom",
-                        "celery",
-                        "cucumber",
-                        "zucchini",
-                        "eggplant",
-                        "bell",
-                        "green",
-                        "red",
-                        # Fruits
-                        "banana",
-                        "apple",
-                        "orange",
-                        "lemon",
-                        "lime",
-                        "berry",
-                        "grape",
-                        "strawberry",
-                        "blueberry",
-                        "raspberry",
-                        "pear",
-                        "peach",
-                        "plum",
-                        # Proteins
-                        "chicken",
-                        "beef",
-                        "pork",
-                        "fish",
-                        "salmon",
-                        "tuna",
-                        "turkey",
-                        "ground",
-                        "breast",
-                        "fillet",
-                        "steak",
-                        "chop",
-                        "wing",
-                        "thigh",
-                        # Dairy
-                        "milk",
-                        "cheese",
-                        "egg",
-                        "butter",
-                        "yogurt",
-                        "cream",
-                        "cheddar",
-                        "mozzarella",
-                        "swiss",
-                        "american",
-                        "cottage",
-                        # Pantry staples
-                        "bread",
-                        "rice",
-                        "pasta",
-                        "flour",
-                        "cereal",
-                        "oat",
-                        "wheat",
-                        "quinoa",
-                        "barley",
-                        "noodle",
-                        "spaghetti",
-                        "penne",
-                        # Seasonings & oils
-                        "oil",
-                        "salt",
-                        "pepper",
-                        "spice",
-                        "herb",
-                        "basil",
-                        "oregano",
-                        "olive",
-                        "vegetable",
-                        "canola",
-                        "coconut",
-                        "sesame",
-                        # Legumes & nuts
-                        "bean",
-                        "lentil",
-                        "nut",
-                        "almond",
-                        "walnut",
-                        "peanut",
-                        "cashew",
-                        "pecan",
-                        "pistachio",
-                        "chickpea",
-                        "kidney",
+                    # Use dynamic ingredient names from the loaded file
+                    # This replaces the hardcoded food keywords with the comprehensive ingredient list
+                    food_keywords = self._ingredient_names if self._ingredient_names else [
+                        # Fallback basic keywords if ingredient file loading failed
+                        "tomato", "onion", "garlic", "pepper", "carrot", "potato", "chicken", 
+                        "beef", "pork", "fish", "milk", "cheese", "egg", "bread", "rice", 
+                        "pasta", "oil", "salt", "pepper", "apple", "banana"
                     ]
 
                     # Check if the item contains food-related keywords
@@ -745,9 +879,12 @@ class OCRService:
                 except (ImportError, AttributeError):
                     try:
                         # Fallback for older PIL versions
-                        final_sharp = final_sharp.resize(
-                            (new_width, new_height), Image.LANCZOS
-                        )
+                        if Image is not None:
+                            final_sharp = final_sharp.resize(
+                                (new_width, new_height), getattr(Image, 'LANCZOS', 1)  # LANCZOS = 1
+                            )
+                        else:
+                            final_sharp = final_sharp.resize((new_width, new_height))
                     except AttributeError:
                         # Final fallback - use basic resize
                         final_sharp = final_sharp.resize((new_width, new_height))
