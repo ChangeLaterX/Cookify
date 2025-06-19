@@ -43,7 +43,11 @@ class TestOCRErrorHandling(OCRTestBase):
             
             for corrupted_data in corrupted_data_cases:
                 if corrupted_data is None:
-                    continue  # Skip None for now
+                    # Explicitly test None input handling
+                    with pytest.raises(OCRError) as exc_info:
+                        await service.extract_text_from_image(corrupted_data)
+                    assert exc_info.value.error_code == "OCR_PROCESSING_FAILED"
+                    continue
                 
                 with patch('PIL.Image.open', side_effect=Exception("Corrupted image")):
                     with pytest.raises(OCRError) as exc_info:

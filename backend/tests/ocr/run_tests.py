@@ -6,12 +6,12 @@ This script provides a convenient way to run different types of OCR tests
 with proper configuration and reporting.
 
 Usage:
-    python run_ocr_tests.py --help
-    python run_ocr_tests.py --unit              # Run only unit tests
-    python run_ocr_tests.py --integration       # Run only integration tests  
-    python run_ocr_tests.py --all               # Run all tests
-    python run_ocr_tests.py --performance       # Run performance benchmarks
-    python run_ocr_tests.py --coverage          # Run with coverage reporting
+    python run_tests.py --help
+    python run_tests.py --unit              # Run only unit tests
+    python run_tests.py --integration       # Run only integration tests  
+    python run_tests.py --all               # Run all tests
+    python run_tests.py --performance       # Run performance benchmarks
+    python run_tests.py --coverage          # Run with coverage reporting
 """
 
 import argparse
@@ -253,12 +253,12 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python run_ocr_tests.py --unit                    Run unit tests only
-  python run_ocr_tests.py --integration             Run integration tests only
-  python run_ocr_tests.py --all --coverage          Run all tests with coverage
-  python run_ocr_tests.py --performance             Run performance benchmarks
-  python run_ocr_tests.py --specific unit/test_text_extraction.py
-  python run_ocr_tests.py --report                  Generate full test report
+  python run_tests.py --unit                    Run unit tests only
+  python run_tests.py --integration             Run integration tests only
+  python run_tests.py --all --coverage          Run all tests with coverage
+  python run_tests.py --performance             Run performance benchmarks
+  python run_tests.py --specific unit/test_text_extraction.py
+  python run_tests.py --report                  Generate full test report
         """
     )
     

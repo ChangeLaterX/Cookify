@@ -159,7 +159,9 @@ class TestIngredientsErrorHandling(IngredientsTestBase):
             # Mock JSON parsing error
             with patch('json.loads', side_effect=ValueError("Invalid JSON")):
                 # This depends on whether the service actually uses json.loads directly
-                pass
+                with pytest.raises(IngredientError) as exc_info:
+                    await get_all_ingredients()
+                assert exc_info.value.error_code == "DATABASE_ERROR"
 
     @pytest.mark.asyncio
     async def test_unexpected_exception_handling(self):

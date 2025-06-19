@@ -106,7 +106,7 @@ class TestIngredientCRUDOperations(IngredientsTestBase):
         # This should fail at schema validation level
         with pytest.raises(Exception):  # Pydantic validation error
             # The validation happens at schema level, not service level
-            pass
+            await create_ingredient(invalid_data)
 
     @pytest.mark.asyncio
     async def test_update_ingredient_success(self):
