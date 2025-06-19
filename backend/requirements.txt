@@ -21,3 +21,5 @@ psutil==5.9.6
 pytesseract==0.3.10
 Pillow==10.1.0
 numpy>=1.24.0
+# Security and file validation
+python-magic>=0.4.27

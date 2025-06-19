@@ -11,6 +11,7 @@ from core.logging import setup_logging
 # Middleware imports
 from middleware.auth_middleware import AuthContextMiddleware
 from middleware.rate_limiting import AuthRateLimitMiddleware
+from middleware.ocr_rate_limiting import OCRRateLimitMiddleware
 from middleware.security_headers import SecurityHeadersMiddleware
 
 # Validation framework
@@ -61,6 +62,9 @@ def create_application() -> FastAPI:
     # Add security headers middleware (should be first for all responses)
     if settings.SECURITY_HEADERS_ENABLED:
         application.add_middleware(SecurityHeadersMiddleware)
+    
+    # Add OCR rate limiting middleware (resource-intensive operations)
+    application.add_middleware(OCRRateLimitMiddleware)
     
     # Add auth context middleware (temporarily disabled for debugging)
     # application.add_middleware(AuthContextMiddleware)

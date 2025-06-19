@@ -6,6 +6,9 @@ Handles OCR text extraction and ingredient matching for receipt processing.
 import time
 import re
 import asyncio
+import hashlib
+import tempfile
+import os
 from typing import List, Optional, Tuple
 from io import BytesIO
 from pathlib import Path
@@ -24,6 +27,14 @@ except ImportError:
     ImageEnhance = None  # type: ignore
     ImageFilter = None  # type: ignore
     OCR_AVAILABLE = False
+
+# Security scanning support
+try:
+    import magic
+    MAGIC_AVAILABLE = True
+except ImportError:
+    magic = None  # type: ignore
+    MAGIC_AVAILABLE = False
 
 # Fuzzy matching support
 try:
@@ -140,6 +151,176 @@ def _compute_similarity(text1: str, text2: str) -> float:
 _ingredient_names_cache: Optional[List[str]] = None
 _cache_last_loaded: float = 0.0
 _cache_ttl = 300  # 5 minutes
+
+
+# Security validation functions
+def _validate_image_security(image_data: bytes) -> None:
+    """
+    Validate image data for security threats.
+    
+    Args:
+        image_data: Raw image bytes
+        
+    Raises:
+        OCRError: If security validation fails
+    """
+    # Check file size
+    if len(image_data) > settings.OCR_MAX_IMAGE_SIZE_BYTES:
+        raise OCRError(
+            f"Image file too large: {len(image_data)} bytes (max: {settings.OCR_MAX_IMAGE_SIZE_BYTES})",
+            "IMAGE_TOO_LARGE"
+        )
+    
+    if len(image_data) == 0:
+        raise OCRError("Empty image file", "EMPTY_IMAGE")
+    
+    # Check for malicious patterns
+    suspicious_patterns = [
+        b"<?php",  # PHP code
+        b"<script",  # JavaScript  
+        b"<%",  # ASP/JSP
+        b"eval(",  # Code evaluation
+        b"exec(",  # Code execution
+        b"system(",  # System commands
+        b"import ",  # Python imports
+        b"require(",  # Node.js requires
+        b"include(",  # PHP includes
+    ]
+    
+    for pattern in suspicious_patterns:
+        if pattern in image_data:
+            logger.error(
+                "Malicious content detected in image",
+                extra={
+                    "pattern": pattern.decode('utf-8', errors='ignore'),
+                    "file_size": len(image_data)
+                }
+            )
+            raise OCRError(
+                "Suspicious content detected in image file",
+                "MALICIOUS_CONTENT"
+            )
+    
+    # Validate MIME type if magic is available
+    if MAGIC_AVAILABLE and magic:
+        try:
+            detected_type = magic.from_buffer(image_data, mime=True)
+            if not detected_type.startswith('image/'):
+                raise OCRError(
+                    f"Invalid file type: {detected_type}. Expected image file.",
+                    "INVALID_FILE_TYPE"
+                )
+        except Exception as e:
+            logger.warning(f"MIME type detection failed: {e}")
+    
+    # Validate image with PIL
+    try:
+        with Image.open(BytesIO(image_data)) as img:
+            # Check format
+            if img.format not in settings.OCR_ALLOWED_IMAGE_FORMATS:
+                raise OCRError(
+                    f"Unsupported image format: {img.format}",
+                    "UNSUPPORTED_FORMAT"
+                )
+            
+            # Check dimensions
+            width, height = img.size
+            if width < settings.OCR_MIN_IMAGE_WIDTH or height < settings.OCR_MIN_IMAGE_HEIGHT:
+                raise OCRError(
+                    f"Image too small: {width}x{height} (min: {settings.OCR_MIN_IMAGE_WIDTH}x{settings.OCR_MIN_IMAGE_HEIGHT})",
+                    "IMAGE_TOO_SMALL"
+                )
+            
+            if width > settings.OCR_MAX_IMAGE_WIDTH or height > settings.OCR_MAX_IMAGE_HEIGHT:
+                raise OCRError(
+                    f"Image too large: {width}x{height} (max: {settings.OCR_MAX_IMAGE_WIDTH}x{settings.OCR_MAX_IMAGE_HEIGHT})",
+                    "IMAGE_TOO_LARGE"
+                )
+            
+            # Verify image integrity
+            img.verify()
+            
+    except OCRError:
+        raise
+    except Exception as e:
+        raise OCRError(
+            f"Image validation failed: {str(e)}",
+            "IMAGE_VALIDATION_ERROR"
+        )
+
+
+def _create_secure_temp_file(image_data: bytes) -> Tuple[str, str]:
+    """
+    Create a secure temporary file for image processing.
+    
+    Args:
+        image_data: Raw image bytes
+        
+    Returns:
+        Tuple of (file_path, file_hash)
+        
+    Raises:
+        OCRError: If file creation fails
+    """
+    try:
+        # Create file hash for integrity checking
+        file_hash = hashlib.sha256(image_data).hexdigest()
+        
+        # Create secure temporary file
+        with tempfile.NamedTemporaryFile(
+            mode='wb',
+            suffix='.tmp',
+            prefix='ocr_secure_',
+            delete=False,
+            dir=tempfile.gettempdir()
+        ) as temp_file:
+            temp_file.write(image_data)
+            temp_file.flush()
+            os.fsync(temp_file.fileno())  # Ensure data is written to disk
+            temp_path = temp_file.name
+        
+        # Set restrictive permissions (owner read/write only)
+        os.chmod(temp_path, 0o600)
+        
+        logger.debug(
+            "Created secure temporary file for OCR processing",
+            extra={
+                "temp_path": temp_path,
+                "file_hash": file_hash[:16],  # Only log first 16 chars
+                "file_size": len(image_data)
+            }
+        )
+        
+        return temp_path, file_hash
+        
+    except Exception as e:
+        raise OCRError(
+            f"Failed to create secure temporary file: {str(e)}",
+            "TEMP_FILE_CREATION_ERROR"
+        )
+
+
+def _cleanup_temp_file(file_path: str) -> None:
+    """
+    Securely cleanup temporary file.
+    
+    Args:
+        file_path: Path to temporary file
+    """
+    try:
+        if os.path.exists(file_path):
+            # Overwrite file with zeros before deletion (basic secure deletion)
+            file_size = os.path.getsize(file_path)
+            with open(file_path, 'wb') as f:
+                f.write(b'\x00' * file_size)
+                f.flush()
+                os.fsync(f.fileno())
+            
+            os.unlink(file_path)
+            
+            logger.debug(f"Securely cleaned up temporary file: {file_path}")
+    except Exception as e:
+        logger.warning(f"Failed to cleanup temporary file {file_path}: {e}")
 
 
 def _get_ingredient_names() -> List[str]:
@@ -310,7 +491,7 @@ class OCRService:
 
     async def extract_text_from_image(self, image_data: bytes) -> OCRTextResponse:
         """
-        Extract text from image using Tesseract OCR.
+        Extract text from image using Tesseract OCR with enhanced security.
 
         Args:
             image_data: Raw image data as bytes
@@ -322,8 +503,24 @@ class OCRService:
             OCRError: If OCR processing fails
         """
         start_time = time.time()
-
+        temp_file_path = None
+        
         try:
+            # Validate image security before processing
+            _validate_image_security(image_data)
+            
+            # Create secure temporary file for processing
+            temp_file_path, file_hash = _create_secure_temp_file(image_data)
+            
+            logger.info(
+                "Starting secure OCR text extraction",
+                extra={
+                    "file_size": len(image_data),
+                    "file_hash": file_hash[:16],  # Only log first 16 chars
+                    "temp_file": temp_file_path
+                }
+            )
+
             # Convert bytes to PIL Image
             if not Image:
                 raise OCRError("PIL not available", "OCR_DEPENDENCIES_MISSING")
@@ -355,14 +552,17 @@ class OCRService:
 
             for config in configs:
                 try:
-                    # Extract confidence data
-                    ocr_data = await loop.run_in_executor(
-                        None,
-                        lambda c=config: pytesseract.image_to_data(  # type: ignore
-                            image,
-                            output_type=pytesseract.Output.DICT,  # type: ignore
-                            config=c,
+                    # Extract confidence data with timeout protection
+                    ocr_data = await asyncio.wait_for(
+                        loop.run_in_executor(
+                            None,
+                            lambda c=config: pytesseract.image_to_data(  # type: ignore
+                                image,
+                                output_type=pytesseract.Output.DICT,  # type: ignore
+                                config=c,
+                            ),
                         ),
+                        timeout=settings.OCR_PROCESSING_TIMEOUT
                     )
 
                     # Extract text
@@ -454,6 +654,10 @@ class OCRService:
             raise OCRError(
                 f"Failed to process image: {str(e)}", "OCR_PROCESSING_FAILED"
             )
+        finally:
+            # Always cleanup temporary file
+            if temp_file_path:
+                _cleanup_temp_file(temp_file_path)
 
     def _extract_receipt_items(self, text: str) -> List[str]:
         """
@@ -1071,181 +1275,86 @@ class OCRService:
         # Enhanced quantity patterns with OCR error tolerance
         quantity_patterns = [
             # Standard parentheses patterns
-            r"\((\d+(?:[.,]\d+)?)\s*(lbs?|lb|pounds?|kg|g|oz|ounces?|bags?|count|ct|pcs?|pieces?|gallon|gal|l|ml|liters?)\)",
-            # OCR corrected units in parentheses
-            r"\((\d+(?:[.,]\d+)?)\s*(its|ibs|ib|be|bs|1b|11b|2b|ts|bults|butte|goz|cound|container|tresh|fresh)\)",
-            # Without parentheses - quantity before unit
-            r"(\d+(?:[.,]\d+)?)\s*(lbs?|lb|pounds?|kg|g|oz|ounces?|bags?|count|ct|pcs?|pieces?|gallon|gal|l|ml|liters?)\b",
-            # OCR corrected units without parentheses
-            r"(\d+(?:[.,]\d+)?)\s*(its|ibs|ib|be|bs|1b|11b|2b|ts|bults|butte|goz|cound|container|tresh|fresh)\b",
-            # Special patterns for common OCR errors
-            r"\((\d+)\s*(lbs?|lb|Its|Ibs)\)",  # Capital I mistaken for l
-            r"(\d+)\s*x\s*(\d+(?:[.,]\d+)?)\s*(lbs?|lb|oz|g|kg)",  # 2 x 1.5 lbs
-            # Count patterns
-            r"\((\d+)\s*(count|ct|pcs?|pieces?)\)",
-            r"(\d+)\s*(count|ct|pcs?|pieces?|cound|12cound)\b",  # OCR: 12cound -> 12 count
-            # Just numbers in parentheses (assume pieces)
-            r"\((\d+)\)(?!\s*[.,]\d)",  # Number in parentheses not followed by decimal
-            # Volume patterns
-            r"(\d+(?:[.,]\d+)?)\s*(gallon|gal|l|ml|liters?|500ml|600ml|750ml)",
-            r"\((\d+(?:[.,]\d+)?)\s*(gallon|gal|l|ml|liters?)\)",
-            # Weight at end of line patterns
-            r"(\d+(?:[.,]\d+)?)\s*(lbs?|lb|oz|ounces?|kg|g)\s*$",
+            r"\(([0-9.,]+)\s*([a-zA-Z]+)\)",  # (500 g)
+            r"\(([0-9.,]+)\s*x\s*([0-9.,]+)\s*([a-zA-Z]+)\)",  # (2 x 500 g)
+            # Standard space patterns
+            r"([0-9.,]+)\s*([a-zA-ZÄÖÜäöü]+)\b",  # 500 g, 2 Stück
+            r"([0-9.,]+)\s*x\s*([0-9.,]+)\s*([a-zA-Z]+)",  # 2 x 500 g
+            # Handle OCR common errors: 0->O, l->I, etc.
+            r"([O0-9.,I1l]+)\s*([a-zA-ZÄÖÜäöü]+)\b",
         ]
 
         for pattern in quantity_patterns:
-            match = re.search(pattern, text, re.IGNORECASE)
-            if match:
+            matches = re.findall(pattern, text, re.IGNORECASE)
+            if matches:
                 try:
-                    # Extract quantity
-                    quantity_str = match.group(1).replace(",", ".")
-                    quantity = float(quantity_str)
+                    # Handle different match group structures
+                    if len(matches[0]) == 2:  # (quantity, unit)
+                        qty_str, unit_str = matches[0]
+                        # Simple quantity parsing with OCR correction
+                        qty_str = qty_str.replace('O', '0').replace('I', '1').replace('l', '1')
+                        quantity = float(qty_str.replace(',', '.'))
+                        unit = unit_str.strip()
+                    elif len(matches[0]) == 3:  # (multiplier, quantity, unit)
+                        mult_str, qty_str, unit_str = matches[0]
+                        # Simple parsing with OCR correction
+                        mult_str = mult_str.replace('O', '0').replace('I', '1').replace('l', '1')
+                        qty_str = qty_str.replace('O', '0').replace('I', '1').replace('l', '1')
+                        multiplier = float(mult_str.replace(',', '.'))
+                        base_qty = float(qty_str.replace(',', '.'))
+                        quantity = multiplier * base_qty
+                        unit = unit_str.strip()
 
-                    # Extract and normalize unit
-                    if len(match.groups()) > 1 and match.group(2):
-                        raw_unit = match.group(2).lower().strip()
-                        unit = self._normalize_unit(raw_unit)
-                        break
-                    elif len(match.groups()) == 1:
-                        # Just number in parentheses - assume pieces
-                        unit = "pcs"
-                        break
+                    if quantity and unit:
+                        return quantity, unit
                 except (ValueError, IndexError):
                     continue
 
-        # Special case: if no quantity found but text contains obvious quantity indicators
-        if quantity is None:
-            # Look for standalone numbers that might be quantities
-            standalone_quantity_patterns = [
-                r"\b(\d+)\s*(?:each|ea|count|ct)\b",  # 6 each, 12 count
-                r"\b(dozen|doz)\b",  # dozen -> 12
-                r"\b(half\s*dozen)\b",  # half dozen -> 6
-            ]
-
-            for pattern in standalone_quantity_patterns:
-                match = re.search(pattern, text, re.IGNORECASE)
-                if match:
-                    if "dozen" in match.group(1).lower():
-                        if "half" in match.group(1).lower():
-                            quantity = 6.0
-                        else:
-                            quantity = 12.0
-                        unit = "pcs"
-                    else:
-                        try:
-                            quantity = float(match.group(1))
-                            unit = "pcs"
-                        except ValueError:
-                            continue
-                    break
-
-        return quantity, unit
-
-    def _normalize_unit(self, raw_unit: str) -> str:
-        """
-        Normalize unit names including OCR error corrections.
-
-        Args:
-            raw_unit: Raw unit string from OCR
-
-        Returns:
-            Normalized unit string
-        """
-        # Comprehensive unit mapping with OCR corrections
-        unit_mapping = {
-            # Weight units
-            "lbs": "lb",
-            "pounds": "lb",
-            "pound": "lb",
-            "its": "lb",
-            "ibs": "lb",
-            "ib": "lb",
-            "1b": "lb",
-            "11b": "lb",
-            "be": "lb",
-            "bs": "lb",
-            "ts": "lb",
-            "ounces": "oz",
-            "ounce": "oz",
-            "goz": "oz",
-            "kg": "kg",
-            "kilograms": "kg",
-            "kilogram": "kg",
-            "g": "g",
-            "grams": "g",
-            "gram": "g",
-            # Volume units
-            "gallon": "gal",
-            "gallons": "gal",
-            "liters": "l",
-            "liter": "l",
-            "litres": "l",
-            "litre": "l",
-            "ml": "ml",
-            "milliliters": "ml",
-            "millilitres": "ml",
-            "500ml": "ml",
-            "600ml": "ml",
-            "750ml": "ml",  # Common OCR patterns
-            # Count units
-            "pieces": "pcs",
-            "piece": "pcs",
-            "pcs": "pcs",
-            "pc": "pcs",
-            "count": "count",
-            "ct": "count",
-            "cound": "count",
-            "12cound": "count",
-            "each": "pcs",
-            "ea": "pcs",
-            # Container units
-            "bags": "bag",
-            "bag": "bag",
-            "container": "container",
-            "bults": "bulbs",
-            "butte": "bulbs",
-            "bulbs": "bulbs",
-            "tresh": "fresh",
-            "fresh": "fresh",
-            # Special cases
-            "dozen": "dozen",
-            "doz": "dozen",
-        }
-
-        normalized = unit_mapping.get(raw_unit.lower(), raw_unit.lower())
-
-        # Handle numeric prefixes in units (e.g., "2b" -> "lb")
-        if len(normalized) > 1 and normalized[0].isdigit():
-            # Extract just the unit part
-            unit_part = "".join(c for c in normalized if not c.isdigit())
-            if unit_part in unit_mapping:
-                normalized = unit_mapping[unit_part]
-
-        return normalized
+        return None, None
 
 
-# Create global service instance
-ocr_service = OCRService() if OCR_AVAILABLE else None
-
-
-# Public API functions
+# Enhanced standalone functions for better security
 async def extract_text_from_image(image_data: bytes) -> OCRTextResponse:
-    """Extract text from image using OCR."""
-    if not ocr_service:
+    """
+    Secure standalone function to extract text from image.
+    
+    Args:
+        image_data: Raw image bytes
+        
+    Returns:
+        OCRTextResponse with extracted text
+        
+    Raises:
+        OCRError: If processing fails
+    """
+    if not OCR_AVAILABLE:
         raise OCRError(
-            "OCR service not available. Please install required dependencies.",
+            "OCR service is not available. Please check tesseract installation.",
             "OCR_SERVICE_UNAVAILABLE",
         )
 
+    ocr_service = OCRService()
     return await ocr_service.extract_text_from_image(image_data)
 
 
 async def process_receipt_image(image_data: bytes) -> OCRProcessedResponse:
-    """Process receipt image without ingredient suggestions."""
-    if not ocr_service:
+    """
+    Secure standalone function to process receipt image with ingredient suggestions.
+    
+    Args:
+        image_data: Raw image bytes
+        
+    Returns:
+        OCRProcessedResponse with processed receipt data
+        
+    Raises:
+        OCRError: If processing fails
+    """
+    if not OCR_AVAILABLE:
         raise OCRError(
-            "OCR service not available. Please install required dependencies.",
+            "OCR service is not available. Please check tesseract installation.",
             "OCR_SERVICE_UNAVAILABLE",
         )
 
+    ocr_service = OCRService()
     return await ocr_service.process_receipt_without_suggestions(image_data)

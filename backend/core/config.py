@@ -415,6 +415,32 @@ class RateLimitConfig(BaseSettings):
         default=600, ge=60, le=3600, description="Cleanup interval"
     )
 
+    # OCR-specific rate limiting (resource-intensive operations)
+    RATE_LIMIT_OCR_ATTEMPTS: int = Field(
+        default=10,
+        ge=1,
+        le=50,
+        description="OCR requests per window (resource-intensive)",
+    )
+    RATE_LIMIT_OCR_WINDOW_MINUTES: int = Field(
+        default=5, ge=1, le=30, description="OCR rate limit window in minutes"
+    )
+    RATE_LIMIT_OCR_EXTRACT_ATTEMPTS: int = Field(
+        default=5, ge=1, le=20, description="OCR text extraction per window"
+    )
+    RATE_LIMIT_OCR_EXTRACT_WINDOW_MINUTES: int = Field(
+        default=2, ge=1, le=15, description="OCR text extraction window in minutes"
+    )
+    RATE_LIMIT_OCR_PROCESS_ATTEMPTS: int = Field(
+        default=8, ge=1, le=30, description="OCR processing per window"
+    )
+    RATE_LIMIT_OCR_PROCESS_WINDOW_MINUTES: int = Field(
+        default=3, ge=1, le=20, description="OCR processing window in minutes"
+    )
+    RATE_LIMIT_OCR_ENABLE_PROGRESSIVE_DELAY: bool = Field(
+        default=True, description="Enable progressive delay for OCR violations"
+    )
+
 
 class DatabaseConfig(BaseSettings):
     """Database configuration and connection settings."""

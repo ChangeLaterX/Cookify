@@ -1,6 +1,7 @@
 """
 FastAPI Routes for Receipt Domain.
 Provides HTTP endpoints for receipt OCR processing and ingredient matching.
+Enhanced with security validations and rate limiting.
 """
 
 import time
@@ -25,7 +26,7 @@ from .services import (
 
 logger = get_logger(__name__)
 
-# Create router for receipt endpoints
+# Create router for receipt endpoints with enhanced security
 router = APIRouter(prefix="/ocr", tags=["OCR"])
 
 
