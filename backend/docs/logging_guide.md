@@ -1,66 +1,142 @@
-# Logging Guide für Cookify Backend
+# Advanced Logging & Performance Guidelines (as of June 2025)
 
-## Übersicht
+## Structured Logging & Performance Metrics
 
-Das Cookify-Backend verwendet ein erweitertes, strukturiertes Logging-System, das auf dem Python-Standard `logging`-Modul aufbaut. Das System bietet folgende Funktionen:
+Since June 2025, Cookify uses structured logging with performance tracking for all critical endpoints. Key improvements:
 
-- Strukturierte Logs mit einheitlichem Format (Text oder JSON)
-- Kontext-basiertes Logging für bessere Nachvollziehbarkeit
-- Automatische Anreicherung von Logs mit Metadaten
-- Leistungsoptimierung durch Caching von Logger-Instanzen
-- Konfigurierbare Log-Level für verschiedene Anwendungsteile
-- Unterstützung für Datei- und Konsolen-Logging
+- **Use `get_logger(__name__)` in all modules**
+- **Context and data fields**: Always use `context` and `data` parameters for machine-readable logs
+- **Performance logging**: Log explicit duration (`duration_ms`), file size, confidence scores etc. for all important operations (e.g. OCR, database, health checks)
+- **Performance logging decorator**: Use `@log_performance` from `core/performance.py` for automatic timing and logging
+- **Error handling**: Errors are always logged with context, error code and timing
 
-## Logger verwenden
+### Example: OCR Performance Log
 
-### Logger abrufen
+```python
+logger.info(
+    "OCR text extraction completed successfully",
+    context={
+        "filename": image.filename,
+        "file_size_bytes": len(image_data),
+        "extracted_text_length": len(result.extracted_text),
+        "confidence_score": result.confidence,
+        "ocr_processing_time_ms": result.processing_time_ms,
+        "total_request_time_ms": request_duration_ms,
+        "endpoint": "/ocr/extract-text"
+    },
+    data={
+        "performance_metrics": {
+            "file_size_bytes": len(image_data),
+            "ocr_processing_time_ms": result.processing_time_ms,
+            "total_request_time_ms": request_duration_ms,
+            "confidence_score": result.confidence
+        }
+    }
+)
+```
 
-Verwende immer die `get_logger`-Funktion, um einen Logger zu erhalten:
+### Example: Performance Logging Decorator
+
+```python
+from core.performance import log_performance
+
+@log_performance("ocr_processing")
+async def process_receipt_with_ocr(image: UploadFile):
+    ... # Function is automatically logged with timing and success/error tracking
+```
+
+### Error Logging with Timing
+
+```python
+try:
+    ... # Operation
+except CustomError as e:
+    logger.error(
+        "Custom error occurred",
+        context={
+            "endpoint": "/api/endpoint",
+            "error_code": e.error_code,
+            "error_message": e.message,
+            "duration_ms": duration_ms
+        }
+    )
+    raise
+```
+
+## Best Practices (2025 Update)
+
+- Always use structured logs with context
+- Log performance metrics for all critical operations
+- Never log sensitive data
+- Always log errors with error code, context and duration
+- Use the new decorators for performance and DB logging
+- See also: `docs/improved_logging_guide.md` for complete examples and monitoring strategies
+
+---
+
+# Logging Guide for Cookify Backend
+
+## Overview
+
+The Cookify backend uses an extended, structured logging system based on Python's standard `logging` module. The system provides the following features:
+
+- Structured logs with uniform format (text or JSON)
+- Context-based logging for better traceability
+- Automatic enrichment of logs with metadata
+- Performance optimization through caching of logger instances
+- Configurable log levels for different application parts
+- Support for file and console logging
+
+## Using Logger
+
+### Getting a Logger
+
+Always use the `get_logger` function to obtain a logger:
 
 ```python
 from core.logging import get_logger
 
-# Typischerweise mit __name__ aufrufen, um den Modulnamen zu verwenden
+# Typically call with __name__ to use the module name
 logger = get_logger(__name__)
 
-# Oder mit einem benutzerdefinierten Namen
+# Or with a custom name
 logger = get_logger("custom.name")
 ```
 
-### Logging mit verschiedenen Ebenen
+### Logging with Different Levels
 
 ```python
-# Grundlegende Logging-Ebenen
-logger.trace("Sehr detaillierte Debug-Informationen")
-logger.debug("Debug-Informationen für Entwickler")
-logger.info("Allgemeine Informationen über Anwendungsabläufe")
-logger.warning("Warnung, die Aufmerksamkeit erfordert")
-logger.error("Fehler, der die Funktionalität beeinträchtigt")
-logger.critical("Kritischer Fehler, der sofortiges Handeln erfordert")
+# Basic logging levels
+logger.trace("Very detailed debug information")
+logger.debug("Debug information for developers")
+logger.info("General information about application flows")
+logger.warning("Warning that requires attention")
+logger.error("Error that impairs functionality")
+logger.critical("Critical error requiring immediate action")
 
-# Für Exceptions mit automatischem Stacktrace
+# For exceptions with automatic stacktrace
 try:
-    # Code, der fehlschlagen könnte
-    raise ValueError("Beispiel-Exception")
+    # Code that might fail
+    raise ValueError("Example exception")
 except Exception as e:
-    logger.exception("Eine Exception ist aufgetreten")
+    logger.exception("An exception occurred")
 ```
 
-### Strukturiertes Logging mit Kontext
+### Structured Logging with Context
 
 ```python
-# Logging mit zusätzlichem Kontext
+# Logging with additional context
 logger.info(
-    "Benutzer hat sich angemeldet", 
+    "User logged in", 
     context={
         "user_id": "abc123",
         "ip_address": "192.168.1.1"
     }
 )
 
-# Logging mit Kontext und strukturierten Daten
+# Logging with context and structured data
 logger.info(
-    "Bestellung abgeschlossen", 
+    "Order completed", 
     context={"user_id": "abc123"}, 
     data={
         "order_id": "order-123",
@@ -72,83 +148,83 @@ logger.info(
 
 ## Best Practices
 
-### Log-Ebenen richtig verwenden
+### Using Log Levels Correctly
 
-- **TRACE**: Sehr detaillierte Informationen, nur für tiefgreifende Debugging-Zwecke
-- **DEBUG**: Detailinformationen für Entwickler während der Entwicklung und zum Debuggen
-- **INFO**: Allgemeine Informationen über normale Anwendungsabläufe
-- **WARNING**: Potenziell problematische Situationen, die Aufmerksamkeit erfordern
-- **ERROR**: Fehler, die eine Operation verhindern, aber die Anwendung läuft weiter
-- **CRITICAL**: Kritische Fehler, die die Anwendung möglicherweise beenden
+- **TRACE**: Very detailed information, only for deep debugging purposes
+- **DEBUG**: Detail information for developers during development and debugging
+- **INFO**: General information about normal application flows
+- **WARNING**: Potentially problematic situations requiring attention
+- **ERROR**: Errors that prevent an operation but the application continues
+- **CRITICAL**: Critical errors that might terminate the application
 
-### Strukturierte Logs für maschinelle Verarbeitung
+### Structured Logs for Machine Processing
 
-Verwende immer den `context` und `data` Parameter für strukturierte Informationen statt sie in die Nachricht einzubauen:
+Always use the `context` and `data` parameter for structured information instead of embedding them in the message:
 
 ```python
-# NICHT SO:
-logger.info(f"User {user_id} hat {items_count} Artikel für {total_price}€ bestellt")
+# DON'T:
+logger.info(f"User {user_id} ordered {items_count} items for {total_price}€")
 
-# BESSER SO:
+# BETTER:
 logger.info(
-    "Bestellung abgeschlossen",
+    "Order completed",
     context={"user_id": user_id},
     data={"items_count": items_count, "total_price": total_price}
 )
 ```
 
-### Persönliche Daten schützen
+### Protecting Personal Data
 
-- Logge niemals Passwörter, Tokens oder andere vertrauliche Informationen
-- Beschränke personenbezogene Daten auf das Nötigste, speziell bei höheren Log-Ebenen
-- Kürze lange persönliche Identifikatoren bei Bedarf (z.B. "user@exa...com")
+- Never log passwords, tokens or other confidential information
+- Limit personal data to what's necessary, especially at higher log levels
+- Truncate long personal identifiers when needed (e.g. "user@exa...com")
 
-### Performance-Optimierung
+### Performance Optimization
 
-Bei umfangreichen oder komplexen Log-Nachrichten, prüfe vorher ob das entsprechende Log-Level aktiviert ist:
+For extensive or complex log messages, check if the corresponding log level is enabled first:
 
 ```python
 if logger.isEnabledFor(logging.DEBUG):
     complex_debug_info = generate_expensive_debug_info()
-    logger.debug("Komplexe Debug-Info", data=complex_debug_info)
+    logger.debug("Complex debug info", data=complex_debug_info)
 ```
 
-## Konfiguration
+## Configuration
 
-Die Logging-Konfiguration wird in `core/config.py` definiert und kann über Umgebungsvariablen angepasst werden:
+The logging configuration is defined in `core/config.py` and can be adjusted via environment variables:
 
-- `LOG_LEVEL`: Allgemeines Log-Level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-- `LOG_FORMAT_JSON`: True für JSON-Format, False für Text-Format
-- `LOG_TO_FILE`: True um Logs in Dateien zu schreiben
-- `LOG_DIR`: Verzeichnis für Log-Dateien
-- `CONSOLE_LOG_LEVEL`: Log-Level für Konsolenausgaben
-- `DOMAINS_LOG_LEVEL`: Log-Level für Domain-Module
-- `MIDDLEWARE_LOG_LEVEL`: Log-Level für Middleware-Module
+- `LOG_LEVEL`: General log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+- `LOG_FORMAT_JSON`: True for JSON format, False for text format
+- `LOG_TO_FILE`: True to write logs to files
+- `LOG_DIR`: Directory for log files
+- `CONSOLE_LOG_LEVEL`: Log level for console output
+- `DOMAINS_LOG_LEVEL`: Log level for domain modules
+- `MIDDLEWARE_LOG_LEVEL`: Log level for middleware modules
 
-## Beispiele für typische Logging-Muster
+## Examples of Typical Logging Patterns
 
-### Authentifizierung und Sicherheit
+### Authentication and Security
 
 ```python
-# Erfolgreiche Anmeldung
+# Successful login
 logger.info(
-    "Benutzer angemeldet",
+    "User logged in",
     context={"user_id": user.id, "ip_address": client_ip}
 )
 
-# Fehlgeschlagene Anmeldung
+# Failed login
 logger.warning(
-    "Anmeldung fehlgeschlagen",
+    "Login failed",
     context={
-        "username": username,  # E-Mail nicht vollständig loggen
+        "username": username,  # Don't log full email
         "ip_address": client_ip,
         "attempt_count": attempt_count
     }
 )
 
-# Sicherheitsrelevantes Ereignis
+# Security-relevant event
 logger.error(
-    "Rate-Limit überschritten",
+    "Rate limit exceeded",
     context={
         "ip_address": client_ip,
         "endpoint": request.url.path,
@@ -157,12 +233,12 @@ logger.error(
 )
 ```
 
-### API-Anfragen und Leistung
+### API Requests and Performance
 
 ```python
-# API-Anfrage mit Dauer
+# API request with duration
 logger.info(
-    "API-Anfrage verarbeitet",
+    "API request processed",
     context={
         "endpoint": request.url.path,
         "method": request.method,
@@ -171,54 +247,54 @@ logger.info(
     }
 )
 
-# Datenbankoperationen
+# Database operations
 logger.debug(
-    "Datenbankabfrage ausgeführt",
+    "Database query executed",
     context={"table": "users", "operation": "SELECT"},
     data={"query_duration_ms": query_time, "results_count": len(results)}
 )
 ```
 
-### Fehlerbehandlung
+### Error Handling
 
 ```python
 try:
-    # Operation durchführen
+    # Perform operation
     result = perform_operation()
     return result
 except ValueError as e:
-    # Bekannter Fehlerfall
+    # Known error case
     logger.warning(
-        "Ungültige Eingabedaten",
+        "Invalid input data",
         context={"operation": "perform_operation"},
         data={"validation_errors": str(e)}
     )
     raise
 except Exception as e:
-    # Unerwarteter Fehler
+    # Unexpected error
     logger.exception(
-        "Unerwarteter Fehler bei Operation",
+        "Unexpected error in operation",
         context={"operation": "perform_operation"}
     )
-    # Exception wird automatisch mit Stack-Trace geloggt
+    # Exception is automatically logged with stack trace
     raise
 ```
 
-## Logging-Konfiguration in der Entwicklung
+## Logging Configuration in Development
 
-Für die lokale Entwicklung empfehlen wir:
+For local development we recommend:
 
-```
+```bash
 LOG_LEVEL=DEBUG
 LOG_FORMAT_JSON=False
 LOG_TO_FILE=False
 ```
 
-## Logging-Konfiguration in Produktion
+## Logging Configuration in Production
 
-Für Produktionsumgebungen empfehlen wir:
+For production environments we recommend:
 
-```
+```bash
 LOG_LEVEL=INFO
 LOG_FORMAT_JSON=True
 LOG_TO_FILE=True
