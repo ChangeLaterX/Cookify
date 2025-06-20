@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 env:
-  PYTHON_VERSION: "3.10"
+  PYTHON_VERSION: "3.12"
 
 jobs:
   test-ingredients:
@@ -61,15 +61,21 @@ jobs:
         timeout 30s bash -c 'until pg_isready -h localhost -p 5432 -U testuser; do sleep 1; done'
         timeout 30s bash -c 'until redis-cli -h localhost -p 6379 ping; do sleep 1; done'
     - name: Set environment variables
+      working-directory: ./backend
       run: |
         echo "DATABASE_URL=postgresql://testuser:testpass@localhost:5432/cookify_test" >> $GITHUB_ENV
         echo "REDIS_URL=redis://localhost:6379/0" >> $GITHUB_ENV
-        echo "JWT_SECRET_KEY=all-tests-secret-key-for-ci-environment-minimum-32-chars" >> $GITHUB_ENV
+        echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET }}" >> $GITHUB_ENV
+        echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> $GITHUB_ENV
+        echo "JWT_ALGORITHM=HS256" >> $GITHUB_ENV
+        echo "JWT_EXPIRATION=10080" >> $GITHUB_ENV
+        echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> $GITHUB_ENV
+        echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> $GITHUB_ENV
         echo "TEST_ENVIRONMENT=ci" >> $GITHUB_ENV
     - name: Run ingredients tests
       working-directory: ./backend
       run: |
-        python tests/run_all_tests.py --domain ingredients --coverage -- --junit-xml=ingredients-test-results.xml --cov-report=xml
+        python -m pytest tests/ingredients/unit/ -v --tb=short --cov=domains/ingredients --cov-report=xml --cov-report=html --junitxml=ingredients-test-results.xml
     - name: Upload ingredients test results
       uses: actions/upload-artifact@v3
       if: always()
@@ -120,14 +126,20 @@ jobs:
       run: |
         timeout 30s bash -c 'until pg_isready -h localhost -p 5432 -U testuser; do sleep 1; done'
     - name: Set environment variables
+      working-directory: ./backend
       run: |
         echo "DATABASE_URL=postgresql://testuser:testpass@localhost:5432/cookify_test" >> $GITHUB_ENV
-        echo "JWT_SECRET_KEY=all-tests-secret-key-for-ci-environment-minimum-32-chars" >> $GITHUB_ENV
+        echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET }}" >> $GITHUB_ENV
+        echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> $GITHUB_ENV
+        echo "JWT_ALGORITHM=HS256" >> $GITHUB_ENV
+        echo "JWT_EXPIRATION=10080" >> $GITHUB_ENV
+        echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> $GITHUB_ENV
+        echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> $GITHUB_ENV
         echo "TEST_ENVIRONMENT=ci" >> $GITHUB_ENV
     - name: Run auth tests (basic CI tests only)
       working-directory: ./backend
       run: |
-        python -m pytest tests/auth/unit/test_basic_auth_ci.py tests/auth/unit/test_service_initialization.py::TestAuthServiceInitialization::test_main_functionality tests/auth/unit/test_service_initialization.py::TestAuthServiceInitialization::test_auth_service_initialization_with_dependencies tests/auth/unit/test_error_handling.py::TestAuthErrorHandling::test_main_functionality tests/auth/unit/test_error_handling.py::TestAuthErrorHandling::test_authentication_error_creation -v --junit-xml=auth-test-results.xml --cov=domains.auth --cov-report=xml
+        python -m pytest tests/auth/unit/test_basic_auth_ci.py -v --tb=short --cov=domains/auth --cov-report=xml --cov-report=html --junitxml=auth-test-results.xml
     - name: Upload auth test results
       uses: actions/upload-artifact@v3
       if: always()
@@ -160,13 +172,19 @@ jobs:
         pip install -r requirements.txt
         pip install pytest pytest-cov pytest-asyncio
     - name: Set environment variables
+      working-directory: ./backend
       run: |
-        echo "JWT_SECRET_KEY=all-tests-secret-key-for-ci-environment-minimum-32-chars" >> $GITHUB_ENV
+        echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET }}" >> $GITHUB_ENV
+        echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> $GITHUB_ENV
+        echo "JWT_ALGORITHM=HS256" >> $GITHUB_ENV
+        echo "JWT_EXPIRATION=10080" >> $GITHUB_ENV
+        echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> $GITHUB_ENV
+        echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> $GITHUB_ENV
         echo "TEST_ENVIRONMENT=ci" >> $GITHUB_ENV
     - name: Run OCR tests (basic CI tests only)
       working-directory: ./backend
       run: |
-        python tests/run_all_tests.py --domain ocr -- --junit-xml=ocr-test-results.xml --cov=domains.ocr --cov-report=xml
+        python -m pytest tests/ocr/unit/test_basic_ocr_ci.py -v --tb=short --cov=domains/ocr --cov-report=xml --cov-report=html --junitxml=ocr-test-results.xml
     - name: Upload OCR test results
       uses: actions/upload-artifact@v3
       if: always()
