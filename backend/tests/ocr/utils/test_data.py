@@ -16,7 +16,7 @@ from domains.ocr.schemas import (
     ReceiptItem,
     OCRItemSuggestion,
 )
-from domains.ingredients.schemas import Ingredient, IngredientSearchResult
+from domains.ingredients.schemas import IngredientMasterResponse, IngredientListResponse
 
 # Receipt text variations for testing
 RECEIPT_TEXT_VARIATIONS = {

@@ -26,8 +26,7 @@ class IngredientsMockFactory:
         calories_per_100g: Optional[float] = None,
         proteins_per_100g: Optional[float] = None,
         fat_per_100g: Optional[float] = None,
-        carbs_per_100g: Optional[float] = None,
-        price_per_100g_cents: Optional[int] = None
+        carbs_per_100g: Optional[float] = None
     ) -> IngredientMasterCreate:
         """Create a mock IngredientMasterCreate schema."""
         return IngredientMasterCreate(
@@ -35,8 +34,7 @@ class IngredientsMockFactory:
             calories_per_100g=calories_per_100g or 100.0,
             proteins_per_100g=proteins_per_100g or 10.0,
             fat_per_100g=fat_per_100g or 5.0,
-            carbs_per_100g=carbs_per_100g or 15.0,
-            price_per_100g_cents=price_per_100g_cents or 500
+            carbs_per_100g=carbs_per_100g or 15.0
         )
     
     @staticmethod

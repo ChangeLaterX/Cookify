@@ -11,6 +11,8 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 from dataclasses import dataclass
 
+# Smart test data generator removed - using basic test data generation
+
 try:
     from domains.ingredients.schemas import IngredientMasterCreate, IngredientMasterUpdate
 except ImportError:
@@ -35,7 +37,7 @@ class TestIngredientData:
     proteins_per_100g: float
     fat_per_100g: float
     carbs_per_100g: float
-    price_per_100g_cents: int
+    category: Optional[str] = None
     
     def to_ingredient_create(self) -> IngredientMasterCreate:
         """Convert to IngredientMasterCreate schema."""
@@ -45,7 +47,7 @@ class TestIngredientData:
             proteins_per_100g=self.proteins_per_100g,
             fat_per_100g=self.fat_per_100g,
             carbs_per_100g=self.carbs_per_100g,
-            price_per_100g_cents=self.price_per_100g_cents
+            category=self.category
         )
     
     def to_ingredient_update(self, partial: bool = False) -> IngredientMasterUpdate:
@@ -59,6 +61,8 @@ class TestIngredientData:
                 fields['calories_per_100g'] = self.calories_per_100g
             if random.choice([True, False]):
                 fields['proteins_per_100g'] = self.proteins_per_100g
+            if random.choice([True, False]) and self.category:
+                fields['category'] = self.category
             return IngredientMasterUpdate(**fields)
         
         return IngredientMasterUpdate(
@@ -67,22 +71,24 @@ class TestIngredientData:
             proteins_per_100g=self.proteins_per_100g,
             fat_per_100g=self.fat_per_100g,
             carbs_per_100g=self.carbs_per_100g,
-            price_per_100g_cents=self.price_per_100g_cents
+            category=self.category
         )
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary representation."""
-        return {
+        result = {
             "ingredient_id": self.ingredient_id,
             "name": self.name,
             "calories_per_100g": self.calories_per_100g,
             "proteins_per_100g": self.proteins_per_100g,
             "fat_per_100g": self.fat_per_100g,
             "carbs_per_100g": self.carbs_per_100g,
-            "price_per_100g_cents": self.price_per_100g_cents,
             "created_at": datetime.utcnow().isoformat(),
             "updated_at": datetime.utcnow().isoformat()
         }
+        if self.category:
+            result["category"] = self.category
+        return result
 
 
 class TestDataGenerator:
@@ -105,43 +111,37 @@ class TestDataGenerator:
             "calories": (15, 40),
             "proteins": (0.5, 3.0),
             "fat": (0.1, 0.5),
-            "carbs": (2.0, 8.0),
-            "price": (50, 300)  # cents
+            "carbs": (2.0, 8.0)
         },
         "fruits": {
             "calories": (30, 80),
             "proteins": (0.3, 1.5),
             "fat": (0.1, 0.8),
-            "carbs": (8.0, 20.0),
-            "price": (100, 500)
+            "carbs": (8.0, 20.0)
         },
         "meat": {
             "calories": (100, 300),
             "proteins": (15.0, 30.0),
             "fat": (3.0, 25.0),
-            "carbs": (0.0, 2.0),
-            "price": (800, 2500)
+            "carbs": (0.0, 2.0)
         },
         "dairy": {
             "calories": (50, 350),
             "proteins": (3.0, 25.0),
             "fat": (0.5, 30.0),
-            "carbs": (3.0, 15.0),
-            "price": (200, 800)
+            "carbs": (3.0, 15.0)
         },
         "grains": {
             "calories": (300, 400),
             "proteins": (8.0, 15.0),
             "fat": (1.0, 5.0),
-            "carbs": (60.0, 80.0),
-            "price": (100, 400)
+            "carbs": (60.0, 80.0)
         },
         "oils": {
             "calories": (800, 900),
             "proteins": (0.0, 0.1),
             "fat": (90.0, 100.0),
-            "carbs": (0.0, 0.1),
-            "price": (300, 1500)
+            "carbs": (0.0, 0.1)
         }
     }
     
@@ -169,15 +169,12 @@ class TestDataGenerator:
             proteins = round(random.uniform(*ranges["proteins"]), 1)
             fat = round(random.uniform(*ranges["fat"]), 1)
             carbs = round(random.uniform(*ranges["carbs"]), 1)
-            price_range = ranges["price"]
-            price = random.randint(int(price_range[0]), int(price_range[1]))
         else:
             # Generate random values
             calories = round(random.uniform(10, 500), 1)
             proteins = round(random.uniform(0, 30), 1)
             fat = round(random.uniform(0, 50), 1)
             carbs = round(random.uniform(0, 80), 1)
-            price = random.randint(50, 2000)
         
         return TestIngredientData(
             ingredient_id=str(uuid.uuid4()),
@@ -186,7 +183,7 @@ class TestDataGenerator:
             proteins_per_100g=proteins,
             fat_per_100g=fat,
             carbs_per_100g=carbs,
-            price_per_100g_cents=price
+            category=category
         )
     
     @classmethod
@@ -225,25 +222,22 @@ class TestDataGenerator:
         """Generate list of invalid ingredient data for testing."""
         return [
             {"name": "", "calories_per_100g": 100, "proteins_per_100g": 10, 
-             "fat_per_100g": 5, "carbs_per_100g": 15, "price_per_100g_cents": 500},  # Empty name
+             "fat_per_100g": 5, "carbs_per_100g": 15},  # Empty name
             
             {"name": "Test", "calories_per_100g": -10, "proteins_per_100g": 10, 
-             "fat_per_100g": 5, "carbs_per_100g": 15, "price_per_100g_cents": 500},  # Negative calories
+             "fat_per_100g": 5, "carbs_per_100g": 15},  # Negative calories
             
             {"name": "Test", "calories_per_100g": 100, "proteins_per_100g": -5, 
-             "fat_per_100g": 5, "carbs_per_100g": 15, "price_per_100g_cents": 500},  # Negative proteins
+             "fat_per_100g": 5, "carbs_per_100g": 15},  # Negative proteins
             
             {"name": "Test", "calories_per_100g": 100, "proteins_per_100g": 10, 
-             "fat_per_100g": -2, "carbs_per_100g": 15, "price_per_100g_cents": 500},  # Negative fat
+             "fat_per_100g": -2, "carbs_per_100g": 15},  # Negative fat
             
             {"name": "Test", "calories_per_100g": 100, "proteins_per_100g": 10, 
-             "fat_per_100g": 5, "carbs_per_100g": -8, "price_per_100g_cents": 500},  # Negative carbs
-            
-            {"name": "Test", "calories_per_100g": 100, "proteins_per_100g": 10, 
-             "fat_per_100g": 5, "carbs_per_100g": 15, "price_per_100g_cents": -100},  # Negative price
+             "fat_per_100g": 5, "carbs_per_100g": -8},  # Negative carbs
             
             {"name": "A" * 300, "calories_per_100g": 100, "proteins_per_100g": 10, 
-             "fat_per_100g": 5, "carbs_per_100g": 15, "price_per_100g_cents": 500},  # Name too long
+             "fat_per_100g": 5, "carbs_per_100g": 15},  # Name too long
         ]
     
     @classmethod
@@ -284,16 +278,12 @@ class TestDataGenerator:
             {"calories_per_100g": base_ingredient.calories_per_100g + 10,
              "proteins_per_100g": base_ingredient.proteins_per_100g + 1},
             
-            # Update price only
-            {"price_per_100g_cents": base_ingredient.price_per_100g_cents + 100},
-            
             # Update all fields
             {"name": f"{base_ingredient.name} Completely Updated",
              "calories_per_100g": base_ingredient.calories_per_100g * 1.2,
              "proteins_per_100g": base_ingredient.proteins_per_100g * 1.1,
              "fat_per_100g": base_ingredient.fat_per_100g * 1.3,
-             "carbs_per_100g": base_ingredient.carbs_per_100g * 0.9,
-             "price_per_100g_cents": base_ingredient.price_per_100g_cents + 200},
+             "carbs_per_100g": base_ingredient.carbs_per_100g * 0.9},
             
             # Edge case: minimal values
             {"calories_per_100g": 0.1,
@@ -302,89 +292,19 @@ class TestDataGenerator:
              "carbs_per_100g": 0.1},
         ]
         return scenarios
-
-
-class TestScenarios:
-    """Pre-defined test scenarios for Ingredients testing."""
     
     @staticmethod
-    def successful_crud_operations() -> Dict[str, Any]:
-        """Generate data for successful CRUD operations."""
-        ingredient_data = TestDataGenerator.generate_ingredient_data()
-        return {
-            "create_data": ingredient_data.to_ingredient_create(),
-            "update_data": ingredient_data.to_ingredient_update(),
-            "ingredient_id": ingredient_data.ingredient_id,
-            "expected_response": ingredient_data.to_dict()
-        }
-    
-    @staticmethod
-    def search_scenarios() -> List[Dict[str, Any]]:
-        """Generate search test scenarios."""
-        search_ingredients = TestDataGenerator.generate_search_test_data()
-        
-        return [
-            {
-                "name": "exact_match",
-                "query": "Tomato",
-                "ingredients": search_ingredients,
-                "expected_matches": ["Tomato", "Cherry Tomato", "Tomato Sauce"]
-            },
-            {
-                "name": "partial_match", 
-                "query": "Chicken",
-                "ingredients": search_ingredients,
-                "expected_matches": ["Chicken Breast", "Chicken Thigh", "Ground Chicken"]
-            },
-            {
-                "name": "case_insensitive",
-                "query": "onion",
-                "ingredients": search_ingredients,
-                "expected_matches": ["Onion", "Green Onion", "Red Onion"]
-            },
-            {
-                "name": "no_matches",
-                "query": "Elephant",
-                "ingredients": search_ingredients,
-                "expected_matches": []
-            }
-        ]
-    
-    @staticmethod
-    def pagination_scenarios() -> List[Dict[str, Any]]:
-        """Generate pagination test scenarios."""
-        total_ingredients = TestDataGenerator.generate_pagination_test_data(25)
-        
-        return [
-            {
-                "name": "first_page",
-                "limit": 10,
-                "offset": 0,
-                "total_items": len(total_ingredients),
-                "expected_items": 10
-            },
-            {
-                "name": "middle_page",
-                "limit": 10,
-                "offset": 10,
-                "total_items": len(total_ingredients),
-                "expected_items": 10
-            },
-            {
-                "name": "last_page",
-                "limit": 10,
-                "offset": 20,
-                "total_items": len(total_ingredients),
-                "expected_items": 5  # Remaining items
-            },
-            {
-                "name": "oversized_page",
-                "limit": 100,
-                "offset": 0,
-                "total_items": len(total_ingredients),
-                "expected_items": 25  # All available items
-            }
-        ]
+    def generate_ingredients_by_category(category: str, count: int) -> List[Dict[str, Any]]:
+        """Generate ingredients for a specific category."""
+        # Generate basic ingredients data
+        ingredients = []
+        for i in range(count):
+            ingredient_data = TestDataGenerator.generate_ingredient_data(
+                name=f"Test Ingredient {i+1}",
+                category=category
+            )
+            ingredients.append(ingredient_data.to_dict())
+        return ingredients
     
     @staticmethod
     def validation_scenarios() -> List[Dict[str, Any]]:
@@ -394,7 +314,7 @@ class TestScenarios:
         scenarios: List[Dict[str, Any]] = []
         scenario_names = [
             "empty_name", "negative_calories", "negative_proteins",
-            "negative_fat", "negative_carbs", "negative_price", "name_too_long"
+            "negative_fat", "negative_carbs", "name_too_long"
         ]
         
         for i, data in enumerate(invalid_data):
@@ -407,3 +327,68 @@ class TestScenarios:
             })
         
         return scenarios
+
+
+class TestScenarios:
+    """Test scenarios provider that creates test scenarios on demand."""
+    
+    @staticmethod
+    def search_scenarios() -> List[Dict[str, Any]]:
+        """Get search test scenarios."""
+        return [
+            {
+                "query": "Tomato",
+                "expected_matches": ["Tomato", "Cherry Tomato", "Tomato Sauce"]
+            },
+            {
+                "query": "Chicken",
+                "expected_matches": ["Chicken Breast"]
+            },
+            {
+                "query": "nonexistent",
+                "expected_matches": []
+            }
+        ]
+    
+    @staticmethod 
+    def pagination_scenarios() -> List[Dict[str, Any]]:
+        """Get pagination test scenarios."""
+        return [
+            {
+                "name": "first_page",
+                "limit": 5,
+                "offset": 0,
+                "total_items": 25,
+                "expected_items": 5
+            },
+            {
+                "name": "middle_page", 
+                "limit": 10,
+                "offset": 10,
+                "total_items": 25,
+                "expected_items": 10
+            },
+            {
+                "name": "last_page",
+                "limit": 10,
+                "offset": 20,
+                "total_items": 25,
+                "expected_items": 5
+            }
+        ]
+    
+    @staticmethod
+    def validation_scenarios() -> List[Dict[str, Any]]:
+        """Get validation test scenarios."""
+        return [
+            {
+                "name": "empty_name",
+                "data": {"name": "", "calories_per_100g": 100},
+                "expected_error": "VALIDATION_ERROR"
+            },
+            {
+                "name": "negative_calories",
+                "data": {"name": "Test", "calories_per_100g": -10},
+                "expected_error": "VALIDATION_ERROR"
+            }
+        ]

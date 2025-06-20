@@ -651,6 +651,48 @@ class PasswordConfig(BaseSettings):
         ],
         description="Forbidden patterns",
     )
+    
+    # Password Strength Thresholds
+    PASSWORD_STRENGTH_VERY_WEAK_THRESHOLD: int = Field(
+        default=10, ge=0, le=50, description="Very weak password threshold"
+    )
+    PASSWORD_STRENGTH_WEAK_THRESHOLD: int = Field(
+        default=20, ge=10, le=60, description="Weak password threshold"
+    )
+    PASSWORD_STRENGTH_FAIR_THRESHOLD: int = Field(
+        default=35, ge=20, le=70, description="Fair password threshold"
+    )
+    PASSWORD_STRENGTH_GOOD_THRESHOLD: int = Field(
+        default=50, ge=30, le=80, description="Good password threshold"
+    )
+    PASSWORD_STRENGTH_STRONG_THRESHOLD: int = Field(
+        default=70, ge=50, le=90, description="Strong password threshold"
+    )
+    PASSWORD_STRENGTH_VERY_STRONG_THRESHOLD: int = Field(
+        default=90, ge=70, le=100, description="Very strong password threshold"
+    )
+    
+    # Common Passwords
+    COMMON_PASSWORD_DICTIONARY: List[str] = Field(
+        default=[
+            "password", "123456", "password123", "admin", "qwerty", "abc123",
+            "letmein", "monkey", "password1", "123456789", "welcome", "admin123",
+            "user", "guest", "login", "root", "test", "demo", "sample", "example"
+        ],
+        description="List of common passwords to reject"
+    )
+    COMMON_PASSWORD_SUFFIX_LIST: List[str] = Field(
+        default=["123", "!", "1", "2023", "2024", "01", "99", "@", "#"],
+        description="Common password suffixes"
+    )
+    COMMON_PASSWORD_PREFIX_LIST: List[str] = Field(
+        default=["admin", "user", "test", "demo", "guest"],
+        description="Common password prefixes"
+    )
+    COMMON_PASSWORD_YEAR_LIST: List[str] = Field(
+        default=["2023", "2024", "2022", "2021", "2020"],
+        description="Common password years"
+    )
 
 
 class OCRConfig(BaseSettings):

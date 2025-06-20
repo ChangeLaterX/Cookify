@@ -1,0 +1,186 @@
+name: Auth PR Validation
+
+on:
+  pull_request:
+    branches: [ main, dev ]
+    paths:
+      - 'backend/domains/auth/**'
+      - 'backend/tests/auth/**'
+      - 'backend/middleware/auth_middleware.py'
+      - 'backend/core/security.py'
+      - '.github/workflows/auth-*.yml'
+
+env:
+  PYTHON_VERSION: "3.10"
+
+jobs:
+  auth-pr-validation:
+    name: Auth PR Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-pr-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-pr-
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      working-directory: ./backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install black isort flake8 mypy bandit safety
+    
+    - name: Check code formatting with Black
+      working-directory: ./backend
+      run: |
+        black --check --diff domains/auth/ tests/auth/ middleware/auth_middleware.py
+    
+    - name: Check import sorting with isort
+      working-directory: ./backend
+      run: |
+        isort --check-only --diff domains/auth/ tests/auth/ middleware/auth_middleware.py
+    
+    - name: Lint with flake8
+      working-directory: ./backend
+      run: |
+        flake8 domains/auth/ tests/auth/ middleware/auth_middleware.py --max-line-length=88 --extend-ignore=E203,W503
+    
+    - name: Type check with mypy
+      working-directory: ./backend
+      run: |
+        mypy domains/auth/ middleware/auth_middleware.py --ignore-missing-imports
+    
+    - name: Security check with Bandit
+      working-directory: ./backend
+      run: |
+        bandit -r domains/auth/ middleware/auth_middleware.py core/security.py -f txt
+    
+    - name: Check for vulnerabilities with Safety
+      working-directory: ./backend
+      run: |
+        safety check
+    
+    - name: Run fast auth tests
+      working-directory: ./backend
+      run: |
+        python tests/auth/run_tests.py unit \
+          --coverage \
+          --verbose \
+          --junit-xml=pr-validation-results.xml
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: pr-validation-results
+        path: |
+          backend/pr-validation-results.xml
+          backend/coverage-auth-unit.xml
+    
+    - name: Comment PR with results
+      if: always()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          
+          let comment = `## Auth Module PR Validation Results\n\n`;
+          
+          // Add job status
+          comment += `### Job Status: ${{ job.status }}\n\n`;
+          
+          // Add test results if available
+          try {
+            if (fs.existsSync('backend/pr-validation-results.xml')) {
+              comment += `✅ Unit tests completed\n`;
+            }
+          } catch (e) {
+            comment += `❌ Unit tests failed\n`;
+          }
+          
+          comment += `\n### Checks Performed\n`;
+          comment += `- Code formatting (Black)\n`;
+          comment += `- Import sorting (isort)\n`;
+          comment += `- Linting (flake8)\n`;
+          comment += `- Type checking (mypy)\n`;
+          comment += `- Security analysis (Bandit)\n`;
+          comment += `- Vulnerability scan (Safety)\n`;
+          comment += `- Unit tests with coverage\n`;
+          
+          comment += `\n*Generated at: ${new Date().toISOString()}*`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+  auth-integration-preview:
+    name: Auth Integration Preview
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'test-integration')
+    
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      working-directory: ./backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Set test environment
+      run: |
+        echo "TEST_ENVIRONMENT=ci" >> $GITHUB_ENV
+        echo "DATABASE_URL=sqlite:///test_auth_pr.db" >> $GITHUB_ENV
+        echo "REDIS_URL=redis://localhost:6379/0" >> $GITHUB_ENV
+        echo "JWT_SECRET_KEY=pr-test-secret-key" >> $GITHUB_ENV
+    
+    - name: Wait for Redis
+      run: |
+        timeout 30s bash -c 'until redis-cli -h localhost -p 6379 ping; do sleep 1; done'
+    
+    - name: Run integration tests
+      working-directory: ./backend
+      run: |
+        python tests/auth/run_tests.py integration \
+          --verbose \
+          --junit-xml=pr-integration-results.xml
+    
+    - name: Upload integration results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: pr-integration-results
+        path: backend/pr-integration-results.xml

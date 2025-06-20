@@ -39,6 +39,28 @@ class AuthTestConfig:
     # Email testing settings
     EMAIL_TESTING_ENABLED: bool = os.getenv('AUTH_TEST_EMAIL', 'false').lower() == 'true'
     TEST_EMAIL_DOMAIN: str = os.getenv('AUTH_TEST_EMAIL_DOMAIN', 'test.cookify.app')
+    
+    # Test environment
+    TEST_ENVIRONMENT: str = os.getenv('TEST_ENVIRONMENT', 'unit')
+    
+    # Performance thresholds
+    AUTH_MAX_LOGIN_TIME_MS: int = int(os.getenv('AUTH_MAX_LOGIN_TIME_MS', '100'))
+    AUTH_MAX_TOKEN_VALIDATION_TIME_MS: int = int(os.getenv('AUTH_MAX_TOKEN_VALIDATION_TIME_MS', '50'))
+    AUTH_MIN_THROUGHPUT_LOGIN_PER_SEC: int = int(os.getenv('AUTH_MIN_THROUGHPUT_LOGIN_PER_SEC', '20'))
+    
+    # Security test settings
+    SECURITY_TEST_ENABLED: bool = os.getenv('SECURITY_TEST_ENABLED', 'true').lower() == 'true'
+    
+    # Email verification bypass for testing
+    BYPASS_EMAIL_VERIFICATION: bool = os.getenv('BYPASS_EMAIL_VERIFICATION', 'true').lower() == 'true'
+    
+    # Test user credentials (for integration tests)
+    TEST_USER_EMAIL: str = os.getenv('TEST_USER_EMAIL', 'krijajannis@gmail.com')
+    TEST_USER_PASSWORD: str = os.getenv('TEST_USER_PASSWORD', '221224')
+    
+    # Test mode flags
+    ALLOW_PASSWORD_RESET_BYPASS: bool = os.getenv('ALLOW_PASSWORD_RESET_BYPASS', 'true').lower() == 'true'
+    ALLOW_ACCOUNT_DELETION_BYPASS: bool = os.getenv('ALLOW_ACCOUNT_DELETION_BYPASS', 'true').lower() == 'true'
 
 
 class AuthTestBase(ABC):

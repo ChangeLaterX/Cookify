@@ -50,7 +50,7 @@ async def get_all_ingredients(
     """
     if limit is None:
         limit = settings.INGREDIENTS_DEFAULT_LIMIT
-        
+
     # Enforce maximum page size for ingredients
     limit = min(limit, settings.INGREDIENTS_MAX_LIMIT)
     try:
@@ -327,7 +327,7 @@ async def search_ingredients(
     """
     if limit is None:
         limit = settings.INGREDIENTS_SEARCH_DEFAULT_LIMIT
-        
+
     # Enforce maximum page size for ingredient search
     limit = min(limit, settings.INGREDIENTS_SEARCH_MAX_LIMIT)
     try:

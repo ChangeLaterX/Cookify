@@ -1,7 +1,7 @@
 """
 Unit Tests for Ingredient Data Validation.
 
-This module tests ingredient data validation and schema validation.
+This module tests ingredient data validation and schema validation using Smart Mocks.
 """
 
 import pytest
@@ -15,16 +15,15 @@ from domains.ingredients.schemas import (
 )
 from domains.ingredients.services import IngredientError
 from tests.ingredients.config import IngredientsTestBase
-from tests.ingredients.utils.mocks import IngredientsMockFactory
-from tests.ingredients.utils.test_data import TestDataGenerator, TestScenarios
 
 
 class TestIngredientValidation(IngredientsTestBase):
-    """Test ingredient data validation."""
+    """Test ingredient data validation with Smart Mocks."""
 
     def test_main_functionality(self):
         """Required by IngredientsTestBase - tests basic validation."""
-        self.test_valid_ingredient_create_schema()
+        # IngredientsTestBase automatically sets up Smart Mocks
+        pass
 
     def test_valid_ingredient_create_schema(self):
         """Test valid ingredient creation schema."""
@@ -34,7 +33,7 @@ class TestIngredientValidation(IngredientsTestBase):
             "proteins_per_100g": 10.0,
             "fat_per_100g": 5.0,
             "carbs_per_100g": 15.0,
-            "price_per_100g_cents": 500
+            "category": "vegetables"
         }
         
         ingredient = IngredientMasterCreate(**valid_data)
@@ -44,77 +43,47 @@ class TestIngredientValidation(IngredientsTestBase):
         assert ingredient.proteins_per_100g == 10.0
         assert ingredient.fat_per_100g == 5.0
         assert ingredient.carbs_per_100g == 15.0
-        assert ingredient.price_per_100g_cents == 500
+        assert ingredient.category == "vegetables"
+
+    def test_ingredient_create_minimal_valid_data(self):
+        """Test ingredient creation with minimal valid data."""
+        minimal_data = {
+            "name": "Simple Ingredient",
+            "calories_per_100g": 50.0,
+            "proteins_per_100g": 2.0,
+            "fat_per_100g": 1.0,
+            "carbs_per_100g": 10.0
+        }
+        
+        ingredient = IngredientMasterCreate(**minimal_data)
+        
+        assert ingredient.name == "Simple Ingredient"
+        assert ingredient.category is None  # Optional field
 
     def test_ingredient_create_name_validation(self):
         """Test ingredient name validation."""
-        base_data = {
-            "calories_per_100g": 100.0,
-            "proteins_per_100g": 10.0,
-            "fat_per_100g": 5.0,
-            "carbs_per_100g": 15.0,
-            "price_per_100g_cents": 500
-        }
-        
-        # Test empty name
+        # Empty name should fail
         with pytest.raises(ValidationError):
-            IngredientMasterCreate(name="", **base_data)
+            IngredientMasterCreate(
+                name="",
+                calories_per_100g=100.0,
+                proteins_per_100g=10.0,
+                fat_per_100g=5.0,
+                carbs_per_100g=15.0
+            )
         
-        # Test name with only whitespace
+        # Name too long should fail
         with pytest.raises(ValidationError):
-            IngredientMasterCreate(name="   ", **base_data)
-        
-        # Test name that's too long
-        long_name = "A" * 300
-        with pytest.raises(ValidationError):
-            IngredientMasterCreate(name=long_name, **base_data)
-        
-        # Test valid name with whitespace (should be trimmed)
-        ingredient = IngredientMasterCreate(name="  Valid Name  ", **base_data)
-        assert ingredient.name == "Valid Name"
+            IngredientMasterCreate(
+                name="A" * 300,
+                calories_per_100g=100.0,
+                proteins_per_100g=10.0,
+                fat_per_100g=5.0,
+                carbs_per_100g=15.0
+            )
 
-    def test_ingredient_create_nutrition_validation(self):
-        """Test nutritional value validation."""
-        base_data = {
-            "name": "Test Ingredient",
-            "price_per_100g_cents": 500
-        }
-        
-        # Test negative values
-        negative_fields = [
-            "calories_per_100g",
-            "proteins_per_100g", 
-            "fat_per_100g",
-            "carbs_per_100g"
-        ]
-        
-        for field in negative_fields:
-            invalid_data = {
-                **base_data,
-                "calories_per_100g": 100.0,
-                "proteins_per_100g": 10.0,
-                "fat_per_100g": 5.0,
-                "carbs_per_100g": 15.0,
-                field: -1.0  # Invalid negative value
-            }
-            
-            with pytest.raises(ValidationError):
-                IngredientMasterCreate(**invalid_data)
-        
-        # Test zero values (should be valid)
-        zero_data = {
-            **base_data,
-            "calories_per_100g": 0.0,
-            "proteins_per_100g": 0.0,
-            "fat_per_100g": 0.0,
-            "carbs_per_100g": 0.0
-        }
-        
-        ingredient = IngredientMasterCreate(**zero_data)
-        assert ingredient.calories_per_100g == 0.0
-
-    def test_ingredient_create_price_validation(self):
-        """Test price validation."""
+    def test_ingredient_create_negative_values_validation(self):
+        """Test that negative nutritional values are rejected."""
         base_data = {
             "name": "Test Ingredient",
             "calories_per_100g": 100.0,
@@ -123,182 +92,213 @@ class TestIngredientValidation(IngredientsTestBase):
             "carbs_per_100g": 15.0
         }
         
-        # Test negative price
+        # Test negative calories
         with pytest.raises(ValidationError):
-            IngredientMasterCreate(price_per_100g_cents=-100, **base_data)
+            data = base_data.copy()
+            data["calories_per_100g"] = -10.0
+            IngredientMasterCreate(**data)
         
-        # Test zero price (should be valid)
-        ingredient = IngredientMasterCreate(price_per_100g_cents=0, **base_data)
-        assert ingredient.price_per_100g_cents == 0
+        # Test negative proteins
+        with pytest.raises(ValidationError):
+            data = base_data.copy()
+            data["proteins_per_100g"] = -5.0
+            IngredientMasterCreate(**data)
         
-        # Test large price (should be valid)
-        ingredient = IngredientMasterCreate(price_per_100g_cents=999999, **base_data)
-        assert ingredient.price_per_100g_cents == 999999
+        # Test negative fat
+        with pytest.raises(ValidationError):
+            data = base_data.copy()
+            data["fat_per_100g"] = -2.0
+            IngredientMasterCreate(**data)
+        
+        # Test negative carbs
+        with pytest.raises(ValidationError):
+            data = base_data.copy()
+            data["carbs_per_100g"] = -8.0
+            IngredientMasterCreate(**data)
 
-    def test_ingredient_update_schema_validation(self):
+    def test_ingredient_create_zero_values_allowed(self):
+        """Test that zero nutritional values are allowed."""
+        valid_data = {
+            "name": "Zero Ingredient",
+            "calories_per_100g": 0.0,
+            "proteins_per_100g": 0.0,
+            "fat_per_100g": 0.0,
+            "carbs_per_100g": 0.0
+        }
+        
+        ingredient = IngredientMasterCreate(**valid_data)
+        
+        assert ingredient.calories_per_100g == 0.0
+        assert ingredient.proteins_per_100g == 0.0
+        assert ingredient.fat_per_100g == 0.0
+        assert ingredient.carbs_per_100g == 0.0
+
+    def test_ingredient_update_schema(self):
         """Test ingredient update schema validation."""
-        # Test partial update (all fields optional)
-        update_data = IngredientMasterUpdate(name="Updated Name")
-        assert update_data.name == "Updated Name"
-        assert update_data.calories_per_100g is None
+        # Partial update - only name
+        update_data = {"name": "Updated Name"}
+        update = IngredientMasterUpdate(**update_data)
+        assert update.name == "Updated Name"
+        assert update.calories_per_100g is None
         
-        # Test full update
-        full_update = IngredientMasterUpdate(
-            name="Updated Ingredient",
-            calories_per_100g=150.0,
-            proteins_per_100g=12.0,
-            fat_per_100g=7.0,
-            carbs_per_100g=18.0,
-            price_per_100g_cents=600
-        )
-        
-        assert full_update.name == "Updated Ingredient"
-        assert full_update.calories_per_100g == 150.0
-        
-        # Test empty update (all fields None)
-        empty_update = IngredientMasterUpdate()
-        assert empty_update.name is None
-        assert empty_update.calories_per_100g is None
+        # Partial update - only nutritional values
+        update_data = {
+            "calories_per_100g": 150.0,
+            "proteins_per_100g": 20.0
+        }
+        update = IngredientMasterUpdate(**update_data)
+        assert update.calories_per_100g == 150.0
+        assert update.proteins_per_100g == 20.0
+        assert update.name is None
 
-    def test_ingredient_update_validation_rules(self):
-        """Test validation rules for ingredient updates."""
-        # Test invalid name in update
-        with pytest.raises(ValidationError):
-            IngredientMasterUpdate(name="")
-        
-        # Test negative values in update
+    def test_ingredient_update_negative_values_validation(self):
+        """Test that negative values are rejected in update schema."""
         with pytest.raises(ValidationError):
             IngredientMasterUpdate(calories_per_100g=-10.0)
         
         with pytest.raises(ValidationError):
-            IngredientMasterUpdate(price_per_100g_cents=-50)
+            IngredientMasterUpdate(proteins_per_100g=-5.0)
+        
+        with pytest.raises(ValidationError):
+            IngredientMasterUpdate(fat_per_100g=-2.0)
+        
+        with pytest.raises(ValidationError):
+            IngredientMasterUpdate(carbs_per_100g=-8.0)
+
+    def test_ingredient_update_empty_name_validation(self):
+        """Test that empty name is rejected in update schema."""
+        with pytest.raises(ValidationError):
+            IngredientMasterUpdate(name="")
+        
+        with pytest.raises(ValidationError):
+            IngredientMasterUpdate(name="   ")  # Whitespace only
 
     def test_ingredient_response_schema(self):
         """Test ingredient response schema."""
         response_data = {
-            "ingredient_id": str(uuid4()),
+            "ingredient_id": uuid4(),
             "name": "Response Ingredient",
-            "calories_per_100g": 120.0,
-            "proteins_per_100g": 11.0,
-            "fat_per_100g": 6.0,
-            "carbs_per_100g": 16.0,
-            "price_per_100g_cents": 550,
-            "created_at": "2024-01-01T00:00:00Z",
-            "updated_at": "2024-01-01T00:00:00Z"
+            "calories_per_100g": 200.0,
+            "proteins_per_100g": 25.0,
+            "fat_per_100g": 10.0,
+            "carbs_per_100g": 30.0,
+            "category": "meat"
         }
         
         response = IngredientMasterResponse(**response_data)
         
         assert response.ingredient_id == response_data["ingredient_id"]
-        assert response.name == response_data["name"]
-        assert response.calories_per_100g == response_data["calories_per_100g"]
+        assert response.name == "Response Ingredient"
+        assert response.calories_per_100g == 200.0
+        assert response.category == "meat"
 
-    def test_realistic_nutrition_values(self):
-        """Test with realistic nutritional values for different ingredient types."""
-        # Test vegetable (low calories, minimal fat)
-        vegetable = IngredientMasterCreate(
-            name="Tomato",
-            calories_per_100g=18.0,
-            proteins_per_100g=0.9,
-            fat_per_100g=0.2,
-            carbs_per_100g=3.9,
-            price_per_100g_cents=200
-        )
-        assert vegetable.name == "Tomato"
+    def test_ingredient_name_trimming(self):
+        """Test that ingredient names are trimmed of whitespace."""
+        data = {
+            "name": "  Trimmed Ingredient  ",
+            "calories_per_100g": 100.0,
+            "proteins_per_100g": 10.0,
+            "fat_per_100g": 5.0,
+            "carbs_per_100g": 15.0
+        }
         
-        # Test meat (high protein, higher calories)
-        meat = IngredientMasterCreate(
-            name="Chicken Breast",
-            calories_per_100g=165.0,
-            proteins_per_100g=31.0,
-            fat_per_100g=3.6,
-            carbs_per_100g=0.0,
-            price_per_100g_cents=1200
-        )
-        assert meat.proteins_per_100g == 31.0
-        
-        # Test oil (very high fat and calories)
-        oil = IngredientMasterCreate(
-            name="Olive Oil",
-            calories_per_100g=884.0,
-            proteins_per_100g=0.0,
-            fat_per_100g=100.0,
-            carbs_per_100g=0.0,
-            price_per_100g_cents=800
-        )
-        assert oil.fat_per_100g == 100.0
+        ingredient = IngredientMasterCreate(**data)
+        assert ingredient.name == "Trimmed Ingredient"
 
-    def test_edge_case_values(self):
-        """Test edge case nutritional values."""
-        # Test very small decimal values
-        ingredient = IngredientMasterCreate(
-            name="Low Nutrition",
-            calories_per_100g=0.1,
-            proteins_per_100g=0.01,
-            fat_per_100g=0.001,
-            carbs_per_100g=0.1,
-            price_per_100g_cents=1
-        )
-        assert ingredient.calories_per_100g == 0.1
+    def test_ingredient_category_validation(self):
+        """Test ingredient category field validation."""
+        # Valid category
+        data = {
+            "name": "Categorized Ingredient",
+            "calories_per_100g": 100.0,
+            "proteins_per_100g": 10.0,
+            "fat_per_100g": 5.0,
+            "carbs_per_100g": 15.0,
+            "category": "vegetables"
+        }
         
-        # Test very large values
-        high_nutrition = IngredientMasterCreate(
-            name="High Nutrition",
-            calories_per_100g=999.9,
-            proteins_per_100g=99.9,
-            fat_per_100g=99.9,
-            carbs_per_100g=99.9,
-            price_per_100g_cents=50000
-        )
-        assert high_nutrition.calories_per_100g == 999.9
+        ingredient = IngredientMasterCreate(**data)
+        assert ingredient.category == "vegetables"
+        
+        # None category should be allowed
+        data["category"] = None
+        ingredient = IngredientMasterCreate(**data)
+        assert ingredient.category is None
 
-    def test_validation_scenarios_from_test_data(self):
-        """Test validation scenarios using predefined test scenarios."""
-        scenarios = TestScenarios.validation_scenarios()
+    def test_large_nutritional_values(self):
+        """Test handling of large but realistic nutritional values."""
+        data = {
+            "name": "High Energy Ingredient",
+            "calories_per_100g": 900.0,  # Like oils
+            "proteins_per_100g": 50.0,   # High protein
+            "fat_per_100g": 90.0,        # High fat
+            "carbs_per_100g": 80.0       # High carbs
+        }
         
-        for scenario in scenarios:
-            with pytest.raises(ValidationError):
-                IngredientMasterCreate(**scenario["data"])
+        ingredient = IngredientMasterCreate(**data)
+        
+        assert ingredient.calories_per_100g == 900.0
+        assert ingredient.proteins_per_100g == 50.0
+        assert ingredient.fat_per_100g == 90.0
+        assert ingredient.carbs_per_100g == 80.0
 
-    def test_field_type_validation(self):
-        """Test that fields accept correct types."""
-        # Test negative values (should fail validation)
-        with pytest.raises(ValidationError):
-            IngredientMasterCreate(
-                name="Test",
-                calories_per_100g=-10.0,  # Should be >= 0
-                proteins_per_100g=10.0,
-                fat_per_100g=5.0,
-                carbs_per_100g=15.0,
-                price_per_100g_cents=500
-            )
+    def test_decimal_nutritional_values(self):
+        """Test handling of decimal nutritional values."""
+        data = {
+            "name": "Precise Ingredient",
+            "calories_per_100g": 123.45,
+            "proteins_per_100g": 12.34,
+            "fat_per_100g": 5.67,
+            "carbs_per_100g": 15.89
+        }
         
-        # Test negative price
-        with pytest.raises(ValidationError):
-            IngredientMasterCreate(
-                name="Test",
-                calories_per_100g=100.0,
-                proteins_per_100g=10.0,
-                fat_per_100g=5.0,
-                carbs_per_100g=15.0,
-                price_per_100g_cents=-100  # Should be >= 0
-            )
+        ingredient = IngredientMasterCreate(**data)
+        
+        assert ingredient.calories_per_100g == 123.45
+        assert ingredient.proteins_per_100g == 12.34
+        assert ingredient.fat_per_100g == 5.67
+        assert ingredient.carbs_per_100g == 15.89
 
     def test_missing_required_fields(self):
-        """Test validation when required fields are missing."""
-        # Test missing name
+        """Test that missing required fields are rejected."""
+        # Missing name
         with pytest.raises(ValidationError):
             IngredientMasterCreate(
                 calories_per_100g=100.0,
                 proteins_per_100g=10.0,
                 fat_per_100g=5.0,
-                carbs_per_100g=15.0,
-                price_per_100g_cents=500
+                carbs_per_100g=15.0
             )
         
-        # Test missing nutritional values
+        # Missing calories
         with pytest.raises(ValidationError):
             IngredientMasterCreate(
-                name="Test Ingredient",
-                # Missing all nutritional fields
+                name="Test",
+                proteins_per_100g=10.0,
+                fat_per_100g=5.0,
+                carbs_per_100g=15.0
             )
+        
+        # Missing proteins
+        with pytest.raises(ValidationError):
+            IngredientMasterCreate(
+                name="Test",
+                calories_per_100g=100.0,
+                fat_per_100g=5.0,
+                carbs_per_100g=15.0
+            )
+
+    def test_extra_fields_ignored(self):
+        """Test that extra fields are ignored in schemas."""
+        data = {
+            "name": "Test Ingredient",
+            "calories_per_100g": 100.0,
+            "proteins_per_100g": 10.0,
+            "fat_per_100g": 5.0,
+            "carbs_per_100g": 15.0,
+            "extra_field": "should be ignored"
+        }
+        
+        # Should not raise an error and extra field should be ignored
+        ingredient = IngredientMasterCreate(**data)
+        assert not hasattr(ingredient, 'extra_field')

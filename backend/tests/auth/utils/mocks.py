@@ -131,23 +131,20 @@ class AuthMockFactory:
     @staticmethod
     def create_auth_error(
         message: str = "Authentication failed",
-        status_code: int = 400
+        status_code: int = 400,
+        error_code: str = "auth_error"
     ) -> Exception:
         """Create a mock authentication error."""
-        try:
-            from gotrue.errors import AuthError
-            error = AuthError(message)
-            error.status = status_code
-            return error
-        except ImportError:
-            # Fallback if gotrue not available
-            class MockAuthError(Exception):
-                def __init__(self, message: str):
-                    self.message = message
-                    self.status = status_code
-                    super().__init__(message)
-            
-            return MockAuthError(message)
+        # Use a simple fallback implementation for tests
+        class MockAuthError(Exception):
+            def __init__(self, message: str, code: str = error_code, status: int = status_code):
+                self.message = message
+                self.status = status
+                self.code = code
+                self.error_code = code  # Some tests might expect this attribute
+                super().__init__(message)
+        
+        return MockAuthError(message, error_code, status_code)
 
 
 class MockContextManager:

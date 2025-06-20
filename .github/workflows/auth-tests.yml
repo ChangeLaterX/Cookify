@@ -1,0 +1,364 @@
+name: Auth Module Tests
+
+on:
+  push:
+    branches: [ main, dev ]
+    paths:
+      - 'backend/domains/auth/**'
+      - 'backend/tests/auth/**'
+      - 'backend/core/security.py'
+      - 'backend/middleware/auth_middleware.py'
+      - 'backend/requirements.txt'
+  pull_request:
+    branches: [ main, dev ]
+    paths:
+      - 'backend/domains/auth/**'
+      - 'backend/tests/auth/**'
+      - 'backend/core/security.py'
+      - 'backend/middleware/auth_middleware.py'
+      - 'backend/requirements.txt'
+  workflow_dispatch:
+    inputs:
+      test_level:
+        description: 'Test level to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - unit
+          - integration
+          - security
+          - performance
+          - all
+
+env:
+  PYTHON_VERSION: "3.10"
+
+jobs:
+  auth-unit-tests:
+    name: Auth Unit Tests
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_level == 'unit' || github.event.inputs.test_level == 'all' || github.event.inputs.test_level == ''
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-auth-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-auth-
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      working-directory: ./backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest-mock pytest-asyncio
+    
+    - name: Set test environment variables
+      run: |
+        echo "TEST_ENVIRONMENT=ci" >> $GITHUB_ENV
+        echo "AUTH_TEST_MODE=unit" >> $GITHUB_ENV
+        echo "JWT_SECRET_KEY=test-secret-key-for-ci" >> $GITHUB_ENV
+        echo "DATABASE_URL=sqlite:///test_auth.db" >> $GITHUB_ENV
+        echo "BYPASS_EMAIL_VERIFICATION=true" >> $GITHUB_ENV
+        echo "AUTH_TEST_MOCK_MODE=true" >> $GITHUB_ENV
+    
+    - name: Run Auth unit tests
+      working-directory: ./backend
+      run: |
+        python tests/auth/run_tests.py unit \
+          --coverage \
+          --verbose \
+          --junit-xml=test-results-auth-unit.xml
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: auth-unit-test-results
+        path: |
+          backend/test-results-auth-unit.xml
+          backend/coverage-auth-unit.xml
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./backend/coverage-auth-unit.xml
+        flags: auth,unit
+        name: auth-unit-coverage
+
+  auth-integration-tests:
+    name: Auth Integration Tests
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_level == 'integration' || github.event.inputs.test_level == 'all' || github.event.inputs.test_level == ''
+    
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-auth-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-auth-
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      working-directory: ./backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest-mock pytest-asyncio pytest-redis
+    
+    - name: Set test environment variables
+      run: |
+        echo "TEST_ENVIRONMENT=ci" >> $GITHUB_ENV
+        echo "AUTH_TEST_MODE=integration" >> $GITHUB_ENV
+        echo "JWT_SECRET_KEY=test-secret-key-for-ci" >> $GITHUB_ENV
+        echo "DATABASE_URL=sqlite:///test_auth_integration.db" >> $GITHUB_ENV
+        echo "REDIS_URL=redis://localhost:6379/0" >> $GITHUB_ENV
+        echo "RATE_LIMITING_ENABLED=true" >> $GITHUB_ENV
+        echo "TEST_USER_EMAIL=krijajannis@gmail.com" >> $GITHUB_ENV
+        echo "TEST_USER_PASSWORD=221224" >> $GITHUB_ENV
+        echo "AUTH_TEST_INTEGRATION=true" >> $GITHUB_ENV
+    
+    - name: Wait for Redis
+      run: |
+        timeout 30s bash -c 'until redis-cli -h localhost -p 6379 ping; do sleep 1; done'
+    
+    - name: Run Auth integration tests
+      working-directory: ./backend
+      run: |
+        python tests/auth/run_tests.py integration \
+          --coverage \
+          --verbose \
+          --junit-xml=test-results-auth-integration.xml
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: auth-integration-test-results
+        path: |
+          backend/test-results-auth-integration.xml
+          backend/coverage-auth-integration.xml
+
+  auth-security-tests:
+    name: Auth Security Tests
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_level == 'security' || github.event.inputs.test_level == 'all' || github.event.inputs.test_level == ''
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-auth-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-auth-
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      working-directory: ./backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install bandit safety pytest-security
+    
+    - name: Set test environment variables
+      run: |
+        echo "TEST_ENVIRONMENT=ci" >> $GITHUB_ENV
+        echo "AUTH_TEST_MODE=security" >> $GITHUB_ENV
+        echo "JWT_SECRET_KEY=test-secret-key-for-ci" >> $GITHUB_ENV
+        echo "DATABASE_URL=sqlite:///test_auth_security.db" >> $GITHUB_ENV
+    
+    - name: Run security analysis with Bandit
+      working-directory: ./backend
+      run: |
+        bandit -r domains/auth/ -f json -o bandit-auth-report.json || true
+        bandit -r domains/auth/ -f txt
+    
+    - name: Check dependencies for vulnerabilities
+      working-directory: ./backend
+      run: |
+        safety check --json --output safety-auth-report.json || true
+        safety check
+    
+    - name: Run Auth security tests
+      working-directory: ./backend
+      run: |
+        python tests/auth/run_tests.py security \
+          --verbose \
+          --junit-xml=test-results-auth-security.xml
+    
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: auth-security-reports
+        path: |
+          backend/bandit-auth-report.json
+          backend/safety-auth-report.json
+          backend/test-results-auth-security.xml
+
+  auth-performance-tests:
+    name: Auth Performance Tests
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_level == 'performance' || github.event.inputs.test_level == 'all' || github.event.inputs.test_level == ''
+    
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-auth-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-auth-
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      working-directory: ./backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest-benchmark pytest-asyncio
+    
+    - name: Set test environment variables
+      run: |
+        echo "TEST_ENVIRONMENT=ci" >> $GITHUB_ENV
+        echo "AUTH_TEST_MODE=performance" >> $GITHUB_ENV
+        echo "JWT_SECRET_KEY=test-secret-key-for-ci" >> $GITHUB_ENV
+        echo "DATABASE_URL=sqlite:///test_auth_performance.db" >> $GITHUB_ENV
+        echo "REDIS_URL=redis://localhost:6379/1" >> $GITHUB_ENV
+        # Performance thresholds for CI
+        echo "AUTH_MAX_LOGIN_TIME_MS=100" >> $GITHUB_ENV
+        echo "AUTH_MAX_TOKEN_VALIDATION_TIME_MS=50" >> $GITHUB_ENV
+        echo "AUTH_MIN_THROUGHPUT_LOGIN_PER_SEC=20" >> $GITHUB_ENV
+    
+    - name: Wait for Redis
+      run: |
+        timeout 30s bash -c 'until redis-cli -h localhost -p 6379 ping; do sleep 1; done'
+    
+    - name: Run Auth performance tests
+      working-directory: ./backend
+      run: |
+        python tests/auth/run_tests.py performance \
+          --verbose \
+          --junit-xml=test-results-auth-performance.xml \
+          --benchmark-json=benchmark-auth-results.json
+    
+    - name: Upload performance results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: auth-performance-results
+        path: |
+          backend/test-results-auth-performance.xml
+          backend/benchmark-auth-results.json
+
+  auth-tests-summary:
+    name: Auth Tests Summary
+    runs-on: ubuntu-latest
+    needs: [auth-unit-tests, auth-integration-tests, auth-security-tests, auth-performance-tests]
+    if: always()
+    
+    steps:
+    - name: Download all test artifacts
+      uses: actions/download-artifact@v3
+    
+    - name: Generate summary report
+      run: |
+        echo "# Auth Module Test Results Summary" > auth-test-summary.md
+        echo "" >> auth-test-summary.md
+        echo "## Test Status" >> auth-test-summary.md
+        echo "- Unit Tests: ${{ needs.auth-unit-tests.result }}" >> auth-test-summary.md
+        echo "- Integration Tests: ${{ needs.auth-integration-tests.result }}" >> auth-test-summary.md
+        echo "- Security Tests: ${{ needs.auth-security-tests.result }}" >> auth-test-summary.md
+        echo "- Performance Tests: ${{ needs.auth-performance-tests.result }}" >> auth-test-summary.md
+        echo "" >> auth-test-summary.md
+        echo "## Coverage Reports" >> auth-test-summary.md
+        if [ -f auth-unit-test-results/coverage-auth-unit.xml ]; then
+          echo "- Unit test coverage available" >> auth-test-summary.md
+        fi
+        if [ -f auth-integration-test-results/coverage-auth-integration.xml ]; then
+          echo "- Integration test coverage available" >> auth-test-summary.md
+        fi
+        echo "" >> auth-test-summary.md
+        echo "Generated at: $(date)" >> auth-test-summary.md
+    
+    - name: Upload summary
+      uses: actions/upload-artifact@v3
+      with:
+        name: auth-tests-summary
+        path: auth-test-summary.md
+    
+    - name: Comment PR (if applicable)
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const summary = fs.readFileSync('auth-test-summary.md', 'utf8');
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: summary
+          });

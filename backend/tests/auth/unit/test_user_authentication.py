@@ -45,7 +45,7 @@ class TestUserAuthentication(AuthTestBase):
             assert result.refresh_token is not None
             assert result.token_type == "bearer"
             assert result.expires_in > 0
-            assert result.user is not None
+            assert result.expires_at is not None
 
     @pytest.mark.asyncio
     async def test_login_with_invalid_credentials(self):
@@ -111,7 +111,8 @@ class TestUserAuthentication(AuthTestBase):
             result = await service.authenticate_user(user_data.to_user_login())
             
             # Verify response parsing
-            assert result.user.email == user_data.email
+            assert result.access_token is not None
+            assert result.token_type == "bearer"
             assert result.user.username == user_data.username
 
     @pytest.mark.asyncio

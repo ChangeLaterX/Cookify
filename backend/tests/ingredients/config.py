@@ -10,7 +10,10 @@ from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
 from pathlib import Path
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock, MagicMock, patch
+
+# Import smart mocks only when needed
+# from .utils.smart_mocks import SmartMockContextManager, smart_ingredients_mock
 
 
 @dataclass
@@ -52,6 +55,7 @@ class IngredientsTestBase(ABC):
         """Setup run before each test method."""
         self.config = IngredientsTestConfig()
         self.setup_test_data()
+        self.mock_context = None
         
     def teardown_method(self, method):
         """Cleanup run after each test method."""
@@ -59,6 +63,7 @@ class IngredientsTestBase(ABC):
         
     def setup_test_data(self):
         """Setup test data for ingredients tests."""
+        # Smart Mocks können bei Bedarf in individuellen Tests verwendet werden
         pass
         
     def cleanup_test_data(self):
@@ -79,7 +84,7 @@ class IngredientsTestUtils:
     
     @staticmethod
     def create_mock_supabase_client(success_responses: bool = True) -> Mock:
-        """Create a mock Supabase client for ingredients operations."""
+        """Create a mock Supabase client for ingredients READ-ONLY operations."""
         client = Mock()
         
         # Mock table operations
@@ -87,7 +92,7 @@ class IngredientsTestUtils:
         client.table.return_value = table_mock
         
         if success_responses:
-            # Mock successful responses
+            # Mock successful READ responses only
             table_mock.select.return_value.execute.return_value.data = [
                 {
                     "ingredient_id": "test-id-123",
@@ -96,38 +101,16 @@ class IngredientsTestUtils:
                     "proteins_per_100g": 10.0,
                     "fat_per_100g": 5.0,
                     "carbs_per_100g": 15.0,
-                    "price_per_100g_cents": 500
+                    "category": "vegetables"
                 }
             ]
-            table_mock.insert.return_value.execute.return_value.data = [
-                {
-                    "ingredient_id": "new-id-456",
-                    "name": "New Ingredient",
-                    "calories_per_100g": 120.0,
-                    "proteins_per_100g": 12.0,
-                    "fat_per_100g": 6.0,
-                    "carbs_per_100g": 18.0,
-                    "price_per_100g_cents": 600
-                }
-            ]
-            table_mock.update.return_value.eq.return_value.execute.return_value.data = [
-                {
-                    "ingredient_id": "test-id-123",
-                    "name": "Updated Ingredient",
-                    "calories_per_100g": 110.0,
-                    "proteins_per_100g": 11.0,
-                    "fat_per_100g": 5.5,
-                    "carbs_per_100g": 16.0,
-                    "price_per_100g_cents": 550
-                }
-            ]
-            table_mock.delete.return_value.eq.return_value.execute.return_value.data = []
+            
+            # Note: No mock responses for insert/update/delete operations
+            # as this test suite is READ-ONLY
+            
         else:
-            # Mock error responses
+            # Mock error responses for read operations only
             table_mock.select.return_value.execute.return_value.data = None
-            table_mock.insert.return_value.execute.return_value.data = None
-            table_mock.update.return_value.eq.return_value.execute.return_value.data = None
-            table_mock.delete.return_value.eq.return_value.execute.return_value.data = None
             
         # Mock chain methods for query building
         table_mock.select.return_value = table_mock
@@ -149,7 +132,7 @@ class IngredientsTestUtils:
             "proteins_per_100g": 15.0,
             "fat_per_100g": 8.0,
             "carbs_per_100g": 20.0,
-            "price_per_100g_cents": 750,
+            "category": "dairy",
             "created_at": "2024-01-01T00:00:00Z",
             "updated_at": "2024-01-01T00:00:00Z"
         }
@@ -163,7 +146,7 @@ class IngredientsTestUtils:
             "proteins_per_100g": -5.0,  # Invalid: negative proteins
             "fat_per_100g": -2.0,  # Invalid: negative fat
             "carbs_per_100g": -8.0,  # Invalid: negative carbs
-            "price_per_100g_cents": -100  # Invalid: negative price
+            "category": "invalid"
         }
 
 
@@ -177,7 +160,7 @@ class MockSupabaseIngredient:
         self.proteins_per_100g = data.get("proteins_per_100g")
         self.fat_per_100g = data.get("fat_per_100g")
         self.carbs_per_100g = data.get("carbs_per_100g")
-        self.price_per_100g_cents = data.get("price_per_100g_cents")
+        self.category = data.get("category")
         self.created_at = data.get("created_at")
         self.updated_at = data.get("updated_at")
     
@@ -190,7 +173,7 @@ class MockSupabaseIngredient:
             "proteins_per_100g": self.proteins_per_100g,
             "fat_per_100g": self.fat_per_100g,
             "carbs_per_100g": self.carbs_per_100g,
-            "price_per_100g_cents": self.price_per_100g_cents,
+            "category": self.category,
             "created_at": self.created_at,
             "updated_at": self.updated_at
         }

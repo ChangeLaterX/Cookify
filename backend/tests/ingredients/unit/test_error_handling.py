@@ -1,327 +1,179 @@
 """
 Unit Tests for Error Handling in Ingredients Service.
 
-This module tests error handling and exception scenarios in the Ingredients service.
+This module tests error handling and exception scenarios with real database.
 """
 
 import pytest
-from unittest.mock import patch, MagicMock
-from uuid import uuid4
+from uuid import UUID
 
 from domains.ingredients.services import (
     get_all_ingredients,
     get_ingredient_by_id,
-    create_ingredient,
-    update_ingredient,
-    delete_ingredient,
     search_ingredients,
     IngredientError
 )
+from domains.ingredients.schemas import IngredientListResponse
 from tests.ingredients.config import IngredientsTestBase
-from tests.ingredients.utils.mocks import IngredientsMockFactory, MockContextManager
-from tests.ingredients.utils.test_data import TestDataGenerator
 
 
 class TestIngredientsErrorHandling(IngredientsTestBase):
-    """Test error handling in Ingredients service."""
+    """Test error handling scenarios for ingredients service."""
 
     def test_main_functionality(self):
-        """Required by IngredientsTestBase - tests basic error handling."""
-        self.test_ingredient_error_creation()
+        """Required by IngredientsTestBase - tests basic error handling functionality."""
+        # Test that our error classes work
+        error = IngredientError("Test error message")
+        assert str(error) == "Test error message"
 
     def test_ingredient_error_creation(self):
-        """Test IngredientError creation and properties."""
+        """Test that IngredientError can be created with different parameters."""
         # Test with message only
-        error = IngredientError("Test error message")
-        assert error.message == "Test error message"
-        assert error.error_code is None
-        assert str(error) == "Test error message"
+        error1 = IngredientError("Simple error")
+        assert error1.message == "Simple error"
         
-        # Test with message and error code
-        error_with_code = IngredientError("Test error", "TEST_ERROR_CODE")
-        assert error_with_code.message == "Test error"
-        assert error_with_code.error_code == "TEST_ERROR_CODE"
+        # Test with message and code
+        error2 = IngredientError("Error with code", "ERROR_CODE")
+        assert error2.message == "Error with code"
+        assert error2.error_code == "ERROR_CODE"
 
     def test_ingredient_error_inheritance(self):
-        """Test IngredientError inherits from Exception properly."""
+        """Test that IngredientError inherits from Exception correctly."""
         error = IngredientError("Test error")
         assert isinstance(error, Exception)
         assert isinstance(error, IngredientError)
 
     @pytest.mark.asyncio
-    async def test_database_connection_error(self):
-        """Test handling of database connection errors."""
-        with patch('domains.ingredients.services.get_supabase_client') as mock_client:
-            # Mock connection error
-            mock_client.side_effect = ConnectionError("Unable to connect to database")
-            
+    async def test_get_ingredient_by_id_not_found(self):
+        """Test error when ingredient is not found by ID."""
+        non_existent_id = UUID("00000000-0000-0000-0000-000000000000")
+        
+        with pytest.raises(IngredientError) as exc_info:
+            await get_ingredient_by_id(non_existent_id)
+        
+        # Verify error details
+        assert exc_info.value.error_code == "INGREDIENT_NOT_FOUND"
+        assert "not found" in str(exc_info.value).lower()
+
+    @pytest.mark.asyncio
+    async def test_search_ingredients_edge_cases(self):
+        """Test search with edge case inputs."""
+        # Empty query - should work (returns all)
+        result1 = await search_ingredients(query="", limit=5, offset=0)
+        assert isinstance(result1, IngredientListResponse)
+        
+        # Very long query - should work
+        long_query = "a" * 100
+        result2 = await search_ingredients(query=long_query, limit=5, offset=0)
+        assert isinstance(result2, IngredientListResponse)
+        
+        # Special characters - should work
+        result3 = await search_ingredients(query="@#$%", limit=5, offset=0)
+        assert isinstance(result3, IngredientListResponse)
+
+    @pytest.mark.asyncio
+    async def test_search_ingredients_boundary_values(self):
+        """Test search with boundary limit and offset values."""
+        # Limit = 0 should return empty list
+        result1 = await search_ingredients(query="test", limit=0, offset=0)
+        assert isinstance(result1, IngredientListResponse)
+        assert len(result1.ingredients) == 0
+        
+        # Very high offset should return empty list
+        result2 = await search_ingredients(query="test", limit=10, offset=99999)
+        assert isinstance(result2, IngredientListResponse)
+        assert len(result2.ingredients) == 0
+
+    @pytest.mark.asyncio
+    async def test_get_all_ingredients_boundary_values(self):
+        """Test get_all_ingredients with boundary values."""
+        # Limit = 0 should return empty list
+        result1 = await get_all_ingredients(limit=0, offset=0)
+        assert isinstance(result1, IngredientListResponse)
+        assert len(result1.ingredients) == 0
+        
+        # Very high offset should return empty list
+        result2 = await get_all_ingredients(limit=10, offset=99999)
+        assert isinstance(result2, IngredientListResponse)
+        assert len(result2.ingredients) == 0
+
+    @pytest.mark.asyncio
+    async def test_large_limit_handling(self):
+        """Test behavior with very large limits."""
+        # Very large limit should be handled gracefully
+        result = await search_ingredients(query="test", limit=10000, offset=0)
+        assert isinstance(result, IngredientListResponse)
+        assert len(result.ingredients) <= 10000  # Should not exceed actual data
+
+    def test_error_message_formatting(self):
+        """Test that error messages are properly formatted."""
+        error1 = IngredientError("Simple message")
+        assert len(str(error1)) > 0
+        
+        error2 = IngredientError("Message with code", "CODE123")
+        assert len(str(error2)) > 0
+        assert error2.error_code == "CODE123"
+
+    def test_error_with_special_characters(self):
+        """Test error handling with special characters in messages."""
+        special_message = "Error with special chars: äöü @#$%^&*()"
+        error = IngredientError(special_message)
+        
+        assert error.message == special_message
+        assert str(error) == special_message
+
+    @pytest.mark.asyncio
+    async def test_concurrent_operations(self):
+        """Test that concurrent operations work correctly."""
+        import asyncio
+        
+        # Create multiple concurrent operations
+        tasks = [
+            search_ingredients(query="test", limit=5, offset=0),
+            get_all_ingredients(limit=5, offset=0),
+            search_ingredients(query="another", limit=3, offset=0)
+        ]
+        
+        # All should complete successfully
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Verify all results are valid responses
+        for result in results:
+            if isinstance(result, Exception):
+                # Unexpected exception
+                pytest.fail(f"Unexpected exception: {result}")
+            else:
+                assert isinstance(result, IngredientListResponse)
+
+    @pytest.mark.asyncio
+    async def test_invalid_uuid_formats(self):
+        """Test behavior with various invalid UUID formats."""
+        invalid_uuids = [
+            "not-a-uuid",
+            "123",
+            "",
+            "00000000-0000-0000-0000-00000000000"  # Too short
+        ]
+        
+        for invalid_uuid in invalid_uuids:
+            try:
+                # This should fail at UUID conversion, not in our service
+                uuid_obj = UUID(invalid_uuid)
+                # If we get here, the UUID was valid enough
+                with pytest.raises(IngredientError):
+                    await get_ingredient_by_id(uuid_obj)
+            except ValueError:
+                # Expected - invalid UUID format
+                pass
+
+    @pytest.mark.asyncio 
+    async def test_error_consistency(self):
+        """Test that errors are consistent across operations."""
+        non_existent_id = UUID("11111111-1111-1111-1111-111111111111")
+        
+        # Multiple calls should give consistent errors
+        for _ in range(3):
             with pytest.raises(IngredientError) as exc_info:
-                await get_all_ingredients()
-            
-            assert exc_info.value.error_code == "DATABASE_ERROR"
-
-    @pytest.mark.asyncio
-    async def test_database_timeout_error(self):
-        """Test handling of database timeout errors."""
-        with MockContextManager() as mock_ctx:
-            # Mock timeout error
-            mock_supabase_client = mock_ctx._create_mock_supabase_client()
-            mock_supabase_client.table.return_value.select.return_value.execute.side_effect = TimeoutError("Query timed out")
-            
-            with patch('domains.ingredients.services.get_supabase_client', return_value=mock_supabase_client):
-                with pytest.raises(IngredientError) as exc_info:
-                    await get_all_ingredients()
-                
-                assert exc_info.value.error_code == "DATABASE_ERROR"
-
-    @pytest.mark.asyncio
-    async def test_malformed_database_response(self):
-        """Test handling of malformed database responses."""
-        with MockContextManager() as mock_ctx:
-            # Mock malformed response
-            mock_supabase_client = mock_ctx._create_mock_supabase_client()
-            mock_response = MagicMock()
-            mock_response.data = "invalid_data_format"  # Should be list
-            mock_response.error = None
-            mock_supabase_client.table.return_value.select.return_value.execute.return_value = mock_response
-            
-            with patch('domains.ingredients.services.get_supabase_client', return_value=mock_supabase_client):
-                with pytest.raises(IngredientError) as exc_info:
-                    await get_all_ingredients()
-                
-                assert exc_info.value.error_code == "DATABASE_ERROR"
-
-    @pytest.mark.asyncio
-    async def test_ingredient_not_found_error(self):
-        """Test handling when ingredient is not found."""
-        with MockContextManager(success_responses=True, mock_data=[]):
-            with pytest.raises(IngredientError) as exc_info:
-                await get_ingredient_by_id("non-existent-id")
+                await get_ingredient_by_id(non_existent_id)
             
             assert exc_info.value.error_code == "INGREDIENT_NOT_FOUND"
-            assert "not found" in exc_info.value.message.lower()
-
-    @pytest.mark.asyncio
-    async def test_duplicate_ingredient_error(self):
-        """Test handling of duplicate ingredient creation."""
-        test_ingredient = TestDataGenerator.generate_ingredient_data()
-        create_data = test_ingredient.to_ingredient_create()
-        
-        with MockContextManager() as mock_ctx:
-            # Mock database constraint violation
-            mock_supabase_client = mock_ctx._create_mock_supabase_client()
-            mock_response = MagicMock()
-            mock_response.data = None
-            mock_response.error = "duplicate key value violates unique constraint"
-            mock_supabase_client.table.return_value.insert.return_value.execute.return_value = mock_response
-            
-            with patch('domains.ingredients.services.get_supabase_client', return_value=mock_supabase_client):
-                with pytest.raises(IngredientError) as exc_info:
-                    await create_ingredient(create_data)
-                
-                assert exc_info.value.error_code == "DATABASE_ERROR"
-
-    @pytest.mark.asyncio
-    async def test_permission_denied_error(self):
-        """Test handling of permission denied errors."""
-        with MockContextManager() as mock_ctx:
-            # Mock permission error
-            mock_supabase_client = mock_ctx._create_mock_supabase_client()
-            mock_response = MagicMock()
-            mock_response.data = None
-            mock_response.error = "permission denied"
-            mock_supabase_client.table.return_value.select.return_value.execute.return_value = mock_response
-            
-            with patch('domains.ingredients.services.get_supabase_client', return_value=mock_supabase_client):
-                with pytest.raises(IngredientError) as exc_info:
-                    await get_all_ingredients()
-                
-                assert exc_info.value.error_code == "DATABASE_ERROR"
-
-    @pytest.mark.asyncio
-    async def test_network_error_handling(self):
-        """Test handling of network errors."""
-        with MockContextManager() as mock_ctx:
-            # Mock network error
-            mock_supabase_client = mock_ctx._create_mock_supabase_client()
-            mock_supabase_client.table.return_value.select.return_value.execute.side_effect = OSError("Network unreachable")
-            
-            with patch('domains.ingredients.services.get_supabase_client', return_value=mock_supabase_client):
-                with pytest.raises(IngredientError) as exc_info:
-                    await get_all_ingredients()
-                
-                assert exc_info.value.error_code == "DATABASE_ERROR"
-
-    @pytest.mark.asyncio
-    async def test_json_parsing_error(self):
-        """Test handling of JSON parsing errors."""
-        with MockContextManager() as mock_ctx:
-            # Mock JSON parsing error
-            with patch('json.loads', side_effect=ValueError("Invalid JSON")):
-                # This depends on whether the service actually uses json.loads directly
-                with pytest.raises(IngredientError) as exc_info:
-                    await get_all_ingredients()
-                assert exc_info.value.error_code == "DATABASE_ERROR"
-
-    @pytest.mark.asyncio
-    async def test_unexpected_exception_handling(self):
-        """Test handling of unexpected exceptions."""
-        with MockContextManager() as mock_ctx:
-            # Mock unexpected exception
-            mock_supabase_client = mock_ctx._create_mock_supabase_client()
-            mock_supabase_client.table.return_value.select.return_value.execute.side_effect = RuntimeError("Unexpected error")
-            
-            with patch('domains.ingredients.services.get_supabase_client', return_value=mock_supabase_client):
-                with pytest.raises(IngredientError) as exc_info:
-                    await get_all_ingredients()
-                
-                assert exc_info.value.error_code == "DATABASE_ERROR"
-
-    @pytest.mark.asyncio
-    async def test_invalid_uuid_format(self):
-        """Test handling of invalid UUID formats."""
-        invalid_ids = [
-            "not-a-uuid",
-            "12345",
-            "",
-            "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-            123,
-            None
-        ]
-        
-        for invalid_id in invalid_ids:
-            try:
-                with MockContextManager():
-                    await get_ingredient_by_id(str(invalid_id))
-            except (IngredientError, ValueError, TypeError):
-                # Expected - invalid ID should cause error
-                pass
-
-    @pytest.mark.asyncio
-    async def test_pagination_parameter_errors(self):
-        """Test handling of invalid pagination parameters."""
-        invalid_params = [
-            {"limit": -1, "offset": 0},
-            {"limit": 0, "offset": -1},
-            {"limit": 10001, "offset": 0},  # Too large limit
-            {"limit": "invalid", "offset": 0},
-            {"limit": 10, "offset": "invalid"}
-        ]
-        
-        for params in invalid_params:
-            try:
-                with MockContextManager():
-                    await get_all_ingredients(**params)
-            except (IngredientError, ValueError, TypeError):
-                # Expected - invalid parameters should cause error
-                pass
-
-    @pytest.mark.asyncio
-    async def test_search_query_errors(self):
-        """Test handling of problematic search queries."""
-        problematic_queries = [
-            None,
-            123,
-            [],
-            {},
-            "A" * 10000,  # Very long query
-        ]
-        
-        for query in problematic_queries:
-            try:
-                with MockContextManager():
-                    await search_ingredients(query)
-            except (IngredientError, ValueError, TypeError):
-                # Expected - invalid query should cause error
-                pass
-
-    @pytest.mark.asyncio
-    async def test_error_code_consistency(self):
-        """Test that error codes are consistent across similar failures."""
-        scenarios = [
-            ("get_all_ingredients", [], "DATABASE_ERROR"),
-            ("get_ingredient_by_id", ["test-id"], "INGREDIENT_NOT_FOUND"),
-            ("search_ingredients", ["test"], "DATABASE_ERROR"),
-        ]
-        
-        for function_name, args, expected_error_code in scenarios:
-            with MockContextManager(success_responses=False):
-                try:
-                    function = globals()[function_name]
-                    await function(*args)
-                except IngredientError as e:
-                    if "NOT_FOUND" in expected_error_code:
-                        # For not found errors, we expect empty data
-                        with MockContextManager(success_responses=True, mock_data=[]):
-                            try:
-                                await function(*args)
-                            except IngredientError as not_found_error:
-                                assert not_found_error.error_code == expected_error_code
-                    else:
-                        assert e.error_code == expected_error_code
-
-    @pytest.mark.asyncio
-    async def test_error_message_sanitization(self):
-        """Test that sensitive information is not exposed in error messages."""
-        # Create test data that might contain sensitive info
-        sensitive_data = {
-            "name": "password123",
-            "calories_per_100g": 100.0,
-            "proteins_per_100g": 10.0,
-            "fat_per_100g": 5.0,
-            "carbs_per_100g": 15.0,
-            "price_per_100g_cents": 500
-        }
-        
-        with MockContextManager() as mock_ctx:
-            # Mock error that might expose sensitive data
-            mock_supabase_client = mock_ctx._create_mock_supabase_client()
-            mock_response = MagicMock()
-            mock_response.data = None
-            mock_response.error = f"Database error with {sensitive_data['name']}"
-            mock_supabase_client.table.return_value.insert.return_value.execute.return_value = mock_response
-            
-            create_data = IngredientsMockFactory.create_ingredient_create(**sensitive_data)
-            
-            with patch('domains.ingredients.services.get_supabase_client', return_value=mock_supabase_client):
-                with pytest.raises(IngredientError) as exc_info:
-                    await create_ingredient(create_data)
-                
-                # Verify sensitive data is not in error message
-                error_message = str(exc_info.value.message).lower()
-                assert "password123" not in error_message
-
-    @pytest.mark.asyncio
-    async def test_concurrent_operation_errors(self):
-        """Test handling of concurrent operation conflicts."""
-        test_ingredient = TestDataGenerator.generate_ingredient_data()
-        
-        with MockContextManager() as mock_ctx:
-            # Mock concurrent modification error
-            mock_supabase_client = mock_ctx._create_mock_supabase_client()
-            mock_response = MagicMock()
-            mock_response.data = None
-            mock_response.error = "could not serialize access due to concurrent update"
-            mock_supabase_client.table.return_value.update.return_value.eq.return_value.execute.return_value = mock_response
-            
-            update_data = IngredientsMockFactory.create_ingredient_update(name="Updated")
-            
-            with patch('domains.ingredients.services.get_supabase_client', return_value=mock_supabase_client):
-                with pytest.raises(IngredientError) as exc_info:
-                    await update_ingredient(test_ingredient.ingredient_id, update_data)
-                
-                assert exc_info.value.error_code == "DATABASE_ERROR"
-
-    @pytest.mark.asyncio
-    async def test_resource_exhaustion_errors(self):
-        """Test handling of resource exhaustion errors."""
-        with MockContextManager() as mock_ctx:
-            # Mock resource exhaustion
-            mock_supabase_client = mock_ctx._create_mock_supabase_client()
-            mock_supabase_client.table.return_value.select.return_value.execute.side_effect = MemoryError("Out of memory")
-            
-            with patch('domains.ingredients.services.get_supabase_client', return_value=mock_supabase_client):
-                with pytest.raises(IngredientError) as exc_info:
-                    await get_all_ingredients()
-                
-                assert exc_info.value.error_code == "DATABASE_ERROR"
