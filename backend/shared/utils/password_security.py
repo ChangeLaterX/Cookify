@@ -27,15 +27,15 @@ class PasswordAnalyzer:
     def _calculate_strength(self, score: int, error_count: int) -> PasswordStrength:
         """Calculate password strength based on score with reasonable thresholds."""
         # Base strength on score, with some consideration for critical errors
-        if score >= settings.password_strength_very_strong_threshold:
+        if score >= settings.PASSWORD_STRENGTH_VERY_STRONG_THRESHOLD:
             return PasswordStrength.VERY_STRONG
-        elif score >= settings.password_strength_strong_threshold:
+        elif score >= settings.PASSWORD_STRENGTH_STRONG_THRESHOLD:
             return PasswordStrength.STRONG
-        elif score >= settings.password_strength_good_threshold:
+        elif score >= settings.PASSWORD_STRENGTH_GOOD_THRESHOLD:
             return PasswordStrength.GOOD
-        elif score >= settings.password_strength_fair_threshold:
+        elif score >= settings.PASSWORD_STRENGTH_FAIR_THRESHOLD:
             return PasswordStrength.FAIR
-        elif score >= settings.password_strength_weak_threshold:
+        elif score >= settings.PASSWORD_STRENGTH_WEAK_THRESHOLD:
             return PasswordStrength.WEAK
         else:
             return PasswordStrength.VERY_WEAK
@@ -62,34 +62,34 @@ class CommonPasswordsValidator:
     def _load_common_passwords(self) -> None:
         """Load common passwords from built-in list."""
         # Use common passwords from centralized configuration
-        common_passwords = settings.common_password_dictionary
+        common_passwords = settings.COMMON_PASSWORD_DICTIONARY
         
         # Add comprehensive variations and patterns for dictionary attack protection
-        for password in settings.common_password_dictionary:
+        for password in settings.COMMON_PASSWORD_DICTIONARY:
             base_password = password.lower()
             self._common_passwords.add(base_password)
             
             # Common number/symbol variations
-            for suffix in settings.common_password_suffix_list:
+            for suffix in settings.COMMON_PASSWORD_SUFFIX_LIST:
                 self._common_passwords.add(password + suffix)
             
-            for prefix in settings.common_password_prefix_list:
+            for prefix in settings.COMMON_PASSWORD_PREFIX_LIST:
                 self._common_passwords.add(prefix + password)
             
-            for year in settings.common_password_year_list:
+            for year in settings.COMMON_PASSWORD_YEAR_LIST:
                 self._common_passwords.add(password + year)
             
             # L33t speak variations
             leet_password = password.lower()
-            for char, replacements in settings.leet_speak_substitutions.items():
+            for char, replacements in settings.LEET_SPEAK_SUBSTITUTIONS.items():
                 for replacement in replacements:
                     if char in leet_password:
                         leet_variation = leet_password.replace(char, replacement)
-                        if len(leet_variation) >= settings.common_password_min_variation_length:
+                        if len(leet_variation) >= settings.COMMON_PASSWORD_MIN_VARIATION_LENGTH:
                             self._common_passwords.add(leet_variation.lower())
                     
         # Add common substitution patterns from settings
-        for original, substituted in settings.common_password_substitutions:
+        for original, substituted in settings.COMMON_PASSWORD_SUBSTITUTIONS:
             self._common_passwords.add(substituted.lower())
     
     def is_common_password(self, password: str) -> bool:

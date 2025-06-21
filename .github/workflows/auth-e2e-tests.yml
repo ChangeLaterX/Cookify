@@ -1,0 +1,305 @@
+name: Auth E2E Tests
+
+on:
+  push:
+    branches: [ main, dev ]
+    paths:
+      - 'backend/domains/auth/**'
+      - 'backend/middleware/auth_middleware.py'
+  pull_request:
+    branches: [ main, dev ]
+    paths:
+      - 'backend/domains/auth/**'
+      - 'backend/middleware/auth_middleware.py'
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.12.11"
+
+jobs:
+  auth-e2e-tests:
+    name: Auth End-to-End Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_USER: testuser
+          POSTGRES_DB: cookify_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    strategy:
+      matrix:
+        test-scenario:
+          - user-registration-flow
+          - login-logout-flow
+          - password-reset-flow
+          - token-refresh-flow
+          - rate-limiting-flow
+          - security-headers-flow
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client
+    
+    - name: Cache Python dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-e2e-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-e2e-
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      working-directory: ./backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install httpx pytest-asyncio pytest-xdist
+    
+    - name: Set test environment variables
+      run: |
+        echo "TEST_ENVIRONMENT=e2e" >> $GITHUB_ENV
+        echo "DATABASE_URL=postgresql://testuser:testpass@localhost:5432/cookify_test" >> $GITHUB_ENV
+        echo "REDIS_URL=redis://localhost:6379/0" >> $GITHUB_ENV
+        echo "JWT_SECRET_KEY=e2e-test-secret-key-very-long-and-secure" >> $GITHUB_ENV
+        echo "JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30" >> $GITHUB_ENV
+        echo "JWT_REFRESH_TOKEN_EXPIRE_DAYS=7" >> $GITHUB_ENV
+        echo "RATE_LIMITING_ENABLED=true" >> $GITHUB_ENV
+        echo "SECURITY_HEADERS_ENABLED=true" >> $GITHUB_ENV
+        echo "AUTH_E2E_SCENARIO=${{ matrix.test-scenario }}" >> $GITHUB_ENV
+    
+    - name: Wait for services
+      run: |
+        timeout 30s bash -c 'until pg_isready -h localhost -p 5432 -U testuser; do sleep 1; done'
+        timeout 30s bash -c 'until redis-cli -h localhost -p 6379 ping; do sleep 1; done'
+    
+    - name: Initialize test database
+      working-directory: ./backend
+      run: |
+        python -c "
+        import asyncio
+        from core.database import init_db
+        asyncio.run(init_db())
+        "
+    
+    - name: Start backend server in background
+      working-directory: ./backend
+      run: |
+        python main.py &
+        echo $! > server.pid
+        sleep 10  # Give server time to start
+    
+    - name: Verify server is running
+      run: |
+        curl -f http://localhost:8000/health || (echo "Server failed to start" && cat backend/logs/*.log && exit 1)
+    
+    - name: Run E2E test scenario
+      working-directory: ./backend
+      run: |
+        python tests/auth/run_tests.py e2e \
+          --scenario ${{ matrix.test-scenario }} \
+          --verbose \
+          --junit-xml=test-results-auth-e2e-${{ matrix.test-scenario }}.xml
+    
+    - name: Collect server logs
+      if: always()
+      working-directory: ./backend
+      run: |
+        if [ -f server.pid ]; then
+          kill $(cat server.pid) || true
+        fi
+        # Collect logs for debugging
+        if [ -d logs ]; then
+          cp -r logs logs-${{ matrix.test-scenario }}
+        fi
+    
+    - name: Upload test results and logs
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: auth-e2e-results-${{ matrix.test-scenario }}
+        path: |
+          backend/test-results-auth-e2e-*.xml
+          backend/logs-${{ matrix.test-scenario }}/
+
+  auth-load-tests:
+    name: Auth Load Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_USER: testuser
+          POSTGRES_DB: cookify_load_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      working-directory: ./backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install locust pytest-benchmark
+    
+    - name: Set load test environment variables
+      run: |
+        echo "TEST_ENVIRONMENT=load" >> $GITHUB_ENV
+        echo "DATABASE_URL=postgresql://testuser:testpass@localhost:5432/cookify_load_test" >> $GITHUB_ENV
+        echo "REDIS_URL=redis://localhost:6379/0" >> $GITHUB_ENV
+        echo "JWT_SECRET_KEY=load-test-secret-key" >> $GITHUB_ENV
+        echo "RATE_LIMITING_ENABLED=true" >> $GITHUB_ENV
+    
+    - name: Wait for services
+      run: |
+        timeout 30s bash -c 'until pg_isready -h localhost -p 5432 -U testuser; do sleep 1; done'
+        timeout 30s bash -c 'until redis-cli -h localhost -p 6379 ping; do sleep 1; done'
+    
+    - name: Initialize test database
+      working-directory: ./backend
+      run: |
+        python -c "
+        import asyncio
+        from core.database import init_db
+        asyncio.run(init_db())
+        "
+    
+    - name: Start backend server
+      working-directory: ./backend
+      run: |
+        python main.py &
+        echo $! > server.pid
+        sleep 10
+    
+    - name: Run load tests
+      working-directory: ./backend
+      run: |
+        python tests/auth/run_tests.py load \
+          --users 50 \
+          --spawn-rate 5 \
+          --run-time 300s \
+          --host http://localhost:8000 \
+          --csv-prefix auth-load-test
+    
+    - name: Stop server
+      if: always()
+      working-directory: ./backend
+      run: |
+        if [ -f server.pid ]; then
+          kill $(cat server.pid) || true
+        fi
+    
+    - name: Upload load test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: auth-load-test-results
+        path: |
+          backend/auth-load-test_*.csv
+          backend/logs/
+
+  auth-security-scan:
+    name: Auth Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install security tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install bandit safety semgrep
+    
+    - name: Run Bandit security linter
+      working-directory: ./backend
+      run: |
+        bandit -r domains/auth/ middleware/auth_middleware.py core/security.py \
+          -f json -o bandit-auth-detailed.json
+        bandit -r domains/auth/ middleware/auth_middleware.py core/security.py \
+          -f txt
+    
+    - name: Run Semgrep security analysis
+      run: |
+        semgrep --config=auto backend/domains/auth/ \
+          --json --output semgrep-auth-results.json
+    
+    - name: Check for known vulnerabilities
+      working-directory: ./backend
+      run: |
+        safety check --json --output safety-check.json
+        safety check
+    
+    - name: Upload security scan results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: auth-security-scan-results
+        path: |
+          backend/bandit-auth-detailed.json
+          semgrep-auth-results.json
+          backend/safety-check.json

@@ -6,13 +6,15 @@ This file defines all validation rules and settings in one place.
 from typing import Dict, List, Set, Any, Optional
 from dataclasses import dataclass, field
 
+from core.config import settings
+
 
 @dataclass
 class PasswordValidationConfig:
     """Configuration for password complexity validation."""
-    
-    min_length: int = 8
-    max_length: int = 128
+
+    min_length: int = settings.PASSWORD_MIN_LENGTH
+    max_length: int = settings.PASSWORD_MAX_LENGTH
     require_uppercase: bool = True
     require_lowercase: bool = True
     require_digits: bool = True
@@ -28,14 +30,14 @@ class PasswordValidationConfig:
         r'^welcome',      # Common password
         r'^secret',       # Common password
     ])
-    max_repeated_chars_ratio: float = 0.4
+    max_repeated_chars_ratio: float = settings.VALIDATION_MAX_REPEATED_CHARS_RATIO
 
 
 @dataclass
 class MetadataValidationConfig:
     """Configuration for metadata validation."""
     
-    max_total_size_bytes: int = 10240  # 10KB
+    max_total_size_bytes: int = settings.VALIDATION_MAX_TOTAL_SIZE_BYTES  # 10KB
     max_key_length: int = 50
     max_string_value_length: int = 1000
     max_list_items: int = 100

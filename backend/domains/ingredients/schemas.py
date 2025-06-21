@@ -3,10 +3,12 @@ Pydantic Schemas for Ingredients Domain.
 Defines request/response models for ingredient master data API endpoints.
 """
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 from datetime import datetime
 from uuid import UUID
+
+from core.config import settings
 
 
 # ============================================================================
@@ -26,9 +28,10 @@ class IngredientMasterCreate(BaseModel):
     carbs_per_100g: float = Field(
         ..., ge=0, description="Carbohydrates per 100g in grams"
     )
-    price_per_100g_cents: int = Field(..., ge=0, description="Price per 100g in cents")
+    category: Optional[str] = Field(None, description="Ingredient category")
 
-    @validator("name")
+    @field_validator("name")
+    @classmethod
     def validate_name(cls, v):
         """Validate ingredient name is not empty after stripping."""
         if not v.strip():
@@ -54,11 +57,10 @@ class IngredientMasterUpdate(BaseModel):
     carbs_per_100g: Optional[float] = Field(
         None, ge=0, description="Carbohydrates per 100g in grams"
     )
-    price_per_100g_cents: Optional[int] = Field(
-        None, ge=0, description="Price per 100g in cents"
-    )
+    category: Optional[str] = Field(None, description="Ingredient category")
 
-    @validator("name")
+    @field_validator("name")
+    @classmethod
     def validate_name(cls, v):
         """Validate ingredient name is not empty after stripping."""
         if v is not None and not v.strip():
@@ -71,7 +73,10 @@ class IngredientSearch(BaseModel):
 
     q: str = Field(..., min_length=1, max_length=255, description="Search query")
     limit: Optional[int] = Field(
-        10, ge=1, le=100, description="Maximum number of results"
+        default=settings.INGREDIENTS_SEARCH_DEFAULT_LIMIT, 
+        ge=1, 
+        le=settings.INGREDIENTS_SEARCH_MAX_LIMIT, 
+        description="Maximum number of results"
     )
     offset: Optional[int] = Field(0, ge=0, description="Number of results to skip")
 
@@ -90,7 +95,7 @@ class IngredientMasterResponse(BaseModel):
     proteins_per_100g: float = Field(..., description="Proteins per 100g in grams")
     fat_per_100g: float = Field(..., description="Fat per 100g in grams")
     carbs_per_100g: float = Field(..., description="Carbohydrates per 100g in grams")
-    price_per_100g_cents: int = Field(..., description="Price per 100g in cents")
+    category: Optional[str] = Field(None, description="Ingredient category")
 
     class Config:
         from_attributes = True

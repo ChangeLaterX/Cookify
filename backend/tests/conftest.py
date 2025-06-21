@@ -1,5 +1,8 @@
 """
-Pytest configuration and shared fixtures for authentication tests.
+Global Pytest configuration and shared fixtures for all test domains.
+
+This module provides cross-domain fixtures and configuration that can be used
+by all test modules (auth, ingredients, ocr, etc.).
 """
 
 import pytest
@@ -14,8 +17,12 @@ from fastapi.testclient import TestClient
 from supabase import Client
 
 # Import the FastAPI app
-from main import app
+from backend.main import app
 
+
+# ============================================================================
+# Core Application Fixtures
+# ============================================================================
 
 @pytest.fixture(scope="session")
 def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
@@ -31,6 +38,40 @@ def test_client() -> TestClient:
     """Create a test client for the FastAPI app."""
     return TestClient(app)
 
+
+@pytest.fixture(scope="function")
+async def async_test_client():
+    """Create an async test client."""
+    from httpx import AsyncClient
+    
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        yield client
+
+
+# ============================================================================
+# Environment and Configuration Fixtures
+# ============================================================================
+
+@pytest.fixture
+def mock_environment_variables():
+    """Mock environment variables for testing."""
+    test_env = {
+        "SUPABASE_URL": "https://test.supabase.co",
+        "SUPABASE_ANON_KEY": "test_anon_key",
+        "SUPABASE_SERVICE_ROLE_KEY": "test_service_key",
+        "JWT_SECRET_KEY": "test_jwt_secret",
+        "ENVIRONMENT": "test",
+        "DEBUG": "true",
+        "RATE_LIMITING_ENABLED": "false",
+    }
+    
+    with patch.dict(os.environ, test_env):
+        yield test_env
+
+
+# ============================================================================
+# Database and External Service Mocks
+# ============================================================================
 
 @pytest.fixture
 def mock_supabase_client():
@@ -55,6 +96,10 @@ def mock_supabase_client():
     mock_table.update = Mock()
     mock_table.select = Mock()
     mock_table.eq = Mock()
+    mock_table.neq = Mock()
+    mock_table.ilike = Mock()
+    mock_table.range = Mock()
+    mock_table.order = Mock()
     mock_table.execute = Mock()
     mock_client.table.return_value = mock_table
     
@@ -62,67 +107,22 @@ def mock_supabase_client():
 
 
 @pytest.fixture
-def mock_environment_variables():
-    """Mock environment variables for testing."""
-    test_env = {
-        'SUPABASE_URL': 'https://test.supabase.co',
-        'SUPABASE_ANON_KEY': 'test_anon_key',
-        'SUPABASE_SERVICE_ROLE_KEY': 'test_service_key',
-        'JWT_SECRET_KEY': 'test_jwt_secret',
-        'ENVIRONMENT': 'test'
-    }
-    
-    with patch.dict(os.environ, test_env):
-        yield test_env
+def mock_database_session():
+    """Mock database session for testing."""
+    with patch("core.database.get_db") as mock_db:
+        mock_session = Mock()
+        mock_db.return_value = mock_session
+        yield mock_session
 
+
+# ============================================================================
+# Utility Fixtures
+# ============================================================================
 
 @pytest.fixture
-def sample_user_uuid():
-    """Generate a sample user UUID for testing."""
+def sample_uuid():
+    """Generate a sample UUID for testing."""
     return uuid4()
-
-
-@pytest.fixture
-def sample_user_data():
-    """Sample user registration data."""
-    return {
-        "email": "test@example.com",
-        "password": "TestPassword123!",
-        "username": "testuser"
-    }
-
-
-@pytest.fixture
-def sample_login_data():
-    """Sample login credentials."""
-    return {
-        "email": "test@example.com",
-        "password": "TestPassword123!"
-    }
-
-
-@pytest.fixture
-def verified_user_data():
-    """Sample verified user data."""
-    return {
-        "id": str(uuid4()),
-        "email": "verified@example.com",
-        "email_confirmed_at": "2023-01-01T00:00:00Z",
-        "created_at": "2023-01-01T00:00:00Z",
-        "updated_at": "2023-01-01T00:00:00Z"
-    }
-
-
-@pytest.fixture
-def unverified_user_data():
-    """Sample unverified user data."""
-    return {
-        "id": str(uuid4()),
-        "email": "unverified@example.com",
-        "email_confirmed_at": None,
-        "created_at": "2023-01-01T00:00:00Z",
-        "updated_at": "2023-01-01T00:00:00Z"
-    }
 
 
 @pytest.fixture
@@ -137,117 +137,32 @@ def auth_headers(mock_jwt_token):
     return {"Authorization": f"Bearer {mock_jwt_token}"}
 
 
-# Pytest configuration
+# ============================================================================
+# Pytest Configuration
+# ============================================================================
 def pytest_configure(config):
     """Configure pytest with custom markers."""
-    config.addinivalue_line(
-        "markers", "asyncio: mark test as an async test"
-    )
-    config.addinivalue_line(
-        "markers", "integration: mark test as an integration test"
-    )
-    config.addinivalue_line(
-        "markers", "unit: mark test as a unit test"
-    )
-    config.addinivalue_line(
-        "markers", "email_verification: mark test as email verification related"
-    )
-    config.addinivalue_line(
-        "markers", "security: mark test as security related"
-    )
+    config.addinivalue_line("markers", "asyncio: mark test as an async test")
+    config.addinivalue_line("markers", "integration: mark test as an integration test")
+    config.addinivalue_line("markers", "unit: mark test as a unit test")
+    config.addinivalue_line("markers", "auth: mark test as auth domain related")
+    config.addinivalue_line("markers", "ingredients: mark test as ingredients domain related")
+    config.addinivalue_line("markers", "ocr: mark test as ocr domain related")
+    config.addinivalue_line("markers", "email_verification: mark test as email verification related")
+    config.addinivalue_line("markers", "security: mark test as security related")
+    config.addinivalue_line("markers", "slow: mark test as slow running")
 
 
-# Async test configuration
-@pytest.fixture(scope="function")
-async def async_test_client():
-    """Create an async test client."""
-    from httpx import AsyncClient
-    
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        yield client
+# ============================================================================
+# Common Fixtures for Cross-Domain Testing
+# ============================================================================
 
-
-# Mock password strength validation
 @pytest.fixture
 def mock_password_validation():
     """Mock password strength validation."""
-    with patch('shared.utils.password_security.validate_password_strength') as mock_validate:
+    with patch("shared.utils.password_security.validate_password_strength") as mock_validate:
         mock_validate.return_value = (True, [])
         yield mock_validate
-
-
-# Database fixtures for integration tests
-@pytest.fixture
-def mock_database_session():
-    """Mock database session for testing."""
-    with patch('core.database.get_db') as mock_db:
-        mock_session = Mock()
-        mock_db.return_value = mock_session
-        yield mock_session
-
-
-# ============================================================================
-# Ingredients Domain Fixtures
-# ============================================================================
-
-@pytest.fixture
-def sample_ingredient_data():
-    """Sample ingredient data for testing."""
-    return {
-        "name": "Test Chicken Breast",
-        "calories_per_100g": 165.0,
-        "proteins_per_100g": 31.0,
-        "fat_per_100g": 3.6,
-        "carbs_per_100g": 0.0,
-        "price_per_100g_cents": 899
-    }
-
-
-@pytest.fixture
-def sample_ingredient_list():
-    """Sample list of ingredients for testing."""
-    return [
-        {
-            "ingredient_id": str(uuid4()),
-            "name": f"Test Ingredient {i}",
-            "calories_per_100g": 100.0 + i,
-            "proteins_per_100g": 10.0 + i,
-            "fat_per_100g": 5.0 + i,
-            "carbs_per_100g": 15.0 + i,
-            "price_per_100g_cents": 500 + i * 10
-        }
-        for i in range(1, 6)
-    ]
-
-
-@pytest.fixture
-def mock_ingredient_supabase_responses():
-    """Mock Supabase responses for ingredient operations."""
-    def _mock_responses(**kwargs):
-        mock_client = Mock()
-        mock_table = Mock()
-        
-        # Configure default responses
-        mock_table.select = Mock(return_value=mock_table)
-        mock_table.insert = Mock(return_value=mock_table)
-        mock_table.update = Mock(return_value=mock_table)
-        mock_table.delete = Mock(return_value=mock_table)
-        mock_table.eq = Mock(return_value=mock_table)
-        mock_table.neq = Mock(return_value=mock_table)
-        mock_table.ilike = Mock(return_value=mock_table)
-        mock_table.range = Mock(return_value=mock_table)
-        mock_table.order = Mock(return_value=mock_table)
-        
-        # Allow custom execute responses
-        if 'execute_return' in kwargs:
-            mock_table.execute = Mock(return_value=kwargs['execute_return'])
-        else:
-            mock_table.execute = Mock()
-        
-        mock_client.table = Mock(return_value=mock_table)
-        return mock_client
-    
-    return _mock_responses
 
 
 # Clean up any test data after tests

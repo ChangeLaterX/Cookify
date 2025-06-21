@@ -2,15 +2,15 @@
 Security Headers Middleware for FastAPI.
 Implements comprehensive security headers to protect against common web vulnerabilities.
 """
-import logging
 from typing import Dict, Optional, List
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
 from core.config import settings
+from core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class SecurityHeadersConfig:
@@ -18,13 +18,13 @@ class SecurityHeadersConfig:
     
     def __init__(self):
         # Basic security headers - always applied
-        self.x_content_type_options = settings.security_content_type_options
-        self.x_frame_options = settings.security_frame_options
-        self.x_xss_protection = settings.security_xss_protection
-        self.referrer_policy = settings.security_referrer_policy
+        self.x_content_type_options = settings.SECURITY_CONTENT_TYPE_OPTIONS
+        self.x_frame_options = settings.SECURITY_FRAME_OPTIONS
+        self.x_xss_protection = settings.SECURITY_XSS_PROTECTION
+        self.referrer_policy = settings.SECURITY_REFERRER_POLICY
         
         # HSTS - only in production or when explicitly enabled
-        self.hsts_max_age = settings.hsts_max_age or settings.security_hsts_max_age_default
+        self.hsts_max_age = settings.HSTS_MAX_AGE or settings.SECURITY_HSTS_MAX_AGE_DEFAULT
         self.hsts_include_subdomains = True
         self.hsts_preload = False  # Can be enabled per environment
         
@@ -39,28 +39,28 @@ class SecurityHeadersConfig:
         if settings.is_development:
             # More permissive CSP for development, including Swagger UI CDN resources
             return {
-                "default-src": settings.csp_default_src,
-                "script-src": settings.csp_script_src_dev,
-                "style-src": settings.csp_style_src_dev,
-                "font-src": settings.csp_font_src_dev,
-                "img-src": settings.csp_img_src,
-                "connect-src": settings.csp_connect_src_dev,
-                "frame-ancestors": settings.csp_frame_ancestors,
-                "base-uri": settings.csp_base_uri,
-                "form-action": settings.csp_form_action
+                "default-src": settings.CSP_DEFAULT_SRC,
+                "script-src": settings.CSP_SCRIPT_SRC_DEV,
+                "style-src": settings.CSP_STYLE_SRC_DEV,
+                "font-src": settings.CSP_FONT_SRC_DEV,
+                "img-src": settings.CSP_IMG_SRC,
+                "connect-src": settings.CSP_CONNECT_SRC_DEV,
+                "frame-ancestors": settings.CSP_FRAME_ANCESTORS,
+                "base-uri": settings.CSP_BASE_URI,
+                "form-action": settings.CSP_FORM_ACTION
             }
         else:
             # Strict CSP for production
             return {
-                "default-src": settings.csp_default_src,
-                "script-src": settings.csp_script_src_prod,
-                "style-src": settings.csp_style_src_prod,  # Allow inline styles for better UX
-                "font-src": settings.csp_font_src_prod,
-                "img-src": settings.csp_img_src,
-                "connect-src": settings.csp_connect_src_prod,
-                "frame-ancestors": settings.csp_frame_ancestors,
-                "base-uri": settings.csp_base_uri,
-                "form-action": settings.csp_form_action,
+                "default-src": settings.CSP_DEFAULT_SRC,
+                "script-src": settings.CSP_SCRIPT_SRC_PROD,
+                "style-src": settings.CSP_STYLE_SRC_PROD,  # Allow inline styles for better UX
+                "font-src": settings.CSP_FONT_SRC_PROD,
+                "img-src": settings.CSP_IMG_SRC,
+                "connect-src": settings.CSP_CONNECT_SRC_PROD,
+                "frame-ancestors": settings.CSP_FRAME_ANCESTORS,
+                "base-uri": settings.CSP_BASE_URI,
+                "form-action": settings.CSP_FORM_ACTION,
                 "upgrade-insecure-requests": ""
             }
     
@@ -68,19 +68,19 @@ class SecurityHeadersConfig:
         """Get Permissions Policy header value."""
         # Disable potentially dangerous features
         policies = [
-            f"camera={settings.permissions_policy_camera}",
-            f"microphone={settings.permissions_policy_microphone}",
-            f"geolocation={settings.permissions_policy_geolocation}",
-            f"payment={settings.permissions_policy_payment}",
-            f"usb={settings.permissions_policy_usb}",
-            f"magnetometer={settings.permissions_policy_magnetometer}",
-            f"gyroscope={settings.permissions_policy_gyroscope}",
-            f"accelerometer={settings.permissions_policy_accelerometer}",
-            f"ambient-light-sensor={settings.permissions_policy_ambient_light}",
-            f"autoplay={settings.permissions_policy_autoplay}",
-            f"encrypted-media={settings.permissions_policy_encrypted_media}",
-            f"fullscreen={settings.permissions_policy_fullscreen}",
-            f"picture-in-picture={settings.permissions_policy_picture_in_picture}"
+            f"camera={settings.PERMISSIONS_POLICY_CAMERA}",
+            f"microphone={settings.PERMISSIONS_POLICY_MICROPHONE}",
+            f"geolocation={settings.PERMISSIONS_POLICY_GEOLOCATION}",
+            f"payment={settings.PERMISSIONS_POLICY_PAYMENT}",
+            f"usb={settings.PERMISSIONS_POLICY_USB}",
+            f"magnetometer={settings.PERMISSIONS_POLICY_MAGNETOMETER}",
+            f"gyroscope={settings.PERMISSIONS_POLICY_GYROSCOPE}",
+            f"accelerometer={settings.PERMISSIONS_POLICY_ACCELEROMETER}",
+            f"ambient-light-sensor={settings.PERMISSIONS_POLICY_AMBIENT_LIGHT}",
+            f"autoplay={settings.PERMISSIONS_POLICY_AUTOPLAY}",
+            f"encrypted-media={settings.PERMISSIONS_POLICY_ENCRYPTED_MEDIA}",
+            f"fullscreen={settings.PERMISSIONS_POLICY_FULLSCREEN}",
+            f"picture-in-picture={settings.PERMISSIONS_POLICY_PICTURE_IN_PICTURE}"
         ]
         return ", ".join(policies)
     

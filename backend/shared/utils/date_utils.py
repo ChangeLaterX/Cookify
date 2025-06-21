@@ -5,6 +5,8 @@ from datetime import datetime, date, timedelta
 from typing import Optional
 import pytz
 
+from core.config import settings
+
 
 def get_current_utc_datetime() -> datetime:
     """Get current UTC datetime."""
@@ -29,7 +31,7 @@ def get_week_start_date(target_date: Optional[date] = None) -> date:
 def get_week_end_date(target_date: Optional[date] = None) -> date:
     """Get the end date of the week (Sunday) for the given date."""
     week_start = get_week_start_date(target_date)
-    week_end = week_start + timedelta(days=6)
+    week_end = week_start + timedelta(days=settings.DATE_WEEK_DAYS)
     return week_end
 
 

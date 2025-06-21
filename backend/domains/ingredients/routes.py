@@ -3,12 +3,14 @@ FastAPI Routes for Ingredients Domain.
 Provides HTTP endpoints for ingredient master data management.
 """
 
-import logging
+import time
 from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 
+from core.config import settings
+from core.logging import get_logger
 from .schemas import (
     IngredientMasterCreate,
     IngredientMasterUpdate,
@@ -30,21 +32,26 @@ from .services import (
 )
 from middleware.security import get_current_user, get_optional_user
 
-logger: logging.Logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Create router for ingredient endpoints
-router = APIRouter(prefix="/ingredients", tags=["Ingredients"])
+router = APIRouter(prefix=settings.INGREDIENTS_PREFIX, tags=[settings.INGREDIENTS_TAG])
 
 
 @router.get(
-    "/master",
+    settings.INGREDIENTS_MASTER_ENDPOINT,
     response_model=IngredientListApiResponse,
     status_code=status.HTTP_200_OK,
-    summary="List all master ingredients",
-    description="Retrieve all ingredients from master table with pagination support",
+    summary=settings.INGREDIENTS_MASTER_LIST_TITLE,
+    description=settings.INGREDIENTS_MASTER_LIST_DESCRIPTION,
 )
 async def list_ingredients(
-    limit: int = Query(10, ge=1, le=100, description="Maximum number of results"),
+    limit: int = Query(
+        default=settings.INGREDIENTS_DEFAULT_LIMIT, 
+        ge=1, 
+        le=settings.INGREDIENTS_MAX_LIMIT, 
+        description="Maximum number of results"
+    ),
     offset: int = Query(0, ge=0, description="Number of results to skip"),
 ) -> IngredientListApiResponse:
     """
@@ -60,14 +67,40 @@ async def list_ingredients(
     Raises:
         HTTPException: 500 if database error occurs
     """
+    start_time = time.time()
+    
     try:
-        logger.info(f"Listing ingredients with limit={limit}, offset={offset}")
+        logger.info(
+            "Listing ingredients with pagination",
+            context={
+                "limit": limit,
+                "offset": offset,
+                "endpoint": "/ingredients/master"
+            }
+        )
 
         ingredient_list = await get_all_ingredients(limit=limit, offset=offset)
 
+        request_duration_ms = int((time.time() - start_time) * 1000)
+
         logger.info(
-            f"Successfully retrieved {len(ingredient_list.ingredients)} ingredients"
+            "Successfully retrieved ingredients",
+            context={
+                "ingredients_returned": len(ingredient_list.ingredients),
+                "total_available": ingredient_list.total,
+                "limit": limit,
+                "offset": offset,
+                "request_duration_ms": request_duration_ms,
+                "endpoint": "/ingredients/master"
+            },
+            data={
+                "performance_metrics": {
+                    "request_duration_ms": request_duration_ms,
+                    "results_count": len(ingredient_list.ingredients)
+                }
+            }
         )
+        
         return IngredientListApiResponse(
             success=True,
             data=ingredient_list,
@@ -76,13 +109,34 @@ async def list_ingredients(
         )
 
     except IngredientError as e:
-        logger.error(f"Failed to list ingredients: {e.message}")
+        request_duration_ms = int((time.time() - start_time) * 1000)
+        logger.error(
+            "Failed to list ingredients",
+            context={
+                "limit": limit,
+                "offset": offset,
+                "error_code": e.error_code,
+                "error_message": e.message,
+                "request_duration_ms": request_duration_ms,
+                "endpoint": "/ingredients/master"
+            }
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"error": e.message, "error_code": e.error_code},
         )
     except Exception as e:
-        logger.error(f"Unexpected error listing ingredients: {str(e)}")
+        request_duration_ms = int((time.time() - start_time) * 1000)
+        logger.error(
+            "Unexpected error listing ingredients",
+            context={
+                "limit": limit,
+                "offset": offset,
+                "error_message": str(e),
+                "request_duration_ms": request_duration_ms,
+                "endpoint": "/ingredients/master"
+            }
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"error": "Internal server error", "error_code": "INTERNAL_ERROR"},
@@ -327,7 +381,12 @@ async def delete_existing_ingredient(
 )
 async def search_ingredients_by_name(
     q: str = Query(..., min_length=1, max_length=255, description="Search query"),
-    limit: int = Query(10, ge=1, le=100, description="Maximum number of results"),
+    limit: int = Query(
+        default=settings.INGREDIENTS_SEARCH_DEFAULT_LIMIT, 
+        ge=1, 
+        le=settings.INGREDIENTS_SEARCH_MAX_LIMIT, 
+        description="Maximum number of results"
+    ),
     offset: int = Query(0, ge=0, description="Number of results to skip"),
 ) -> IngredientListApiResponse:
     """
@@ -373,3 +432,6 @@ async def search_ingredients_by_name(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"error": "Internal server error", "error_code": "INTERNAL_ERROR"},
         )
+
+
+# End of ingredients routes

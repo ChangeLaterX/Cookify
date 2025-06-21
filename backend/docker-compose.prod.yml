@@ -1,0 +1,147 @@
+version: '3.8'
+
+# Production-specific Docker Compose configuration
+# This provides additional security and monitoring for production deployment
+
+services:
+  cookify-api-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cookify-api:prod
+    container_name: cookify_api_prod
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.production
+    environment:
+      # Production overrides
+      - DEBUG=false
+      - ENVIRONMENT=production
+      - LOG_LEVEL=WARNING
+      
+      # Strict security for production
+      - SESSION_HTTPS_ONLY=true
+      - SECURITY_HEADERS_ENABLED=true
+      
+      # Stricter OCR settings for production
+      - OCR_MAX_IMAGE_SIZE_BYTES=3145728  # 3MB
+      - OCR_PROCESSING_TIMEOUT=20
+      - RATE_LIMIT_OCR_EXTRACT_ATTEMPTS=3
+      - RATE_LIMIT_OCR_EXTRACT_WINDOW_MINUTES=5
+      - RATE_LIMIT_OCR_PROCESS_ATTEMPTS=5
+      - RATE_LIMIT_OCR_PROCESS_WINDOW_MINUTES=10
+      
+    volumes:
+      # Read-only mounts for production
+      - prod-logs:/backend/logs:rw
+      - prod-cache:/backend/.cache:rw
+      
+    networks:
+      - cookify-prod-network
+      
+    # Maximum security for production
+    security_opt:
+      - no-new-privileges:true
+      - seccomp:unconfined  # May be needed for OCR
+    read_only: false  # OCR needs temp files
+    tmpfs:
+      - /tmp/ocr_secure:noexec,nosuid,nodev,size=50m,uid=1000,gid=1000
+    
+    # Production resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    
+    # Production healthcheck
+    healthcheck:
+      test: ["/backend/healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    restart: unless-stopped
+    
+    # Production logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+        compress: "true"
+    
+    # Production command (no reload, optimized)
+    command: [
+      "uvicorn", "main:app",
+      "--host", "0.0.0.0",
+      "--port", "8000",
+      "--workers", "1",
+      "--worker-class", "uvicorn.workers.UvicornWorker",
+      "--log-level", "warning",
+      "--no-server-header",
+      "--no-date-header"
+    ]
+
+  # Production reverse proxy (optional)
+  nginx-prod:
+    image: nginx:alpine
+    container_name: cookify_nginx_prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx-cache:/var/cache/nginx
+    networks:
+      - cookify-prod-network
+    depends_on:
+      - cookify-api-prod
+    restart: unless-stopped
+    
+  # Production monitoring (optional)
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: cookify_prometheus
+  #   ports:
+  #     - "9090:9090"
+  #   volumes:
+  #     - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+  #     - prometheus-data:/prometheus
+  #   networks:
+  #     - cookify-prod-network
+  #   restart: unless-stopped
+
+networks:
+  cookify-prod-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+    driver_opts:
+      com.docker.network.bridge.name: cookify-prod
+
+volumes:
+  prod-logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/log/cookify
+  prod-cache:
+    driver: local
+  nginx-cache:
+    driver: local
+  # prometheus-data:
+  #   driver: local

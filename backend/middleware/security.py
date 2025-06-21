@@ -9,6 +9,7 @@ from uuid import UUID
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
+from core.config import settings
 from domains.auth.schemas import AuthUser
 from domains.auth.services import get_current_user as get_user_from_token, AuthenticationError
 
@@ -212,7 +213,7 @@ def extract_token_from_header(authorization: str) -> str:
     if not authorization.startswith("Bearer "):
         raise ValueError("Invalid authorization header format")
     
-    return authorization[7:]  # Remove "Bearer " prefix
+    return authorization[settings.MIDDLEWARE_BEARER_PREFIX_LENGTH:]  # Remove "Bearer " prefix
 
 
 def validate_token_format(token: str) -> bool:
@@ -230,7 +231,7 @@ def validate_token_format(token: str) -> bool:
     
     # JWT tokens should have 3 parts separated by dots
     parts = token.split(".")
-    return len(parts) == 3 and all(part for part in parts)
+    return len(parts) == settings.MIDDLEWARE_JWT_PARTS_COUNT and all(part for part in parts)
 
 
 # Export dependencies and utilities

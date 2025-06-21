@@ -3,7 +3,7 @@ Pydantic Schemas for Authentication Domain.
 Defines request/response models for API endpoints.
 """
 
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 from uuid import UUID
@@ -34,7 +34,8 @@ class UserCreate(BaseModel):
         None, min_length=3, max_length=50, description="Optional username/display name"
     )
 
-    @validator("password")
+    @field_validator("password")
+    @classmethod
     def validate_password(cls, v):
         """Validate password strength using enhanced security."""
         from shared.utils.password_security import validate_password_strength
@@ -65,7 +66,8 @@ class PasswordResetConfirm(BaseModel):
         ..., min_length=6, max_length=128, description="New password"
     )
 
-    @validator("new_password")
+    @field_validator("new_password")
+    @classmethod
     def validate_new_password(cls, v):
         """Validate new password strength using enhanced security."""
         from shared.utils.password_security import validate_password_strength
@@ -98,7 +100,8 @@ class PasswordChange(BaseModel):
         ..., min_length=6, max_length=128, description="New password"
     )
 
-    @validator("new_password")
+    @field_validator("new_password")
+    @classmethod
     def validate_new_password(cls, v):
         """Validate new password strength using enhanced security."""
         from shared.utils.password_security import validate_password_strength

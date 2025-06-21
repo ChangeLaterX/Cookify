@@ -13,7 +13,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
 )
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime
@@ -21,6 +21,8 @@ from typing import Any, Literal, Optional
 import uuid
 
 from sqlalchemy.orm.relationships import Relationship
+
+from core.config import settings
 
 # Create base class for models
 Base = declarative_base()
@@ -39,16 +41,16 @@ class User(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
     # Core user fields from Supabase auth.users
-    email = Column(String(255), unique=True, nullable=False, index=True)
-    encrypted_password = Column(String(255), nullable=True)  # Handled by Supabase
+    email = Column(String(settings.DB_EMAIL_MAX_LENGTH), unique=True, nullable=False, index=True)
+    encrypted_password = Column(String(settings.DB_PASSWORD_MAX_LENGTH), nullable=True)  # Handled by Supabase
     email_confirmed_at = Column(DateTime, nullable=True)
     invited_at = Column(DateTime, nullable=True)
-    confirmation_token = Column(String(255), nullable=True)
+    confirmation_token = Column(String(settings.DB_TOKEN_MAX_LENGTH), nullable=True)
     confirmation_sent_at = Column(DateTime, nullable=True)
-    recovery_token = Column(String(255), nullable=True)
+    recovery_token = Column(String(settings.DB_TOKEN_MAX_LENGTH), nullable=True)
     recovery_sent_at = Column(DateTime, nullable=True)
-    email_change_token_new = Column(String(255), nullable=True)
-    email_change = Column(String(255), nullable=True)
+    email_change_token_new = Column(String(settings.DB_TOKEN_MAX_LENGTH), nullable=True)
+    email_change = Column(String(settings.DB_EMAIL_MAX_LENGTH), nullable=True)
     email_change_sent_at = Column(DateTime, nullable=True)
     last_sign_in_at = Column(DateTime, nullable=True)
     raw_app_meta_data = Column(Text, nullable=True)
@@ -58,16 +60,16 @@ class User(Base):
     updated_at = Column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
     )
-    phone = Column(String(15), nullable=True)
+    phone = Column(String(settings.DB_PHONE_MAX_LENGTH), nullable=True)
     phone_confirmed_at = Column(DateTime, nullable=True)
-    phone_change = Column(String(15), nullable=True)
-    phone_change_token = Column(String(255), nullable=True)
+    phone_change = Column(String(settings.DB_PHONE_MAX_LENGTH), nullable=True)
+    phone_change_token = Column(String(settings.DB_TOKEN_MAX_LENGTH), nullable=True)
     phone_change_sent_at = Column(DateTime, nullable=True)
     confirmed_at = Column(DateTime, nullable=True)
-    email_change_token_current = Column(String(255), nullable=True)
-    email_change_confirm_status = Column(String(10), nullable=True)
+    email_change_token_current = Column(String(settings.DB_TOKEN_MAX_LENGTH), nullable=True)
+    email_change_confirm_status = Column(String(settings.DB_STATUS_CODE_LENGTH), nullable=True)
     banned_until = Column(DateTime, nullable=True)
-    reauthentication_token = Column(String(255), nullable=True)
+    reauthentication_token = Column(String(settings.DB_TOKEN_MAX_LENGTH), nullable=True)
     reauthentication_sent_at = Column(DateTime, nullable=True)
     is_sso_user = Column(Boolean, default=False)
     deleted_at = Column(DateTime, nullable=True)
@@ -120,18 +122,18 @@ class UserProfile(Base):
     )
 
     # Profile fields
-    display_name = Column(String(100), nullable=True)
-    first_name = Column(String(50), nullable=True)
-    last_name = Column(String(50), nullable=True)
-    avatar_url = Column(String(255), nullable=True)
+    display_name = Column(String(settings.DB_DISPLAY_NAME_MAX_LENGTH), nullable=True)
+    first_name = Column(String(settings.DB_FIRST_NAME_MAX_LENGTH), nullable=True)
+    last_name = Column(String(settings.DB_LAST_NAME_MAX_LENGTH), nullable=True)
+    avatar_url = Column(String(settings.DB_URL_MAX_LENGTH), nullable=True)
     bio = Column(Text, nullable=True)
 
     # Preferences as JSON text (could be upgraded to JSONB later)
     preferences = Column(Text, nullable=True)  # JSON string for user preferences
 
     # App-specific fields
-    timezone = Column(String(50), default="UTC")
-    language = Column(String(10), default="en")
+    timezone = Column(String(settings.DB_TIMEZONE_MAX_LENGTH), default="UTC")
+    language = Column(String(settings.DB_LANGUAGE_CODE_LENGTH), default="en")
 
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

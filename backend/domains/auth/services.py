@@ -57,7 +57,9 @@ class AuthService:
 
     def __init__(self):
         self.supabase: Client = get_supabase_client()
-        self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
+        # Verwende den verbesserten strukturierten Logger
+        from core.logging import get_logger
+        self.logger = get_logger(f"{__name__}.{self.__class__.__name__}")
 
     async def register_user(self, user_data: UserCreate) -> TokenResponse:
         """
@@ -158,14 +160,14 @@ class AuthService:
 
             # Calculate expiration time
             expires_at = datetime.utcnow() + timedelta(
-                seconds=session.expires_in or 3600
+                seconds=session.expires_in or settings.AUTH_SESSION_DEFAULT_EXPIRES_IN
             )
 
             return TokenResponse(
                 access_token=session.access_token,
                 refresh_token=session.refresh_token,
                 token_type="bearer",
-                expires_in=session.expires_in or 3600,
+                expires_in=session.expires_in or settings.AUTH_SESSION_DEFAULT_EXPIRES_IN,
                 expires_at=expires_at,
             )
 
@@ -233,7 +235,7 @@ class AuthService:
 
             # For now, we'll implement a basic token validation
             # In production, this should integrate with Supabase's reset flow
-            if not reset_data.token or len(reset_data.token) < 10:
+            if not reset_data.token or len(reset_data.token) < settings.AUTH_TOKEN_MIN_LENGTH:
                 raise AuthenticationError("Invalid reset token", "INVALID_TOKEN")
 
             # This would normally verify the token with Supabase
@@ -309,7 +311,7 @@ class AuthService:
 
             # For now, we'll implement basic token validation
             # In production, this should integrate with Supabase's verification flow
-            if not verification_data.token or len(verification_data.token) < 10:
+            if not verification_data.token or len(verification_data.token) < settings.AUTH_TOKEN_MIN_LENGTH:
                 raise AuthenticationError("Invalid verification token", "INVALID_TOKEN")
 
             self.logger.info("Email verified successfully")
@@ -381,14 +383,14 @@ class AuthService:
 
             # Calculate expiration time
             expires_at = datetime.utcnow() + timedelta(
-                seconds=session.expires_in or 3600
+                seconds=session.expires_in or settings.AUTH_SESSION_DEFAULT_EXPIRES_IN
             )
 
             return TokenResponse(
                 access_token=session.access_token,
                 refresh_token=session.refresh_token,
                 token_type="bearer",
-                expires_in=session.expires_in or 3600,
+                expires_in=session.expires_in or settings.AUTH_SESSION_DEFAULT_EXPIRES_IN,
                 expires_at=expires_at,
             )
 
@@ -493,7 +495,7 @@ class AuthService:
 
             session = auth_response.session
             expires_at = datetime.utcnow() + timedelta(
-                seconds=session.expires_in or 3600
+                seconds=session.expires_in or settings.AUTH_SESSION_DEFAULT_EXPIRES_IN
             )
 
             self.logger.info("Token refreshed successfully")
@@ -502,7 +504,7 @@ class AuthService:
                 access_token=session.access_token,
                 refresh_token=session.refresh_token,
                 token_type="bearer",
-                expires_in=session.expires_in or 3600,
+                expires_in=session.expires_in or settings.AUTH_SESSION_DEFAULT_EXPIRES_IN,
                 expires_at=expires_at,
             )
 

@@ -48,12 +48,63 @@ Manages ingredient master data including nutritional information and pricing.
 - `POST /api/ingredients/master` - Create ingredient (auth required)
 - `PUT /api/ingredients/master/{ingredient_id}` - Update ingredient (auth required)
 - `DELETE /api/ingredients/master/{id}` - Delete ingredient (admin only)
-- `GET /api/ingredients/search` - Search ingredients by name
+
+### 📸 OCR API
+**Base Path:** `/api/ocr`
+
+Optical Character Recognition for processing receipt images and extracting ingredients.
+
+**Documentation:** [OCR Accuracy Guide](../backend/docs/ocr-accuracy-guide.md)
+
+**Key Features:**
+- Receipt image processing (JPEG, PNG, WEBP, BMP, TIFF)
+- Text extraction and ingredient recognition
+- Price detection and parsing
+- Image quality assessment
+- Rate limiting and security validation
+
+**Endpoints:**
+- `POST /api/ocr/extract` - Extract text from receipt image
+- `POST /api/ocr/process` - Full processing with ingredient matching
+- `GET /api/ocr/status/{process_id}` - Check processing status
+- `POST /api/ocr/validate` - Validate image quality before processing
+
+**Accuracy & Limitations:**
+- Text detection: 85-95% (high-quality images)
+- Ingredient extraction: 75-85% (with fuzzy matching)
+- Processing time: 2-8 seconds average
+- File size limit: 5MB maximum
+- Rate limiting: 5 requests per 2 minutes per IP
+
+**See Also:** [OCR Security Implementation](../backend/docs/ocr-security-implementation.md)
 
 ### 📄 Receipt API
 **Base Path:** `/api/receipt`
 
 Handles receipt parsing and ingredient extraction (coming soon).
+
+### 🏥 Health Check API
+**Base Path:** `/api/health`
+
+Provides comprehensive health monitoring for all application services.
+
+**Documentation:** [Health API Documentation](./health-api.md)
+
+**Key Features:**
+- Comprehensive service health monitoring
+- System resource monitoring (CPU, memory, disk)
+- Real-time metrics and alerting
+- Kubernetes/Docker probe endpoints
+- Historical health data and trends
+
+**Endpoints:**
+- `GET /api/health/` - Detailed health check of all services
+- `GET /api/health/quick` - Fast health check for load balancers
+- `GET /api/health/liveness` - Kubernetes liveness probe
+- `GET /api/health/readiness` - Kubernetes readiness probe
+- `GET /api/health/metrics` - Aggregated health metrics
+- `GET /api/health/alerts` - Recent health alerts
+- `GET /api/health/service/{name}/history` - Service health history
 
 ## Authentication
 
@@ -170,7 +221,7 @@ Response:
 
 ### Prerequisites
 
-- Python 3.10+
+- Python 3.12.11+
 - Supabase account and project
 - Environment variables configured
 

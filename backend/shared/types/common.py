@@ -5,6 +5,8 @@ from enum import Enum
 from typing import Dict, Any, List, Optional, Union
 from pydantic import BaseModel
 
+from core.config import settings
+
 
 class RecipeSource(str, Enum):
     """Recipe source enumeration."""
@@ -44,8 +46,8 @@ class DatabaseResponse(BaseModel):
 
 class PaginationParams(BaseModel):
     """Pagination parameters."""
-    page: int = 1
-    per_page: int = 50
+    page: int = settings.PAGINATION_DEFAULT_PAGE
+    per_page: int = settings.PAGINATION_DEFAULT_PER_PAGE
     
     @property
     def offset(self) -> int:

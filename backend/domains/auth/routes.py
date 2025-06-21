@@ -50,7 +50,8 @@ from .services import (
 )
 from middleware.security import get_current_user, get_optional_user
 
-logger: logging.Logger = logging.getLogger(__name__)
+from core.logging import get_logger
+logger = get_logger(__name__)
 
 # Create router for auth endpoints
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -643,27 +644,6 @@ async def change_password_legacy(
     return await change_user_password(password_data, current_user)
 
 
-# Health check endpoint for auth service
-@router.get(
-    "/health",
-    response_model=MessageResponse,
-    status_code=status.HTTP_200_OK,
-    summary="Auth Service Health Check",
-    description="Check if authentication service is healthy",
-)
-async def health_check() -> MessageResponse:
-    """
-    Health check endpoint for authentication service.
-
-    Returns:
-        MessageResponse confirming service health
-    """
-    return MessageResponse(
-        message="Authentication service is healthy",
-        details={"service": "auth", "status": "operational"},
-    )
-
-
 # Optional user endpoint (for public pages that can show user info if logged in)
 @router.get(
     "/user-info",
@@ -712,14 +692,14 @@ from core.config import settings
     response_model=AuthResponse,
     summary="Development Test Login",
     description="Development-only endpoint to create test tokens without email verification",
-    include_in_schema=settings.debug,
+    include_in_schema=settings.DEBUG,
 )
 async def dev_login() -> AuthResponse:
     """
     Create a test token for development purposes.
-    Only available when debug mode is enabled.
+    Only available when DEBUG mode is enabled.
     """
-    if not settings.debug:
+    if not settings.DEBUG:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Endpoint not available in production",
@@ -739,12 +719,12 @@ async def dev_login() -> AuthResponse:
 
     # Create test tokens
     access_token = jwt.encode(
-        user_data, settings.jwt_secret_key, algorithm=settings.jwt_algorithm
+        user_data, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
     )
     refresh_token = jwt.encode(
         {**user_data, "exp": datetime.utcnow() + timedelta(days=7)},
-        settings.jwt_secret_key,
-        algorithm=settings.jwt_algorithm,
+        settings.JWT_SECRET_KEY,
+        algorithm=settings.JWT_ALGORITHM,
     )
 
     logger.info("Development test login successful")

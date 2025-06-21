@@ -2,7 +2,6 @@
 Authentication Middleware for FastAPI.
 Provides automatic user context injection and request/response processing.
 """
-import logging
 import time
 from typing import Optional, Dict, Any
 from uuid import UUID
@@ -14,8 +13,9 @@ from starlette.responses import JSONResponse
 from domains.auth.services import get_current_user as get_user_from_token, AuthenticationError
 from domains.auth.schemas import AuthUser
 from core.config import settings
+from core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class AuthContextMiddleware(BaseHTTPMiddleware):
@@ -32,7 +32,9 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
     
     def __init__(self, app):
         super().__init__(app)
-        self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
+        import logging
+        from core.logging import get_logger
+        self.logger = get_logger(f"{__name__}.{self.__class__.__name__}")
         
         # Endpoints that don't require authentication
         self.public_endpoints = {
@@ -98,7 +100,7 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
                 f"Critical middleware error: {str(e)} | "
                 f"Path: {request.url.path} | "
                 f"IP: {client_ip} | "
-                f"Duration: {duration:.3f}s | "
+                f"Duration: {duration:.{settings.MIDDLEWARE_DURATION_DECIMAL_PLACES}f}s | "
                 f"Exception type: {type(e).__name__} | "
                 f"Exception details: {repr(e)}"
             )
@@ -124,7 +126,7 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
                 self.logger.debug("Invalid authorization header format")
                 return
             
-            token = authorization[7:]  # Remove "Bearer " prefix
+            token = authorization[settings.MIDDLEWARE_BEARER_PREFIX_LENGTH:]  # Remove "Bearer " prefix
             
             # Validate and get user
             user = await get_user_from_token(token)
@@ -181,7 +183,7 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
         # Check for forwarded headers (when behind proxy)
         forwarded_for = request.headers.get("x-forwarded-for")
         if forwarded_for:
-            return forwarded_for.split(",")[0].strip()
+            return forwarded_for.split(",")[settings.SECURITY_IP_HEADER_SPLIT_INDEX].strip()
         
         real_ip = request.headers.get("x-real-ip")
         if real_ip:
@@ -220,7 +222,7 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
             "method": request.method,
             "path": request.url.path,
             "status_code": response.status_code,
-            "duration": f"{duration:.3f}s",
+            "duration": f"{duration:.{settings.MIDDLEWARE_DURATION_DECIMAL_PLACES}f}s",
             "client_ip": client_ip,
             "user_agent": user_agent,
             "request_id": request_id,
@@ -229,9 +231,9 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
         }
         
         # Log level based on response status
-        if response.status_code >= 500:
+        if response.status_code >= settings.MIDDLEWARE_HTTP_SERVER_ERROR_THRESHOLD:
             self.logger.error(f"Request failed: {log_data}")
-        elif response.status_code >= 400:
+        elif response.status_code >= settings.MIDDLEWARE_HTTP_CLIENT_ERROR_THRESHOLD:
             self.logger.warning(f"Client error: {log_data}")
         elif settings.enable_access_log:
             self.logger.info(f"Request: {log_data}")

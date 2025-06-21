@@ -1,6 +1,15 @@
 """
 Rate Limiting Middleware for Authentication Endpoints.
-Implements progressive rate limiting with configurable limits and proper logging.
+Implements progressive rate limiting with                requests_per_window=settings.RATE_LIMIT_REFRESH_TOKEN_ATTEMPTS,
+                window_seconds=settings.RATE_LIMIT_REFRESH_TOKEN_WINDOW,
+                progressive_delay=False
+            ),
+            # General auth endpoints fallback
+            "default_auth": RateLimitConfig(
+                requests_per_window=settings.RATE_LIMIT_DEFAULT_AUTH_ATTEMPTS,
+                window_seconds=settings.RATE_LIMIT_DEFAULT_AUTH_WINDOW,
+                progressive_delay=False
+            )ble limits and proper logging.
 """
 import logging
 import time
@@ -24,8 +33,8 @@ class RateLimitConfig:
     requests_per_window: int
     window_seconds: int
     progressive_delay: bool = True
-    progressive_multiplier: float = settings.rate_limit_progressive_multiplier
-    max_progressive_delay: int = settings.rate_limit_max_progressive_delay
+    progressive_multiplier: float = settings.RATE_LIMIT_PROGRESSIVE_MULTIPLIER
+    max_progressive_delay: int = settings.RATE_LIMIT_MAX_PROGRESSIVE_DELAY
 
 
 @dataclass
@@ -62,43 +71,43 @@ class AuthRateLimitMiddleware(BaseHTTPMiddleware):
         self.rate_limit_rules = {
             # Login endpoint - strict limits due to brute force risk
             "/api/auth/login": RateLimitConfig(
-                requests_per_window=settings.rate_limit_login_attempts,
-                window_seconds=settings.rate_limit_login_window_minutes * 60,
+                requests_per_window=settings.RATE_LIMIT_LOGIN_ATTEMPTS,
+                window_seconds=settings.RATE_LIMIT_LOGIN_WINDOW_MINUTES * 60,
                 progressive_delay=True
             ),
             # Registration endpoint - moderate limits
             "/api/auth/register": RateLimitConfig(
-                requests_per_window=settings.rate_limit_registration_attempts,
-                window_seconds=settings.rate_limit_registration_window_minutes * 60,
+                requests_per_window=settings.RATE_LIMIT_REGISTRATION_ATTEMPTS,
+                window_seconds=settings.RATE_LIMIT_REGISTRATION_WINDOW_MINUTES * 60,
                 progressive_delay=True
             ),
             # Password reset requests - prevent email spam
             "/api/auth/forgot-password": RateLimitConfig(
-                requests_per_window=settings.rate_limit_password_reset_attempts,
-                window_seconds=settings.rate_limit_password_reset_window_minutes * 60,
+                requests_per_window=settings.RATE_LIMIT_PASSWORD_RESET_ATTEMPTS,
+                window_seconds=settings.RATE_LIMIT_PASSWORD_RESET_WINDOW_MINUTES * 60,
                 progressive_delay=True
             ),
             # Password reset confirmation - prevent token guessing
             "/api/auth/reset-password": RateLimitConfig(
-                requests_per_window=settings.rate_limit_reset_password_attempts,
-                window_seconds=settings.rate_limit_reset_password_window,
+                requests_per_window=settings.RATE_LIMIT_RESET_PASSWORD_ATTEMPTS,
+                window_seconds=settings.RATE_LIMIT_RESET_PASSWORD_WINDOW,
                 progressive_delay=True
             ),
             # Email verification - prevent spam
             "/api/auth/verify-email": RateLimitConfig(
-                requests_per_window=settings.rate_limit_verify_email_attempts,
-                window_seconds=settings.rate_limit_verify_email_window,
+                requests_per_window=settings.RATE_LIMIT_VERIFY_EMAIL_ATTEMPTS,
+                window_seconds=settings.RATE_LIMIT_VERIFY_EMAIL_WINDOW,
                 progressive_delay=False
             ),
             # Resend verification - prevent email spam
             "/api/auth/resend-verification": RateLimitConfig(
-                requests_per_window=settings.rate_limit_resend_verification_attempts,
-                window_seconds=settings.rate_limit_resend_verification_window,
+                requests_per_window=settings.RATE_LIMIT_RESEND_VERIFICATION_ATTEMPTS,
+                window_seconds=settings.RATE_LIMIT_RESEND_VERIFICATION_WINDOW,
                 progressive_delay=True
             ),
             # Token refresh - moderate limits
             "/api/auth/refresh": RateLimitConfig(
-                requests_per_window=settings.rate_limit_refresh_token_attempts,
+                requests_per_window=settings.RATE_LIMIT_REFRESH_TOKEN_ATTEMPTS,
                 window_seconds=settings.rate_limit_refresh_token_window,
                 progressive_delay=False
             ),
@@ -127,7 +136,7 @@ class AuthRateLimitMiddleware(BaseHTTPMiddleware):
         """
         # Skip rate limiting if disabled (but allow testing in development)
         rate_limiting_enabled = settings.rate_limiting_enabled_safe
-        debug_mode = settings.debug
+        debug_mode = settings.DEBUG
         
         # Debug logging
         if debug_mode:
@@ -146,7 +155,7 @@ class AuthRateLimitMiddleware(BaseHTTPMiddleware):
         # Get client identifier
         client_ip = self._get_client_ip(request)
         user_agent = request.headers.get("user-agent", "unknown")
-        client_key = f"{client_ip}:{user_agent[:settings.rate_limit_user_agent_truncate_length]}"  # Include user agent for better tracking
+        client_key = f"{client_ip}:{user_agent[:settings.RATE_LIMIT_USER_AGENT_LENGTH]}"  # Include user agent for better tracking
         
         # Periodic cleanup
         current_time = time.time()
@@ -170,7 +179,7 @@ class AuthRateLimitMiddleware(BaseHTTPMiddleware):
                     "retry_after": retry_after,
                     "details": {
                         "endpoint": path,
-                        "limit_window": f"{settings.rate_limit_window_display_minutes} minutes",
+                        "limit_window": f"{self._get_window_minutes(path)} minutes",
                         "max_requests": self._get_rate_limit_config(path).requests_per_window
                     }
                 },

@@ -1,5 +1,17 @@
 # Cookify Documentation
 
+This directory contains comprehensive documentation for Cookify.
+
+```bash
+# Health check
+curl http://dev.krija.info:8000/api/health/quick
+
+# Detailed health check with metrics
+curl http://dev.krija.info:8000/api/health/
+
+# List ingredients
+curl http://dev.krija.info:8000/api/ingredients/master
+
 This directory contains comprehensive documentation for the Cookify meal planning application.
 
 ## 📚 Documentation Index
@@ -8,6 +20,13 @@ This directory contains comprehensive documentation for the Cookify meal plannin
 - **[API Overview](./api-overview.md)** - Complete overview of all API endpoints and features
 - **[Authentication API](./auth-api.md)** - Detailed documentation for all authentication endpoints
 - **[Ingredients API](./ingredients-api.md)** - Complete documentation for ingredients master data endpoints
+
+### OCR Documentation
+- **[OCR Accuracy Guide](../backend/docs/ocr-accuracy-guide.md)** - Comprehensive guide to OCR performance, limitations, and optimization
+- **[OCR Security Implementation](../backend/docs/ocr-security-implementation.md)** - Security features and best practices for OCR endpoints
+
+### Developer Guides
+- **[Logging Guide](../backend/docs/logging_guide.md)** - Best practices and standards for logging in the application
 
 ### Quick Start Guides
 - [Getting Started](#getting-started)
@@ -329,7 +348,7 @@ When implementing new features, ensure:
 - [ ] **Logging**: Add appropriate logging for debugging and monitoring
 - [ ] **Rate Limiting**: Consider rate limiting for sensitive endpoints
 
-## 🔍 Troubleshooting
+## 🔍 Troubleshootingija.info:8000/api/ingredients/master
 
 ### Common Issues
 

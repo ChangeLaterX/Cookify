@@ -3,8 +3,7 @@ Main FastAPI application with enhanced architecture.
 """
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-import logging
-from typing import Any, Dict
+from typing import Any
 
 # Core imports
 from core.config import settings
@@ -12,6 +11,7 @@ from core.logging import setup_logging
 # Middleware imports
 from middleware.auth_middleware import AuthContextMiddleware
 from middleware.rate_limiting import AuthRateLimitMiddleware
+from middleware.ocr_rate_limiting import OCRRateLimitMiddleware
 from middleware.security_headers import SecurityHeadersMiddleware
 
 # Validation framework
@@ -20,60 +20,70 @@ from shared.utils.validation_env import load_validation_config, get_validation_s
 # Domain routers
 from domains.auth.routes import router as auth_router
 from domains.ingredients.routes import router as ingredients_router
+from domains.ocr.routes import router as receipt_router
+from domains.health.routes import router as health_router
+from domains.update.routes import router as update_router
 
 # Setup logging first
 setup_logging()
-logger: logging.Logger = logging.getLogger("app.main")
+from core.logging import get_logger
+logger = get_logger("main")
 
-if settings.debug:
-    logger.info(f"DEBUG MODE ENABLED: {settings.debug}")
+if settings.DEBUG:
+    logger.info(f"DEBUG MODE ENABLED: {settings.DEBUG}")
 
 def create_application() -> FastAPI:
     """Create and configure the FastAPI application."""
     
     # Create FastAPI app
     application = FastAPI(
-        title=settings.app_name,
-        debug=settings.debug,
+        title=settings.APP_NAME,
+        debug=settings.DEBUG,
         description="",
-        version=settings.version,
-        docs_url=settings.docs_url,
-        redoc_url=settings.redoc_url,
-        openapi_url="/openapi.json" if settings.docs_url else None,
+        version=settings.VERSION,
+        docs_url=settings.DOCS_URL,
+        redoc_url=settings.REDOC_URL,
+        openapi_url="/openapi.json" if settings.DOCS_URL else None,
     )
     
-    # Setup error handlers (temporarily disabled for debugging)
-    # from core.error_handlers import setup_error_handlers
-    # setup_error_handlers(application)
+    # Setup error handlers
+    from core.error_handlers import setup_error_handlers
+    setup_error_handlers(application)
     
     # Add CORS middleware (should be early in the stack)
     application.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.cors_origins_safe,
-        allow_credentials=settings.cors_allow_credentials,
-        allow_methods=settings.cors_allow_methods,
-        allow_headers=settings.cors_allow_headers,
+        allow_origins=settings.CORS_ORIGINS,
+        allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
+        allow_methods=settings.CORS_ALLOW_METHODS,
+        allow_headers=settings.CORS_ALLOW_HEADERS,
     )
     
     # Add security headers middleware (should be first for all responses)
-    if settings.security_headers_enabled:
+    if settings.SECURITY_HEADERS_ENABLED:
         application.add_middleware(SecurityHeadersMiddleware)
     
-    # Add auth context middleware (temporarily disabled for debugging)
-    # application.add_middleware(AuthContextMiddleware)
+    # Add OCR rate limiting middleware (resource-intensive operations)
+    application.add_middleware(OCRRateLimitMiddleware)
     
-    # Add rate limiting for authentication endpoints (temporarily disabled for debugging)
-    # application.add_middleware(AuthRateLimitMiddleware)
+    # Add auth context middleware
+    application.add_middleware(AuthContextMiddleware)
+    
+    # Add rate limiting for authentication endpoints
+    application.add_middleware(AuthRateLimitMiddleware)
     
     # Include routers
     application.include_router(auth_router, prefix="/api")
     application.include_router(ingredients_router, prefix="/api")
+    application.include_router(receipt_router, prefix="/api")
+    application.include_router(health_router, prefix="/api")
+    application.include_router(update_router, prefix="/api")
     
     # Add startup and shutdown events
     application.add_event_handler("startup", on_startup)
     application.add_event_handler("shutdown", on_shutdown)
     
-    logger.info(f"FastAPI application created - {settings.app_name} v{settings.version}")
+    logger.info(f"FastAPI application created - {settings.APP_NAME} v{settings.VERSION}")
     return application
 
 
@@ -84,10 +94,21 @@ async def on_startup() -> None:
     # Initialize validation framework
     load_validation_config()
     
-    logger.info(f"Debug mode: {settings.debug}")
-    logger.info(f"CORS origins: {settings.cors_origins}")
-    logger.info(f"Cache enabled: {settings.enable_user_cache}")
-    logger.info(f"Security headers enabled: {settings.security_headers_enabled}")
+    # Run startup scripts (ingredient cache, etc.)
+    try:
+        from domains.update.ingredient_cache import initialize_ingredient_cache
+        cache_success = await initialize_ingredient_cache()
+        if cache_success:
+            logger.info("✅ Ingredient cache initialized successfully")
+        else:
+            logger.warning("⚠️ Ingredient cache initialization failed - check logs for details")
+    except Exception as e:
+        logger.error(f"❌ Error initializing ingredient cache: {str(e)}")
+    
+    logger.info(f"Debug mode: {settings.DEBUG}")
+    logger.info(f"CORS origins: {settings.CORS_ORIGINS}")
+    logger.info(f"Cache enabled: {settings.ENABLE_USER_CACHE}")
+    logger.info(f"Security headers enabled: {settings.SECURITY_HEADERS_ENABLED}")
     logger.info("Application startup completed")
 
 
@@ -104,51 +125,26 @@ app: FastAPI = create_application()
 
 @app.get("/")
 async def root() -> dict[str, Any]:
-    """Root endpoint for health check."""
+    """Root endpoint for basic application info."""
     return {
-        "message": f"{settings.app_name} is running",
+        "message": f"{settings.APP_NAME} is running",
         "status": "healthy",
-        "version": settings.version,
-        "docs": settings.docs_url,
-        "debug": settings.debug
-    }
-
-
-@app.get("/health")
-async def health_check(request: Request) -> dict[str, Any]:
-    """Enhanced health check endpoint with system information."""
-
-    cache_stats: dict[str, Any] | None = None
-    if settings.enable_user_cache:
-        try:
-            from domains.auth.cache import user_cache
-            cache_stats = await user_cache.stats()
-        except ImportError:
-            cache_stats = {"error": "Cache module not available"}
-        except Exception as e:
-            cache_stats = {"error": f"Cache unavailable: {str(e)}"}
-
-    return {
-        "status": "healthy",
-        "app": settings.app_name,
-        "version": settings.version,
-        "timestamp": "2025-05-27T10:00:00Z",
-        "system": {
-            "debug": settings.debug,
-            "cache_enabled": settings.enable_user_cache,
-            "cache_stats": cache_stats,
-        },
-        "validation": get_validation_settings(),
-        "endpoints": {
-            "auth": "/api/auth",
-            "ingredients": "/api/ingredients",
-            "docs": settings.docs_url,
-            "redoc": settings.redoc_url,
-        },
+        "version": settings.VERSION,
+        "docs": settings.DOCS_URL,
+        "debug": settings.DEBUG,
+        "health_check": "/api/health",
+        "quick_health": "/api/health/quick"
     }
 
 
 if __name__ == "__main__":
     import uvicorn
+    from core.config import settings
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(
+        app, 
+        host=settings.SERVER_HOST, 
+        port=settings.SERVER_PORT,
+        log_level=settings.LOG_LEVEL.lower(),
+        access_log=settings.ENABLE_ACCESS_LOG
+    )

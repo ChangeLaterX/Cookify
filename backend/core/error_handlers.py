@@ -78,7 +78,7 @@ def setup_error_handlers(app: FastAPI) -> None:
                 "request_id": request_id,
                 "status_code": exc.status_code
             },
-            headers={"Retry-After": str(settings.http_retry_after_default)}
+            headers={"Retry-After": str(settings.HTTP_RETRY_AFTER_DEFAULT)}
         )
     
     @app.exception_handler(ValidationError)
@@ -137,12 +137,12 @@ def setup_error_handlers(app: FastAPI) -> None:
         logger.warning(f"Validation error (Request ID: {request_id}): {str(exc)}")
         
         return JSONResponse(
-            status_code=settings.http_unprocessable_entity,
+            status_code=settings.HTTP_UNPROCESSABLE_ENTITY,
             content={
                 "error": "validation_error",
                 "message": exc.errors(),
                 "request_id": request_id,
-                "status_code": settings.http_unprocessable_entity
+                "status_code": settings.HTTP_UNPROCESSABLE_ENTITY
             }
         )
 
@@ -153,12 +153,12 @@ def setup_error_handlers(app: FastAPI) -> None:
         logger.exception(f"Unhandled exception (Request ID: {request_id}): {str(exc)}")
         
         return JSONResponse(
-            status_code=settings.http_internal_server_error,
+            status_code=settings.HTTP_INTERNAL_SERVER_ERROR,
             content={
                 "error": "internal_server_error",
                 "message": "An unexpected error occurred. Please try again later.",
                 "request_id": request_id,
-                "status_code": settings.http_internal_server_error
+                "status_code": settings.HTTP_INTERNAL_SERVER_ERROR
             }
         )
     
