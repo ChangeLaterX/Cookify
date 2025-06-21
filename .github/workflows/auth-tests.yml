@@ -32,7 +32,7 @@ on:
           - all
 
 env:
-  PYTHON_VERSION: "3.10"
+  PYTHON_VERSION: "3.12.11"
 
 jobs:
   auth-unit-tests:

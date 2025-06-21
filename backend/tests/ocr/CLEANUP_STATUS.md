@@ -91,7 +91,7 @@ test-ocr:
 ```
 
 ### ✅ Workflow Features:
-- ✅ **Python 3.10** environment
+- ✅ **Python 3.12.11** environment
 - ✅ **Environment variables** configured
 - ✅ **JUnit XML reports** uploaded
 - ✅ **Coverage reports** to Codecov

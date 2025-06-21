@@ -1,5 +1,5 @@
-# Use Python 3.10 slim as base image for better performance and security
-FROM python:3.10-slim
+# Use Python 3.12.11 slim as base image for better performance and security
+FROM python:3.12.11-slim
 
 # Set metadata labels for better container management
 LABEL maintainer="Cookify Team"

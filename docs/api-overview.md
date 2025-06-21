@@ -221,7 +221,7 @@ Response:
 
 ### Prerequisites
 
-- Python 3.10+
+- Python 3.12.11+
 - Supabase account and project
 - Environment variables configured
 
