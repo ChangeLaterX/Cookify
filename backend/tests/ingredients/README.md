@@ -292,7 +292,7 @@ mock_service.create_ingredient.assert_called_once_with(expected_data)
     python run_tests.py --report
     
 - name: Upload Coverage
-  uses: codecov/codecov-action@v3
+  uses: codecov/codecov-action@v4
   with:
     file: test-results/ingredients-coverage.xml
 ```

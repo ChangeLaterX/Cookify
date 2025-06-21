@@ -50,7 +50,7 @@ jobs:
         python-version: ${{ env.PYTHON_VERSION }}
     
     - name: Cache Python dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-auth-${{ hashFiles('**/requirements.txt') }}
@@ -83,7 +83,7 @@ jobs:
           --junit-xml=test-results-auth-unit.xml
     
     - name: Upload test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: auth-unit-test-results
@@ -92,7 +92,7 @@ jobs:
           backend/coverage-auth-unit.xml
     
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         file: ./backend/coverage-auth-unit.xml
         flags: auth,unit
@@ -124,7 +124,7 @@ jobs:
         python-version: ${{ env.PYTHON_VERSION }}
     
     - name: Cache Python dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-auth-${{ hashFiles('**/requirements.txt') }}
@@ -164,7 +164,7 @@ jobs:
           --junit-xml=test-results-auth-integration.xml
     
     - name: Upload test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: auth-integration-test-results
@@ -187,7 +187,7 @@ jobs:
         python-version: ${{ env.PYTHON_VERSION }}
     
     - name: Cache Python dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-auth-${{ hashFiles('**/requirements.txt') }}
@@ -229,7 +229,7 @@ jobs:
           --junit-xml=test-results-auth-security.xml
     
     - name: Upload security reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: auth-security-reports
@@ -264,7 +264,7 @@ jobs:
         python-version: ${{ env.PYTHON_VERSION }}
     
     - name: Cache Python dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-auth-${{ hashFiles('**/requirements.txt') }}
@@ -304,7 +304,7 @@ jobs:
           --benchmark-json=benchmark-auth-results.json
     
     - name: Upload performance results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: auth-performance-results
@@ -320,7 +320,7 @@ jobs:
     
     steps:
     - name: Download all test artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
     
     - name: Generate summary report
       run: |
@@ -343,7 +343,7 @@ jobs:
         echo "Generated at: $(date)" >> auth-test-summary.md
     
     - name: Upload summary
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: auth-tests-summary
         path: auth-test-summary.md

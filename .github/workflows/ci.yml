@@ -56,7 +56,7 @@ jobs:
         tesseract --list-langs
     
     - name: Cache Python dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
@@ -116,7 +116,7 @@ jobs:
           --junitxml=test-results-ocr.xml
     
     - name: Upload test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-results-${{ matrix.test-mode }}
@@ -126,7 +126,7 @@ jobs:
     
     - name: Upload coverage to Codecov
       if: matrix.test-mode == 'unit'
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         file: ./backend/coverage-unit.xml
         flags: backend
@@ -141,7 +141,7 @@ jobs:
       uses: actions/checkout@v4
     
     - name: Set up Node.js ${{ env.NODE_VERSION }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
@@ -165,7 +165,7 @@ jobs:
       uses: actions/checkout@v4
     
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      uses: docker/setup-buildx-action@v4
     
     - name: Build Docker image
       working-directory: ./backend
@@ -206,7 +206,7 @@ jobs:
         bandit -r domains/ -f json -o bandit-report.json
     
     - name: Upload security scan results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: security-scan-results

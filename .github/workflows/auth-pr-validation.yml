@@ -28,7 +28,7 @@ jobs:
         python-version: ${{ env.PYTHON_VERSION }}
     
     - name: Cache Python dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-pr-${{ hashFiles('**/requirements.txt') }}
@@ -82,7 +82,7 @@ jobs:
           --junit-xml=pr-validation-results.xml
     
     - name: Upload test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: pr-validation-results
@@ -179,7 +179,7 @@ jobs:
           --junit-xml=pr-integration-results.xml
     
     - name: Upload integration results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: pr-integration-results
