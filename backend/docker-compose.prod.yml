@@ -48,15 +48,15 @@ services:
     tmpfs:
       - /tmp/ocr_secure:noexec,nosuid,nodev,size=50m,uid=1000,gid=1000
     
-    # Production resource limits
+    # Production resource limits optimized for dedicated server
     deploy:
       resources:
         limits:
-          memory: 1G
-          cpus: '1.0'
+          memory: 750M  # Use most available RAM for production stability
+          cpus: '1.0'   # Use full CPU core
         reservations:
-          memory: 256M
-          cpus: '0.25'
+          memory: 300M  # Reserve more for stable production operation
+          cpus: '0.3'   # Reserve 30% of CPU
       restart_policy:
         condition: on-failure
         delay: 5s
