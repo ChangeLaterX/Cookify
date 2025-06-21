@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Development-specific Docker Compose configuration
 # This extends the main docker-compose.yml for development use
 

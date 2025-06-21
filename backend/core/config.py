@@ -84,7 +84,7 @@ class AppConfig(BaseSettings):
         default=Environment.DEVELOPMENT, description="Runtime environment"
     )
     VERSION: str = Field(
-        default="0.1.0", pattern=r"^\d+\.\d+\.\d+$", description="Application version"
+        default="0.1.0", pattern=r"^\d+\.\d+\.\d+(-\w+)?$", description="Application version"
     )
 
     # API Documentation
@@ -97,7 +97,7 @@ class AppConfig(BaseSettings):
         description="API description",
     )
     API_VERSION: str = Field(
-        default="1.0.0", pattern=r"^\d+\.\d+\.\d+$", description="API version"
+        default="1.0.0", pattern=r"^\d+\.\d+\.\d+(-\w+)?$", description="API version"
     )
     API_CONTACT_NAME: str = Field(default="Cookify Support", description="Contact name")
     API_CONTACT_EMAIL: str = Field(
