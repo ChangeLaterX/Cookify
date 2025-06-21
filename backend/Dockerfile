@@ -15,9 +15,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     tesseract-ocr \
     tesseract-ocr-eng \
-    tesseract-ocr-deu \
     libmagic1 \
     ca-certificates \
+    && (apt-get install -y --no-install-recommends tesseract-ocr-deu || echo "German language pack not available") \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean \
     && apt-get autoremove -y
@@ -38,7 +38,7 @@ RUN pip install --no-cache-dir python-magic
 
 # Create secure directories before copying application
 RUN mkdir -p /tmp/ocr_secure /backend/logs \
-    && chown -R appuser:appuser /tmp/ocr_secure /backend/logs \
+    && chown -R appuser:appuser /tmp/ocr_secure /backend/logs /backend \
     && chmod 700 /tmp/ocr_secure
 
 # Copy the backend application with proper ownership
