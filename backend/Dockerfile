@@ -9,15 +9,15 @@ LABEL description="Cookify API with OCR capabilities"
 # Set working directory
 WORKDIR /backend
 
-# Install system dependencies with security focus and version pinning
+# Install system dependencies with security focus
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc=4:11.2.0-1ubuntu1 \
-    curl=7.81.0-1ubuntu1.16 \
-    tesseract-ocr=4.1.1-2.1build1 \
-    tesseract-ocr-eng=1:4.00~git30-7274cfa-1.1 \
-    tesseract-ocr-deu=1:4.00~git30-7274cfa-1.1 \
-    libmagic1=1:5.41-3ubuntu0.1 \
-    ca-certificates=20230311ubuntu0.22.04.1 \
+    gcc \
+    curl \
+    tesseract-ocr \
+    tesseract-ocr-eng \
+    tesseract-ocr-deu \
+    libmagic1 \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean \
     && apt-get autoremove -y
@@ -29,12 +29,12 @@ RUN adduser --disabled-password --gecos '' --shell /bin/false --uid 1000 appuser
 COPY --chown=appuser:appuser requirements.txt .
 
 # Install Python dependencies with security considerations
-RUN pip install --no-cache-dir --upgrade pip==23.3.1 \
+RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir --require-hashes -r requirements.txt \
     || pip install --no-cache-dir -r requirements.txt
 
 # Install additional security packages
-RUN pip install --no-cache-dir python-magic==0.4.27
+RUN pip install --no-cache-dir python-magic
 
 # Create secure directories before copying application
 RUN mkdir -p /tmp/ocr_secure /backend/logs \
