@@ -8,6 +8,7 @@ import logging
 from collections import deque, defaultdict
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Deque, Any
+from datetime import datetime, timezone
 from datetime import datetime, timedelta
 from enum import Enum
 
@@ -88,7 +89,7 @@ class HealthMetricsCollector:
         self.service_metrics: Dict[str, ServiceMetrics] = {}
         
         # Performance tracking
-        self.start_time = datetime.utcnow()
+        self.start_time = datetime.now(timezone.utc)
     
     def record_health_check(self, health_response: DetailedHealthResponse) -> None:
         """Record a complete health check response."""

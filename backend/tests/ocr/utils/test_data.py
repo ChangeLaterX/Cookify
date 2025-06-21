@@ -9,6 +9,7 @@ from pathlib import Path
 from uuid import uuid4
 import json
 import random
+from pydantic import BaseModel
 
 from domains.ocr.schemas import (
     OCRTextResponse,
@@ -17,6 +18,20 @@ from domains.ocr.schemas import (
     OCRItemSuggestion,
 )
 from domains.ingredients.schemas import IngredientMasterResponse, IngredientListResponse
+
+# Define missing types for test compatibility
+class Ingredient(BaseModel):
+    """Mock ingredient model for tests."""
+    ingredient_id: str
+    name: str
+    description: Optional[str] = None
+
+class IngredientSearchResult(BaseModel):
+    """Mock ingredient search result for tests."""
+    ingredients: List[Ingredient]
+    total_count: int
+    offset: int
+    limit: int
 
 # Receipt text variations for testing
 RECEIPT_TEXT_VARIATIONS = {
@@ -175,7 +190,7 @@ class TestDataGenerator:
     ) -> Ingredient:
         """Generate mock ingredient for testing."""
         return Ingredient(
-            ingredient_id=uuid4() if ingredient_id is None else ingredient_id,
+            ingredient_id=str(uuid4()) if ingredient_id is None else ingredient_id,
             name=name,
             description=f"Description for {name}"
         )
@@ -217,7 +232,7 @@ class TestDataGenerator:
         return ' '.join(modified_words)
     
     @staticmethod
-    def generate_quantity_price_test_cases() -> List[Tuple[str, float, str, float]]:
+    def generate_quantity_price_test_cases() -> List[Tuple[str, Optional[float], Optional[str], Optional[float]]]:
         """Generate test cases for quantity and price extraction."""
         return [
             ("Tomatoes (2 lbs) $3.98", 2.0, "lbs", 3.98),

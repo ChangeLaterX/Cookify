@@ -3,7 +3,7 @@ Pydantic Schemas for Ingredients Domain.
 Defines request/response models for ingredient master data API endpoints.
 """
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 from datetime import datetime
 from uuid import UUID
@@ -30,7 +30,8 @@ class IngredientMasterCreate(BaseModel):
     )
     category: Optional[str] = Field(None, description="Ingredient category")
 
-    @validator("name")
+    @field_validator("name")
+    @classmethod
     def validate_name(cls, v):
         """Validate ingredient name is not empty after stripping."""
         if not v.strip():
@@ -58,7 +59,8 @@ class IngredientMasterUpdate(BaseModel):
     )
     category: Optional[str] = Field(None, description="Ingredient category")
 
-    @validator("name")
+    @field_validator("name")
+    @classmethod
     def validate_name(cls, v):
         """Validate ingredient name is not empty after stripping."""
         if v is not None and not v.strip():

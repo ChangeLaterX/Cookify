@@ -46,9 +46,9 @@ def create_application() -> FastAPI:
         openapi_url="/openapi.json" if settings.DOCS_URL else None,
     )
     
-    # Setup error handlers (temporarily disabled for debugging)
-    # from core.error_handlers import setup_error_handlers
-    # setup_error_handlers(application)
+    # Setup error handlers
+    from core.error_handlers import setup_error_handlers
+    setup_error_handlers(application)
     
     # Add CORS middleware (should be early in the stack)
     application.add_middleware(
@@ -66,11 +66,11 @@ def create_application() -> FastAPI:
     # Add OCR rate limiting middleware (resource-intensive operations)
     application.add_middleware(OCRRateLimitMiddleware)
     
-    # Add auth context middleware (temporarily disabled for debugging)
-    # application.add_middleware(AuthContextMiddleware)
+    # Add auth context middleware
+    application.add_middleware(AuthContextMiddleware)
     
-    # Add rate limiting for authentication endpoints (temporarily disabled for debugging)
-    # application.add_middleware(AuthRateLimitMiddleware)
+    # Add rate limiting for authentication endpoints
+    application.add_middleware(AuthRateLimitMiddleware)
     
     # Include routers
     application.include_router(auth_router, prefix="/api")
