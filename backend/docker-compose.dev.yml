@@ -48,15 +48,15 @@ services:
       - no-new-privileges:true
     read_only: false
     
-    # More relaxed resource limits for development
+    # Resource limits optimized for dedicated server (1 CPU, 861MB RAM)
     deploy:
       resources:
         limits:
-          memory: 2G
-          cpus: '2.0'
+          memory: 750M  # Use most available RAM (leave ~110MB for system)
+          cpus: '1.0'   # Use full CPU core
         reservations:
-          memory: 512M
-          cpus: '0.5'
+          memory: 300M  # Reserve more for stable operation
+          cpus: '0.3'   # Reserve 30% of CPU
     
     # Fast restart for development
     restart: unless-stopped

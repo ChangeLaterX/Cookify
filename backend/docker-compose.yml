@@ -71,22 +71,22 @@ services:
     # File system configuration
     read_only: false  # OCR needs to write temporary files
     tmpfs:
-      - /tmp/ocr_secure:noexec,nosuid,nodev,size=100m,uid=1000,gid=1000
+      - /tmp/ocr_secure:noexec,nosuid,nodev,size=80m,uid=1000,gid=1000
     
     # Volume mounts for persistence
     volumes:
       - app-logs:/backend/logs:rw
       - app-cache:/backend/.cache:rw
     
-    # Resource limits and reservations
+    # Resource limits optimized for dedicated server (1 CPU, 861MB RAM)
     deploy:
       resources:
         limits:
-          memory: 1G
-          cpus: '1.0'
+          memory: 750M  # Use most available RAM (leave ~110MB for system)
+          cpus: '1.0'   # Use full CPU core
         reservations:
-          memory: 256M
-          cpus: '0.25'
+          memory: 300M  # Reserve more for stable operation
+          cpus: '0.3'   # Reserve 30% of CPU
       restart_policy:
         condition: on-failure
         delay: 5s
