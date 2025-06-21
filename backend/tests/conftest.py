@@ -17,7 +17,7 @@ from fastapi.testclient import TestClient
 from supabase import Client
 
 # Import the FastAPI app
-from main import app
+from backend.main import app
 
 
 # ============================================================================
