@@ -66,7 +66,7 @@ jobs:
       working-directory: ./backend
       run: |
         # Set environment for testing
-        export ENVIRONMENT=test
+        export ENVIRONMENT=testing
         export DEBUG=False
         export SUPABASE_URL="${{ secrets.SUPABASE_URL }}"
         export SUPABASE_KEY="${{ secrets.SUPABASE_KEY }}"
@@ -275,7 +275,7 @@ jobs:
       run: |
         if [ -f discovered_endpoints.json ]; then
           # Set up environment variables
-          export ENVIRONMENT=test
+          export ENVIRONMENT=testing
           export DEBUG=False
           export SUPABASE_URL="${{ secrets.SUPABASE_URL }}"
           export SUPABASE_KEY="${{ secrets.SUPABASE_KEY }}"
@@ -392,7 +392,7 @@ jobs:
       working-directory: ./backend
       run: |
         docker run -d --name test-container \
-          -e ENVIRONMENT=test \
+          -e ENVIRONMENT=testing \
           -p 8000:8000 \
           cookify-backend:test
         
