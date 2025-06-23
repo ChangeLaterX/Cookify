@@ -122,6 +122,10 @@ async def on_shutdown() -> None:
 # Create the application
 app: FastAPI = create_application()
 
+def get_app():
+    """Expose the FastAPI app for ASGI servers."""
+    return app
+
 
 @app.get("/")
 async def root() -> dict[str, Any]:

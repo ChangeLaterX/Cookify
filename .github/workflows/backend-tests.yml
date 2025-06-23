@@ -202,7 +202,7 @@ jobs:
         import json
         import pytest
         from fastapi.testclient import TestClient as FastAPITestClient
-        from main import app
+        from main import get_app as app
 
         try:
             with open("discovered_endpoints.json", "r") as f:
