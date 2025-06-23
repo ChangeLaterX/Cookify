@@ -103,20 +103,20 @@ class CommonPasswordsValidator:
         # Check for simple transformations that users commonly make
         # Remove common prefixes/suffixes
         password_clean = password_lower
-        for prefix in settings.common_password_prefix_list:
+        for prefix in settings.COMMON_PASSWORD_PREFIX_LIST:
             if password_clean.startswith(prefix):
                 password_clean = password_clean[len(prefix):]
                 if password_clean in self._common_passwords:
                     return True
-                    
-        for suffix in settings.common_password_suffix_list:
+
+        for suffix in settings.COMMON_PASSWORD_SUFFIX_LIST:
             if password_lower.endswith(suffix):
                 password_clean = password_lower[:-len(suffix)]
                 if password_clean in self._common_passwords:
                     return True
         
         # Check for number/year insertions
-        for year in settings.common_password_year_list:
+        for year in settings.COMMON_PASSWORD_YEAR_LIST:
             if year in password_lower:
                 password_clean = password_lower.replace(year, '')
                 if password_clean in self._common_passwords:
@@ -150,12 +150,14 @@ class CommonPasswordsValidator:
                     patterns.append(f"Contains repeated pattern: '{pattern}'")
         
         # Check for simple incrementing patterns
-        for pattern in settings.incremental_pattern_list:
+        incremental_patterns = settings.INCREMENTAL_PATTERN_LIST
+        for pattern in incremental_patterns:
             if pattern in password_lower:
                 patterns.append(f"Contains incremental pattern: '{pattern}'")
         
         # Check for alternating patterns
-        for pattern in settings.alternating_pattern_list:
+        alternating_patterns = settings.ALTERNATING_PATTERN_LIST
+        for pattern in alternating_patterns:
             if pattern in password_lower:
                 patterns.append(f"Contains alternating pattern: '{pattern}'")
         
@@ -191,21 +193,21 @@ class PasswordComplexityValidator:
         self.common_passwords = CommonPasswordsValidator()
         
         # Minimum requirements from settings
-        self.MIN_LENGTH = settings.password_min_length
-        self.MAX_LENGTH = settings.password_max_length
-        self.MIN_UNIQUE_CHARS = settings.password_min_unique_chars
-        self.MAX_REPEATED_CHAR_RATIO = settings.password_max_repeated_char_ratio
+        self.MIN_LENGTH = settings.PASSWORD_MIN_LENGTH
+        self.MAX_LENGTH = settings.PASSWORD_MAX_LENGTH
+        self.MIN_UNIQUE_CHARS = settings.PASSWORD_MIN_UNIQUE_CHARS
+        self.MAX_REPEATED_CHAR_RATIO = settings.PASSWORD_MAX_REPEATED_CHAR_RATIO
         
         # Character set requirements from settings
-        self.REQUIRE_UPPERCASE = settings.password_require_uppercase
-        self.REQUIRE_LOWERCASE = settings.password_require_lowercase  
-        self.REQUIRE_DIGITS = settings.password_require_digits
-        self.REQUIRE_SPECIAL = settings.password_require_special
-        self.MIN_CHAR_TYPES = settings.password_min_char_types
-        self.MIN_ENTROPY_SCORE = settings.password_min_entropy_score
+        self.REQUIRE_UPPERCASE = settings.PASSWORD_REQUIRE_UPPERCASE
+        self.REQUIRE_LOWERCASE = settings.PASSWORD_REQUIRE_LOWERCASE  
+        self.REQUIRE_DIGITS = settings.PASSWORD_REQUIRE_DIGITS
+        self.REQUIRE_SPECIAL = settings.PASSWORD_REQUIRE_SPECIAL
+        self.MIN_CHAR_TYPES = settings.PASSWORD_MIN_CHAR_TYPES
+        self.MIN_ENTROPY_SCORE = settings.PASSWORD_MIN_ENTROPY_SCORE
         
         # Security patterns from settings
-        self.forbidden_patterns = settings.password_forbidden_patterns
+        self.forbidden_patterns = settings.PASSWORD_FORBIDDEN_PATTERNS
     
     def analyze_password(self, password: str, user_info: Optional[Dict[str, Any]] = None) -> PasswordAnalysis:
         """
@@ -253,7 +255,7 @@ class PasswordComplexityValidator:
         has_upper = any(c.isupper() for c in password)
         has_lower = any(c.islower() for c in password)
         has_digit = any(c.isdigit() for c in password)
-        has_special = any(c in settings.password_special_chars for c in password)
+        has_special = any(c in settings.PASSWORD_SPECIAL_CHARS for c in password)
         
         meets_requirements['uppercase'] = has_upper
         meets_requirements['lowercase'] = has_lower
@@ -273,7 +275,7 @@ class PasswordComplexityValidator:
             if not has_digit:
                 missing_types.append("digits (0-9)")
             if not has_special:
-                missing_types.append(f"special characters ({settings.password_special_chars})")
+                missing_types.append(f"special characters ({settings.PASSWORD_SPECIAL_CHARS})")
             
             errors.append(f"Password must contain at least {self.MIN_CHAR_TYPES} character types. Missing: {', '.join(missing_types[:4-self.MIN_CHAR_TYPES+1])}")
             suggestions.append("Add more character variety for better security")
@@ -369,13 +371,13 @@ class PasswordComplexityValidator:
             score += 10
         
         # Additional security bonuses
-        if len(password) >= settings.password_recommended_min_length:
+        if len(password) >= settings.PASSWORD_RECOMMENDED_MIN_LENGTH:
             score += 10
-        if len(password) >= settings.password_bonus_min_length:
+        if len(password) >= settings.PASSWORD_BONUS_MIN_LENGTH:
             score += 5
-        if char_types == 4 and len(password) >= settings.password_recommended_min_length:
+        if char_types == 4 and len(password) >= settings.PASSWORD_RECOMMENDED_MIN_LENGTH:
             score += 10
-        if unique_chars >= settings.password_min_unique_chars_bonus:
+        if unique_chars >= settings.PASSWORD_MIN_UNIQUE_CHARS_BONUS:
             score += 5
         
         # Calculate final score (0-100)
@@ -399,8 +401,8 @@ class PasswordComplexityValidator:
         if is_valid:
             if score < 80:
                 warnings.append("Consider making your password even stronger")
-            if len(password) < settings.password_recommended_min_length:
-                warnings.append(f"Passwords {settings.password_recommended_min_length}+ characters provide better security")
+            if len(password) < settings.PASSWORD_RECOMMENDED_MIN_LENGTH:
+                warnings.append(f"Passwords {settings.PASSWORD_RECOMMENDED_MIN_LENGTH}+ characters provide better security")
         
         return PasswordAnalysis(
             strength=strength,
@@ -422,7 +424,7 @@ class PasswordComplexityValidator:
         if email:
             email_parts = email.lower().split('@')[0].split('.')
             for part in email_parts:
-                if len(part) >= settings.validation_email_min_length and part in password_lower:
+                if len(part) >= settings.VALIDATION_EMAIL_MIN_LENGTH and part in password_lower:  
                     violations.append("Password contains parts of your email address")
                     break
         
@@ -430,7 +432,7 @@ class PasswordComplexityValidator:
         names_to_check = []
         for field in ['first_name', 'last_name', 'display_name', 'username']:
             value = user_info.get(field, '')
-            if value and len(value) >= settings.validation_name_min_length:
+            if value and len(value) >= settings.VALIDATION_NAME_MIN_LENGTH:  
                 names_to_check.append(value.lower())
         
         for name in names_to_check:
@@ -440,7 +442,7 @@ class PasswordComplexityValidator:
         
         # Check user ID patterns
         user_id = str(user_info.get('user_id', ''))
-        if len(user_id) >= settings.validation_user_id_min_length and user_id in password:
+        if len(user_id) >= settings.VALIDATION_USER_ID_MIN_LENGTH and user_id in password:  
             violations.append("Password contains user ID information")
         
                 
@@ -454,13 +456,13 @@ class PasswordComplexityValidator:
         # Determine character space
         char_space = 0
         if any(c.islower() for c in password):
-            char_space += settings.entropy_lowercase_chars  # lowercase letters
+            char_space += settings.ENTROPY_LOWERCASE_CHARS  
         if any(c.isupper() for c in password):
-            char_space += settings.entropy_uppercase_chars  # uppercase letters
+            char_space += settings.ENTROPY_UPPERCASE_CHARS  
         if any(c.isdigit() for c in password):
-            char_space += settings.entropy_digit_chars  # digits
-        if any(c in settings.password_special_chars for c in password):
-            char_space += len(settings.password_special_chars)  # special characters
+            char_space += settings.ENTROPY_DIGIT_CHARS  
+        if any(c in settings.PASSWORD_SPECIAL_CHARS for c in password):
+            char_space += len(settings.PASSWORD_SPECIAL_CHARS)  # special characters
         
         # Calculate entropy: log2(char_space^length)
         import math
@@ -480,15 +482,15 @@ class PasswordComplexityValidator:
     def _calculate_strength(self, score: int, error_count: int) -> PasswordStrength:
         """Calculate password strength based on score with thresholds from settings."""
         # Base strength on score, with some consideration for critical errors
-        if score >= settings.password_strength_very_strong_threshold:
+        if score >= settings.PASSWORD_STRENGTH_VERY_STRONG_THRESHOLD:
             return PasswordStrength.VERY_STRONG
-        elif score >= settings.password_strength_strong_threshold:
+        elif score >= settings.PASSWORD_STRENGTH_STRONG_THRESHOLD:
             return PasswordStrength.STRONG
-        elif score >= settings.password_strength_good_threshold:
+        elif score >= settings.PASSWORD_STRENGTH_GOOD_THRESHOLD:
             return PasswordStrength.GOOD
-        elif score >= settings.password_strength_fair_threshold:
+        elif score >= settings.PASSWORD_STRENGTH_FAIR_THRESHOLD:
             return PasswordStrength.FAIR
-        elif score >= settings.password_strength_weak_threshold:
+        elif score >= settings.PASSWORD_STRENGTH_WEAK_THRESHOLD:
             return PasswordStrength.WEAK
         else:
             return PasswordStrength.VERY_WEAK

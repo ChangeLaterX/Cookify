@@ -45,7 +45,7 @@ class ValidationService:
         sanitized = {}
         
         # Required fields
-        required = ['email', 'password']
+        required = settings.USER_REGISTRATION_REQUIRED_FIELDS
         missing_fields = validate_required_fields(data, required)
         if missing_fields:
             errors.extend([f"Missing required field: {field}" for field in missing_fields])
@@ -80,8 +80,8 @@ class ValidationService:
             if not validate_metadata_size(metadata):
                 errors.append("User metadata too large")
             else:
-                # Check for forbidden keys from settings
-                forbidden_keys = settings.metadata_forbidden_keys
+                # Check for forbidden keys
+                forbidden_keys = settings.METADATA_FORBIDDEN_KEYS
                 for key in metadata.keys():
                     if key.lower() in forbidden_keys:
                         errors.append(f"Metadata cannot contain sensitive field: {key}")
@@ -131,7 +131,7 @@ class ValidationService:
             if not validate_metadata_size(metadata):
                 errors.append("User metadata too large")
             else:
-                forbidden_keys = settings.metadata_forbidden_keys
+                forbidden_keys = settings.METADATA_FORBIDDEN_KEYS
                 for key in metadata.keys():
                     if key.lower() in forbidden_keys:
                         errors.append(f"Metadata cannot contain sensitive field: {key}")
@@ -158,7 +158,7 @@ class ValidationService:
         sanitized = {}
         
         # Required fields
-        required = ['email']
+        required = settings.PASSWORD_RESET_REQUIRED_FIELDS
         missing_fields = validate_required_fields(data, required)
         if missing_fields:
             errors.extend([f"Missing required field: {field}" for field in missing_fields])
@@ -185,7 +185,7 @@ class ValidationService:
         sanitized = {}
         
         # Required fields
-        required = ['password']
+        required = settings.PASSWORD_UPDATE_REQUIRED_FIELDS
         missing_fields = validate_required_fields(data, required)
         if missing_fields:
             errors.extend([f"Missing required field: {field}" for field in missing_fields])
@@ -213,7 +213,7 @@ class ValidationService:
         sanitized = {}
         
         # Required fields
-        required = ['email']
+        required = settings.MAGIC_LINK_REQUIRED_FIELDS
         missing_fields = validate_required_fields(data, required)
         if missing_fields:
             errors.extend([f"Missing required field: {field}" for field in missing_fields])
@@ -249,7 +249,7 @@ class ValidationService:
         sanitized = {}
         
         # Required fields
-        required = ['email', 'token', 'type']
+        required = settings.OTP_VERIFICATION_REQUIRED_FIELDS
         missing_fields = validate_required_fields(data, required)
         if missing_fields:
             errors.extend([f"Missing required field: {field}" for field in missing_fields])
@@ -268,14 +268,14 @@ class ValidationService:
             errors.append("Token cannot be empty")
         elif not token.isdigit():
             errors.append("Token must contain only digits")
-        elif len(token) < 4 or len(token) > 10:
-            errors.append("Token must be 4-10 digits long")
+        elif len(token) < settings.OTP_TOKEN_MIN_LENGTH or len(token) > settings.OTP_TOKEN_MAX_LENGTH:
+            errors.append(f"Token must be {settings.OTP_TOKEN_MIN_LENGTH}-{settings.OTP_TOKEN_MAX_LENGTH} digits long")
         else:
             sanitized['token'] = token
         
         # Type validation
         otp_type = data.get('type', '').strip().lower()
-        allowed_types = {'email', 'sms', 'phone_change'}
+        allowed_types = set(settings.OTP_ALLOWED_TYPES)
         if otp_type not in allowed_types:
             errors.append(f"Type must be one of: {', '.join(sorted(allowed_types))}")
         else:
@@ -308,8 +308,8 @@ class ValidationService:
         # Limit validation (optional)
         limit = data.get('limit')
         if limit is not None:
-            if not validate_positive_integer(limit, max_value=100, min_value=1):
-                errors.append("Limit must be a positive integer between 1 and 100")
+            if not validate_positive_integer(limit, max_value=settings.SEARCH_LIMIT_MAX_VALUE, min_value=settings.SEARCH_LIMIT_MIN_VALUE):
+                errors.append(f"Limit must be a positive integer between {settings.SEARCH_LIMIT_MIN_VALUE} and {settings.SEARCH_LIMIT_MAX_VALUE}")
             else:
                 sanitized['limit'] = int(limit)
         
@@ -337,15 +337,15 @@ class ValidationService:
         # Pagination
         page = data.get('page')
         if page is not None:
-            if not validate_positive_integer(page, min_value=1):
+            if not validate_positive_integer(page, min_value=settings.PAGINATION_PAGE_MIN):
                 errors.append("Page must be a positive integer")
             else:
                 sanitized['page'] = int(page)
         
         per_page = data.get('per_page')
         if per_page is not None:
-            if not validate_positive_integer(per_page, max_value=100, min_value=1):
-                errors.append("Per page must be between 1 and 100")
+            if not validate_positive_integer(per_page, max_value=settings.PAGINATION_PER_PAGE_MAX, min_value=settings.PAGINATION_PER_PAGE_MIN):
+                errors.append(f"Per page must be between {settings.PAGINATION_PER_PAGE_MIN} and {settings.PAGINATION_PER_PAGE_MAX}")
             else:
                 sanitized['per_page'] = int(per_page)
         
@@ -353,15 +353,15 @@ class ValidationService:
         sort_by = data.get('sort_by')
         if sort_by:
             try:
-                sanitized_sort = validate_user_input(sort_by, max_length=50)
+                sanitized_sort = validate_user_input(sort_by, max_length=settings.API_SORT_BY_MAX_LENGTH)
                 sanitized['sort_by'] = sanitized_sort
             except ValueError as e:
                 errors.append(f"Invalid sort_by: {e}")
         
         sort_order = data.get('sort_order')
         if sort_order:
-            if sort_order.lower() not in ['asc', 'desc']:
-                errors.append("Sort order must be 'asc' or 'desc'")
+            if sort_order.lower() not in settings.API_ALLOWED_SORT_ORDERS:
+                errors.append(f"Sort order must be one of: {', '.join(settings.API_ALLOWED_SORT_ORDERS)}")
             else:
                 sanitized['sort_order'] = sort_order.lower()
         

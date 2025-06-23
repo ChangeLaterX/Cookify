@@ -235,7 +235,7 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
             self.logger.error(f"Request failed: {log_data}")
         elif response.status_code >= settings.MIDDLEWARE_HTTP_CLIENT_ERROR_THRESHOLD:
             self.logger.warning(f"Client error: {log_data}")
-        elif settings.enable_access_log:
+        elif settings.ENABLE_ACCESS_LOG:
             self.logger.info(f"Request: {log_data}")
 
 
