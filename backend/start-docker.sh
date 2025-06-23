@@ -40,7 +40,7 @@ docker compose ps
 
 echo ""
 echo "📝 Useful Commands:"
-echo "  docker-compose logs -f          # View logs"
-echo "  docker-compose stop             # Stop containers"
-echo "  docker-compose down             # Stop and remove containers"
-echo "  docker-compose restart          # Restart containers"
+echo "  docker compose logs -f          # View logs"
+echo "  docker compose stop             # Stop containers"
+echo "  docker compose down             # Stop and remove containers"
+echo "  docker compose restart          # Restart containers"

@@ -1,15 +1,7 @@
 """
 Rate Limiting Middleware for Authentication Endpoints.
-Implements progressive rate limiting with                requests_per_window=settings.RATE_LIMIT_REFRESH_TOKEN_ATTEMPTS,
-                window_seconds=settings.RATE_LIMIT_REFRESH_TOKEN_WINDOW,
-                progressive_delay=False
-            ),
-            # General auth endpoints fallback
-            "default_auth": RateLimitConfig(
-                requests_per_window=settings.RATE_LIMIT_DEFAULT_AUTH_ATTEMPTS,
-                window_seconds=settings.RATE_LIMIT_DEFAULT_AUTH_WINDOW,
-                progressive_delay=False
-            )ble limits and proper logging.
+
+Implements progressive rate limiting with configurable limits and proper logging.
 """
 import logging
 import time
@@ -108,20 +100,20 @@ class AuthRateLimitMiddleware(BaseHTTPMiddleware):
             # Token refresh - moderate limits
             "/api/auth/refresh": RateLimitConfig(
                 requests_per_window=settings.RATE_LIMIT_REFRESH_TOKEN_ATTEMPTS,
-                window_seconds=settings.rate_limit_refresh_token_window,
+                window_seconds=settings.RATE_LIMIT_REFRESH_TOKEN_WINDOW,
                 progressive_delay=False
             ),
             # General auth endpoints fallback
             "default_auth": RateLimitConfig(
-                requests_per_window=settings.rate_limit_default_auth_attempts,
-                window_seconds=settings.rate_limit_default_auth_window,
+                requests_per_window=settings.RATE_LIMIT_DEFAULT_AUTH_ATTEMPTS,
+                window_seconds=settings.RATE_LIMIT_DEFAULT_AUTH_WINDOW,
                 progressive_delay=False
             )
         }
         
         # Schedule cleanup
         self.last_cleanup = time.time()
-        self.cleanup_interval = settings.rate_limit_cleanup_interval
+        self.cleanup_interval = settings.RATE_LIMIT_CLEANUP_INTERVAL
     
     async def dispatch(self, request: Request, call_next):
         """
@@ -135,7 +127,7 @@ class AuthRateLimitMiddleware(BaseHTTPMiddleware):
             Response from downstream handler or rate limit error
         """
         # Skip rate limiting if disabled (but allow testing in development)
-        rate_limiting_enabled = settings.rate_limiting_enabled_safe
+        rate_limiting_enabled = settings.RATE_LIMITING_ENABLED
         debug_mode = settings.DEBUG
         
         # Debug logging
@@ -285,6 +277,19 @@ class AuthRateLimitMiddleware(BaseHTTPMiddleware):
         client_data.requests.append(current_time)
         return True, 0
     
+    def _get_window_minutes(self, path: str) -> int:
+        """
+        Get the rate limit window in minutes for a given path.
+        
+        Args:
+            path: Request path
+            
+        Returns:
+            Window duration in minutes
+        """
+        config = self._get_rate_limit_config(path)
+        return config.window_seconds // 60
+
     def _get_client_ip(self, request: Request) -> str:
         """
         Extract client IP address from request headers.
@@ -312,7 +317,7 @@ class AuthRateLimitMiddleware(BaseHTTPMiddleware):
             return cf_ip.strip()
         
         # Fallback to direct connection
-        if hasattr(request.client, "host") and request.client.host:
+        if request.client and hasattr(request.client, "host") and request.client.host:
             return request.client.host
         
         return "unknown"
@@ -325,7 +330,7 @@ class AuthRateLimitMiddleware(BaseHTTPMiddleware):
             current_time: Current timestamp
         """
         # Remove data older than configured cutoff time
-        cutoff_time = current_time - settings.rate_limit_cleanup_cutoff
+        cutoff_time = current_time - settings.RATE_LIMIT_CLEANUP_CUTOFF
         
         expired_clients = []
         for client_key, client_data in self.client_data.items():
@@ -371,7 +376,7 @@ class AuthRateLimitMiddleware(BaseHTTPMiddleware):
         
         self.logger.warning(
             f"Rate limit violation: {request.method} {request.url.path} | "
-            f"IP: {client_ip} | User-Agent: {user_agent[:settings.rate_limit_user_agent_length]} | "
+            f"IP: {client_ip} | User-Agent: {user_agent[:settings.RATE_LIMIT_USER_AGENT_LENGTH]} | "
             f"Retry-After: {retry_after}s | Data: {violation_data}"
         )
 

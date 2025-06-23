@@ -202,7 +202,7 @@ class AuthService:
 
             # Request password reset through Supabase
             self.supabase.auth.reset_password_for_email(
-                email, {"redirect_to": f"{settings.frontend_url}/auth/reset-password"}
+                email, {"redirect_to": f"{settings.FRONTEND_URL}/auth/reset-password"}
             )
 
             self.logger.info(f"Password reset email sent for: {email}")

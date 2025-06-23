@@ -84,7 +84,7 @@ class AppConfig(BaseSettings):
         default=Environment.DEVELOPMENT, description="Runtime environment"
     )
     VERSION: str = Field(
-        default="0.1.0", pattern=r"^\d+\.\d+\.\d+$", description="Application version"
+        default="0.1.0", pattern=r"^\d+\.\d+\.\d+(-\w+)?$", description="Application version"
     )
 
     # API Documentation
@@ -97,7 +97,7 @@ class AppConfig(BaseSettings):
         description="API description",
     )
     API_VERSION: str = Field(
-        default="1.0.0", pattern=r"^\d+\.\d+\.\d+$", description="API version"
+        default="1.0.0", pattern=r"^\d+\.\d+\.\d+(-\w+)?$", description="API version"
     )
     API_CONTACT_NAME: str = Field(default="Cookify Support", description="Contact name")
     API_CONTACT_EMAIL: str = Field(
@@ -203,6 +203,9 @@ class SecurityConfig(BaseSettings):
         default=True, description="Enable security headers"
     )
     HSTS_MAX_AGE: int = Field(default=31536000, ge=0, description="HSTS max age")
+    SECURITY_HSTS_MAX_AGE_DEFAULT: int = Field(
+        default=31536000, ge=0, description="Default HSTS max age fallback"
+    )
     HSTS_INCLUDE_SUBDOMAINS: bool = Field(
         default=True, description="HSTS include subdomains"
     )
@@ -241,7 +244,7 @@ class SecurityConfig(BaseSettings):
         default="'self' 'unsafe-inline'", description="CSP script-src directive"
     )
     CSP_SCRIPT_SRC_DEV: str = Field(
-        default="'self' 'unsafe-inline' 'unsafe-eval'",
+        default="'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com",
         description="CSP script-src directive for development",
     )
     CSP_SCRIPT_SRC_PROD: str = Field(
@@ -251,7 +254,7 @@ class SecurityConfig(BaseSettings):
         default="'self' 'unsafe-inline'", description="CSP style-src directive"
     )
     CSP_STYLE_SRC_DEV: str = Field(
-        default="'self' 'unsafe-inline' localhost:* 127.0.0.1:*",
+        default="'self' 'unsafe-inline' localhost:* 127.0.0.1:* https://cdn.jsdelivr.net https://unpkg.com https://fonts.googleapis.com",
         description="CSP style-src directive for development",
     )
     CSP_STYLE_SRC_PROD: str = Field(
@@ -279,7 +282,7 @@ class SecurityConfig(BaseSettings):
         default="'self' https:", description="CSP font-src directive"
     )
     CSP_FONT_SRC_DEV: str = Field(
-        default="'self' https: data:",
+        default="'self' https: data: https://fonts.gstatic.com https://cdn.jsdelivr.net",
         description="CSP font-src directive for development",
     )
     CSP_FONT_SRC_PROD: str = Field(
@@ -405,6 +408,47 @@ class RateLimitConfig(BaseSettings):
     RATE_LIMIT_PASSWORD_RESET_WINDOW_MINUTES: int = Field(
         default=60, ge=1, le=240, description="Password reset window"
     )
+    
+    # Password reset confirmation settings (separate from initiation)
+    RATE_LIMIT_RESET_PASSWORD_ATTEMPTS: int = Field(
+        default=5, ge=1, le=15, description="Password reset confirmation attempts"
+    )
+    RATE_LIMIT_RESET_PASSWORD_WINDOW: int = Field(
+        default=900, ge=300, le=3600, description="Password reset confirmation window in seconds"
+    )
+    
+    # Email verification settings
+    RATE_LIMIT_VERIFY_EMAIL_ATTEMPTS: int = Field(
+        default=3, ge=1, le=10, description="Email verification attempts"
+    )
+    RATE_LIMIT_VERIFY_EMAIL_WINDOW: int = Field(
+        default=300, ge=60, le=1800, description="Email verification window in seconds"
+    )
+    
+    # Resend verification settings
+    RATE_LIMIT_RESEND_VERIFICATION_ATTEMPTS: int = Field(
+        default=2, ge=1, le=5, description="Resend verification attempts"
+    )
+    RATE_LIMIT_RESEND_VERIFICATION_WINDOW: int = Field(
+        default=600, ge=300, le=1800, description="Resend verification window in seconds"
+    )
+    
+    # Refresh token settings
+    RATE_LIMIT_REFRESH_TOKEN_ATTEMPTS: int = Field(
+        default=10, ge=1, le=50, description="Refresh token attempts"
+    )
+    RATE_LIMIT_REFRESH_TOKEN_WINDOW: int = Field(
+        default=300, ge=60, le=1800, description="Refresh token window in seconds"
+    )
+    
+    # Default auth settings (fallback)
+    RATE_LIMIT_DEFAULT_AUTH_ATTEMPTS: int = Field(
+        default=5, ge=1, le=20, description="Default auth attempts"
+    )
+    RATE_LIMIT_DEFAULT_AUTH_WINDOW: int = Field(
+        default=900, ge=300, le=3600, description="Default auth window in seconds"
+    )
+    
     RATE_LIMIT_PROGRESSIVE_MULTIPLIER: float = Field(
         default=2.0, ge=1.0, le=5.0, description="Progressive multiplier"
     )
@@ -413,6 +457,14 @@ class RateLimitConfig(BaseSettings):
     )
     RATE_LIMIT_CLEANUP_INTERVAL: int = Field(
         default=600, ge=60, le=3600, description="Cleanup interval"
+    )
+    
+    # Additional rate limiting utility settings
+    RATE_LIMIT_USER_AGENT_LENGTH: int = Field(
+        default=50, ge=10, le=200, description="User agent string length for tracking"
+    )
+    RATE_LIMIT_CLEANUP_CUTOFF: int = Field(
+        default=3600, ge=600, le=86400, description="Cleanup cutoff time in seconds"
     )
 
     # OCR-specific rate limiting (resource-intensive operations)
@@ -573,6 +625,15 @@ class LoggingConfig(BaseSettings):
     MIDDLEWARE_LOG_LEVEL: LogLevel = Field(
         default=LogLevel.INFO, description="Middleware log level"
     )
+    MIDDLEWARE_DURATION_DECIMAL_PLACES: int = Field(
+        default=3, ge=1, le=6, description="Decimal places for middleware duration logging"
+    )
+    MIDDLEWARE_HTTP_SERVER_ERROR_THRESHOLD: int = Field(
+        default=500, ge=400, le=599, description="HTTP status code threshold for server errors"
+    )
+    MIDDLEWARE_HTTP_CLIENT_ERROR_THRESHOLD: int = Field(
+        default=400, ge=400, le=499, description="HTTP status code threshold for client errors"
+    )
     SHARED_LOG_LEVEL: LogLevel = Field(
         default=LogLevel.INFO, description="Shared modules log level"
     )
@@ -692,6 +753,34 @@ class PasswordConfig(BaseSettings):
     COMMON_PASSWORD_YEAR_LIST: List[str] = Field(
         default=["2023", "2024", "2022", "2021", "2020"],
         description="Common password years"
+    )
+    COMMON_PASSWORD_MIN_VARIATION_LENGTH: int = Field(
+        default=3, ge=2, le=10,
+        description="Minimum length for password variations"
+    )
+    COMMON_PASSWORD_SUBSTITUTIONS: List[Tuple[str, str]] = Field(
+        default=[
+            ("password", "p@ssw0rd"),
+            ("admin", "@dmin"),
+            ("user", "us3r"),
+            ("login", "l0gin"),
+            ("welcome", "w3lc0m3")
+        ],
+        description="Common password substitution patterns"
+    )
+    LEET_SPEAK_SUBSTITUTIONS: dict = Field(
+        default={
+            "a": ["@", "4"],
+            "e": ["3"],
+            "i": ["1", "!"],
+            "o": ["0"],
+            "s": ["5", "$"],
+            "t": ["7"],
+            "l": ["1"],
+            "g": ["9"],
+            "b": ["6"]
+        },
+        description="Leet speak character substitutions"
     )
 
 
@@ -832,6 +921,241 @@ class ValidationConfig(BaseSettings):
     )
     VALIDATION_STRIP_WHITESPACE: bool = Field(
         default=True, description="Strip whitespace by default"
+    )
+
+    # Email validation settings
+    EMAIL_MAX_LENGTH: int = Field(
+        default=254, ge=50, le=320, description="Maximum email length"
+    )
+    EMAIL_MIN_LENGTH: int = Field(
+        default=5, ge=3, le=20, description="Minimum email length"
+    )
+    EMAIL_DANGEROUS_CHARS: str = Field(
+        default="<>\"'&;\\", description="Dangerous characters in email"
+    )
+
+    # UUID validation settings
+    UUID_LENGTH: int = Field(
+        default=36, description="Standard UUID length"
+    )
+    UUID_PATTERN: str = Field(
+        default=r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+        description="UUID validation pattern"
+    )
+
+    # Input validation settings
+    INPUT_MAX_STRING_LENGTH: int = Field(
+        default=1000, ge=100, le=10000, description="Max input string length"
+    )
+    INPUT_HTML_ESCAPE_BY_DEFAULT: bool = Field(
+        default=True, description="HTML escape input by default"
+    )
+    INPUT_STRIP_WHITESPACE: bool = Field(
+        default=True, description="Strip whitespace from input"
+    )
+    INPUT_FORBIDDEN_CONTROL_CHARS: bool = Field(
+        default=True, description="Forbid control characters in input"
+    )
+    CONTROL_CHARS_PATTERN: str = Field(
+        default=r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]",
+        description="Control characters pattern"
+    )
+    INPUT_MAX_FILENAME_LENGTH: int = Field(
+        default=255, ge=50, le=512, description="Max input filename length"
+    )
+    INPUT_MAX_JSON_DEPTH: int = Field(
+        default=10, ge=3, le=50, description="Max input JSON depth"
+    )
+    INPUT_MAX_SEARCH_QUERY_LENGTH: int = Field(
+        default=200, ge=50, le=1000, description="Max input search query length"
+    )
+
+    # URL validation settings
+    URL_ALLOWED_SCHEMES: List[str] = Field(
+        default=["http", "https"], description="Allowed URL schemes"
+    )
+    URL_ALLOWED_DOMAINS: List[str] = Field(
+        default=[], description="Allowed domains (empty = all allowed)"
+    )
+    URL_ALLOW_LOCALHOST: bool = Field(
+        default=True, description="Allow localhost URLs"
+    )
+    DB_URL_MAX_LENGTH: int = Field(
+        default=2048, ge=100, le=4096, description="Maximum database URL length"
+    )
+
+    # Hostname validation
+    HOSTNAME_VALIDATION_PATTERN: str = Field(
+        default=r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$",
+        description="Hostname validation pattern"
+    )
+
+    # Phone validation settings
+    PHONE_STRICT_INTERNATIONAL: bool = Field(
+        default=False, description="Strict international phone validation"
+    )
+    PHONE_MIN_LENGTH: int = Field(
+        default=7, ge=5, le=15, description="Minimum phone number length"
+    )
+    PHONE_MAX_LENGTH: int = Field(
+        default=15, ge=10, le=20, description="Maximum phone number length"
+    )
+
+    # Metadata validation settings
+    VALIDATION_METADATA_MAX_KEY_LENGTH: int = Field(
+        default=100, ge=10, le=255, description="Max metadata key length"
+    )
+    VALIDATION_METADATA_MAX_TOTAL_SIZE: int = Field(
+        default=10240, ge=1024, le=102400, description="Max metadata total size"
+    )
+    METADATA_MAX_STRING_VALUE_LENGTH: int = Field(
+        default=1000, ge=100, le=5000, description="Max metadata string value length"
+    )
+    METADATA_MAX_LIST_ITEMS: int = Field(
+        default=100, ge=10, le=1000, description="Max items in metadata list"
+    )
+
+    # Date validation settings
+    DATE_WEEK_DAYS: int = Field(
+        default=7, description="Number of days in a week"
+    )
+
+    # Additional validation settings for personal info checks
+    VALIDATION_EMAIL_MIN_LENGTH: int = Field(
+        default=3, ge=2, le=10, description="Min length for email parts in password check"
+    )
+    VALIDATION_NAME_MIN_LENGTH: int = Field(
+        default=2, ge=1, le=5, description="Min length for name parts in password check"
+    )
+    VALIDATION_USER_ID_MIN_LENGTH: int = Field(
+        default=3, ge=2, le=10, description="Min length for user ID in password check"
+    )
+
+    # Password strength calculation settings
+    PASSWORD_RECOMMENDED_MIN_LENGTH: int = Field(
+        default=12, ge=8, le=20, description="Recommended minimum password length"
+    )
+    PASSWORD_BONUS_MIN_LENGTH: int = Field(
+        default=16, ge=12, le=25, description="Bonus minimum password length"
+    )
+    PASSWORD_MIN_UNIQUE_CHARS_BONUS: int = Field(
+        default=8, ge=5, le=15, description="Minimum unique chars for bonus"
+    )
+
+    # Entropy calculation settings
+    ENTROPY_LOWERCASE_CHARS: int = Field(
+        default=26, description="Number of lowercase characters for entropy"
+    )
+    ENTROPY_UPPERCASE_CHARS: int = Field(
+        default=26, description="Number of uppercase characters for entropy"
+    )
+    ENTROPY_DIGIT_CHARS: int = Field(
+        default=10, description="Number of digit characters for entropy"
+    )
+
+    # Password strength thresholds
+    PASSWORD_STRENGTH_VERY_STRONG_THRESHOLD: int = Field(
+        default=90, ge=80, le=100, description="Very strong password threshold"
+    )
+    PASSWORD_STRENGTH_STRONG_THRESHOLD: int = Field(
+        default=80, ge=70, le=90, description="Strong password threshold"
+    )
+    PASSWORD_STRENGTH_GOOD_THRESHOLD: int = Field(
+        default=60, ge=50, le=70, description="Good password threshold"
+    )
+    PASSWORD_STRENGTH_FAIR_THRESHOLD: int = Field(
+        default=40, ge=30, le=50, description="Fair password threshold"
+    )
+    PASSWORD_STRENGTH_WEAK_THRESHOLD: int = Field(
+        default=20, ge=10, le=30, description="Weak password threshold"
+    )
+
+    # Pattern lists for password validation
+    INCREMENTAL_PATTERN_LIST: List[str] = Field(
+        default=["123", "234", "345", "456", "567", "678", "789", "abc", "bcd", "cde", "def"],
+        description="Incremental patterns to detect in passwords"
+    )
+    ALTERNATING_PATTERN_LIST: List[str] = Field(
+        default=["aba", "121", "010", "aba", "cdc", "efe"],
+        description="Alternating patterns to detect in passwords"
+    )
+
+    # Metadata forbidden keys
+    METADATA_FORBIDDEN_KEYS: List[str] = Field(
+        default=["password", "secret", "key", "token", "auth", "session", "private"],
+        description="Forbidden keys in metadata"
+    )
+
+    # User registration validation
+    USER_REGISTRATION_REQUIRED_FIELDS: List[str] = Field(
+        default=["email", "password"],
+        description="Required fields for user registration"
+    )
+
+    # Password reset validation
+    PASSWORD_RESET_REQUIRED_FIELDS: List[str] = Field(
+        default=["email"],
+        description="Required fields for password reset"
+    )
+
+    # Password update validation
+    PASSWORD_UPDATE_REQUIRED_FIELDS: List[str] = Field(
+        default=["password"],
+        description="Required fields for password update"
+    )
+
+    # Magic link validation
+    MAGIC_LINK_REQUIRED_FIELDS: List[str] = Field(
+        default=["email"],
+        description="Required fields for magic link request"
+    )
+
+    # OTP verification validation
+    OTP_VERIFICATION_REQUIRED_FIELDS: List[str] = Field(
+        default=["email", "token", "type"],
+        description="Required fields for OTP verification"
+    )
+
+    # OTP token validation
+    OTP_TOKEN_MIN_LENGTH: int = Field(
+        default=4, ge=4, le=6, description="Minimum OTP token length"
+    )
+    OTP_TOKEN_MAX_LENGTH: int = Field(
+        default=10, ge=6, le=12, description="Maximum OTP token length"
+    )
+
+    # OTP allowed types
+    OTP_ALLOWED_TYPES: List[str] = Field(
+        default=["email", "sms", "phone_change"],
+        description="Allowed OTP verification types"
+    )
+
+    # Search validation
+    SEARCH_LIMIT_MAX_VALUE: int = Field(
+        default=100, ge=50, le=500, description="Maximum search results limit"
+    )
+    SEARCH_LIMIT_MIN_VALUE: int = Field(
+        default=1, ge=1, le=10, description="Minimum search results limit"
+    )
+
+    # Pagination validation
+    PAGINATION_PER_PAGE_MAX: int = Field(
+        default=100, ge=50, le=500, description="Maximum items per page"
+    )
+    PAGINATION_PER_PAGE_MIN: int = Field(
+        default=1, ge=1, le=10, description="Minimum items per page"
+    )
+    PAGINATION_PAGE_MIN: int = Field(
+        default=1, description="Minimum page number"
+    )
+
+    # API sorting validation
+    API_SORT_BY_MAX_LENGTH: int = Field(
+        default=50, ge=20, le=100, description="Maximum length for sort_by field"
+    )
+    API_ALLOWED_SORT_ORDERS: List[str] = Field(
+        default=["asc", "desc"],
+        description="Allowed sort orders"
     )
 
 

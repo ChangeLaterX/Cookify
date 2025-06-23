@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# Update and restart backend on server
+# Update and restart backend else
+    echo "Warning: start-docker.sh not found, attempting docker compose up..."
+    docker compose up -dserver
 # This script stops the backend, pulls latest changes from dev branch, and restarts
 
 set -e  # Exit on any error
@@ -19,8 +21,8 @@ if [ -f "stop-docker.sh" ]; then
     sh stop-docker.sh
     echo "Backend stopped successfully"
 else
-    echo "Warning: stop-docker.sh not found, attempting docker-compose down..."
-    docker-compose down 2>/dev/null || echo "No containers to stop"
+    echo "Warning: stop-docker.sh not found, attempting docker compose down..."
+    docker compose down 2>/dev/null || echo "No containers to stop"
 fi
 
 # Git operations
@@ -48,7 +50,7 @@ fi
 # Wait a moment and check container status
 echo "Checking container status..."
 sleep 5
-docker-compose ps
+docker compose ps
 
 echo "=== Update and restart completed at $(date) ==="
 echo "Backend should be available shortly"

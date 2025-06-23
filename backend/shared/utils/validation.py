@@ -101,7 +101,7 @@ def sanitize_url(url: str, allowed_schemes: Optional[List[str]] = None,
     url = url.strip()
     
     # Check maximum URL length
-    if len(url) > settings.url_max_url_length:
+    if len(url) > settings.DB_URL_MAX_LENGTH:
         return ""
     
     # Parse URL
@@ -149,7 +149,7 @@ def sanitize_url(url: str, allowed_schemes: Optional[List[str]] = None,
             return ""
     
     # Additional hostname validation using settings pattern
-    hostname_pattern = re.compile(settings.hostname_validation_pattern)
+    hostname_pattern = re.compile(settings.HOSTNAME_VALIDATION_PATTERN)
     if not hostname_pattern.match(hostname) and not allow_localhost:
         return ""
     
@@ -175,13 +175,13 @@ def validate_phone_number(phone: str, strict_international: Optional[bool] = Non
         return False
     
     # Use configuration default if not provided
-    strict_international = strict_international if strict_international is not None else settings.phone_strict_international
+    strict_international = strict_international if strict_international is not None else settings.PHONE_STRICT_INTERNATIONAL
     
     # Remove all non-digit characters except +
     cleaned = re.sub(r'[^\d+]', '', phone)
     
     # Basic length validation
-    if len(cleaned) < settings.phone_min_length or len(cleaned) > settings.phone_max_length + 1:  # +1 for the + sign
+    if len(cleaned) < settings.PHONE_MIN_LENGTH or len(cleaned) > settings.PHONE_MAX_LENGTH + 1:  # +1 for the + sign
         return False
     
     if strict_international:
@@ -212,7 +212,7 @@ def sanitize_metadata_key(key: str, max_length: Optional[int] = None) -> str:
         return ""
     
     # Use configuration default if not provided
-    max_length = max_length if max_length is not None else settings.validation_metadata_max_key_length
+    max_length = max_length if max_length is not None else settings.VALIDATION_METADATA_MAX_KEY_LENGTH
     
     # Only allow alphanumeric characters, underscores, and hyphens
     sanitized = re.sub(r'[^a-zA-Z0-9_-]', '', key)
@@ -237,7 +237,7 @@ def validate_metadata_size(metadata: Dict[str, Any], max_total_size: Optional[in
         return False
     
     # Use configuration default if not provided
-    max_total_size = max_total_size if max_total_size is not None else settings.validation_metadata_max_total_size
+    max_total_size = max_total_size if max_total_size is not None else settings.VALIDATION_METADATA_MAX_TOTAL_SIZE
     
     try:
         total_size = len(str(metadata).encode('utf-8'))
@@ -249,7 +249,7 @@ def validate_metadata_size(metadata: Dict[str, Any], max_total_size: Optional[in
 def sanitize_metadata_value(value: Any, max_string_length: Optional[int] = None) -> Any:
     """Sanitize metadata values recursively."""
     # Use configuration default if not provided
-    max_string_length = max_string_length if max_string_length is not None else settings.metadata_max_string_value_length
+    max_string_length = max_string_length if max_string_length is not None else settings.METADATA_MAX_STRING_VALUE_LENGTH
     
     if isinstance(value, str):
         return sanitize_string(value, max_length=max_string_length)
@@ -260,7 +260,7 @@ def sanitize_metadata_value(value: Any, max_string_length: Optional[int] = None)
             if sanitize_metadata_key(k)  # Only include valid keys
         }
     elif isinstance(value, list):
-        max_items = settings.metadata_max_list_items
+        max_items = settings.METADATA_MAX_LIST_ITEMS
         return [sanitize_metadata_value(item, max_string_length) for item in value[:max_items]]
     elif isinstance(value, (int, float, bool)) or value is None:
         return value
@@ -330,7 +330,7 @@ def sanitize_filename(filename: str, max_length: Optional[int] = None) -> str:
         return ""
     
     # Use configuration default if not provided
-    max_length = max_length if max_length is not None else settings.input_max_filename_length
+    max_length = max_length if max_length is not None else settings.INPUT_MAX_FILENAME_LENGTH
     
     # Remove path separators and dangerous characters
     sanitized = re.sub(r'[<>:"|?*\\/]', '', filename)
@@ -358,7 +358,7 @@ def sanitize_filename(filename: str, max_length: Optional[int] = None) -> str:
 def validate_json_structure(data: Any, max_depth: Optional[int] = None, current_depth: int = 0) -> bool:
     """Validate JSON structure depth to prevent deeply nested objects."""
     # Use configuration default if not provided
-    max_depth = max_depth if max_depth is not None else settings.input_max_json_depth
+    max_depth = max_depth if max_depth is not None else settings.INPUT_MAX_JSON_DEPTH
     
     if current_depth > max_depth:
         return False
@@ -386,7 +386,7 @@ def validate_ip_address(ip_str: str, allow_private: bool = False) -> bool:
 def validate_user_input(value: str, max_length: Optional[int] = None, allow_html: Optional[bool] = None) -> str:
     """Validate and sanitize general user input."""
     # Use configuration defaults if not provided
-    max_length = max_length if max_length is not None else settings.input_max_string_length
+    max_length = max_length if max_length is not None else settings.INPUT_MAX_STRING_LENGTH
     
     sanitized = sanitize_string(value, max_length=max_length, allow_html=allow_html)
     if not sanitized.strip():
@@ -400,7 +400,7 @@ def validate_search_query(query: str, max_length: Optional[int] = None) -> str:
         raise ValueError("Search query must be a string")
     
     # Use configuration default if not provided
-    max_length = max_length if max_length is not None else settings.input_max_search_query_length
+    max_length = max_length if max_length is not None else settings.INPUT_MAX_SEARCH_QUERY_LENGTH
     
     # Remove excessive whitespace
     sanitized = re.sub(r'\s+', ' ', query.strip())
