@@ -151,124 +151,119 @@ jobs:
     - name: Create endpoint discovery script
       working-directory: ./backend
       run: |
-        python3 -c "
-import re
-import json
-from pathlib import Path
+        cat > discover_endpoints.py << 'EOF'
+        import re
+        import json
+        from pathlib import Path
 
-def find_fastapi_routes():
-    endpoints = []
-    for py_file in Path('domains').rglob('*.py'):
-        try:
-            with open(py_file, 'r') as f:
-                content = f.read()
-            patterns = [
-                r'@router\.(get|post|put|delete|patch)\s*\(\s*[\"'\''']([^\"'\'''\s]+)[\"'\''']',
-                r'@app\.(get|post|put|delete|patch)\s*\(\s*[\"'\''']([^\"'\'''\s]+)[\"'\''']'
-            ]
-            for pattern in patterns:
-                matches = re.findall(pattern, content)
-                for method, path in matches:
-                    if not any(term in path.lower() for term in ['reset', 'forgot']):
-                        endpoints.append({
-                            'method': method.upper(),
-                            'path': path,
-                            'file': str(py_file)
-                        })
-        except Exception as e:
-            print(f'Error reading {py_file}: {e}')
-    
-    print(f'Found {len(endpoints)} endpoints:')
-    for ep in endpoints:
-        print(f'  {ep[\"method\"]} {ep[\"path\"]}')
-    
-    with open('discovered_endpoints.json', 'w') as f:
-        json.dump(endpoints, f)
+        def find_fastapi_routes():
+            endpoints = []
+            for py_file in Path('domains').rglob('*.py'):
+                try:
+                    with open(py_file, 'r') as f:
+                        content = f.read()
+                    patterns = [
+                        r'@router\.(get|post|put|delete|patch)\s*\(\s*["\']([^"\'\s]+)["\']',
+                        r'@app\.(get|post|put|delete|patch)\s*\(\s*["\']([^"\'\s]+)["\']'
+                    ]
+                    for pattern in patterns:
+                        matches = re.findall(pattern, content)
+                        for method, path in matches:
+                            if not any(term in path.lower() for term in ['reset', 'forgot']):
+                                endpoints.append({
+                                    'method': method.upper(),
+                                    'path': path,
+                                    'file': str(py_file)
+                                })
+                except Exception as e:
+                    print(f'Error reading {py_file}: {e}')
+            
+            print(f'Found {len(endpoints)} endpoints:')
+            for ep in endpoints:
+                print(f'  {ep["method"]} {ep["path"]}')
+            
+            with open('discovered_endpoints.json', 'w') as f:
+                json.dump(endpoints, f)
 
-find_fastapi_routes()
-        "
+        if __name__ == '__main__':
+            find_fastapi_routes()
+        EOF
+        python3 discover_endpoints.py
     
     - name: Create endpoint tests
       working-directory: ./backend
       run: |
-        python3 -c "
-import json
+        cat > test_discovered_endpoints.py << 'EOF'
+        import json
+        import pytest
+        from fastapi.testclient import TestClient
+        from main import app
 
-test_code = '''
-import json
-import pytest
-from fastapi.testclient import TestClient
-from main import app
-
-try:
-    with open(\"discovered_endpoints.json\", \"r\") as f:
-        ENDPOINTS = json.load(f)
-except FileNotFoundError:
-    ENDPOINTS = []
-
-class TestDiscoveredEndpoints:
-    
-    @pytest.fixture(scope=\"class\")
-    def client(self):
-        return TestClient(app)
-    
-    @pytest.fixture(scope=\"class\")
-    def auth_token(self, client):
         try:
-            response = client.post(\"/auth/login\", json={
-                \"email\": \"krijajannis@gmail.com\",
-                \"password\": \"221224\"
-            })
-            if response.status_code == 200:
-                return response.json().get(\"access_token\")
-        except:
-            pass
-        return None
-    
-    @pytest.mark.parametrize(\"endpoint\", ENDPOINTS)
-    def test_endpoint_responds(self, client, auth_token, endpoint):
-        method = endpoint[\"method\"]
-        path = endpoint[\"path\"]
-        
-        test_path = path.replace(\"{id}\", \"1\").replace(\"{user_id}\", \"1\")
-        
-        headers = {}
-        if auth_token and (\"auth\" in path or \"profile\" in path or \"me\" in path):
-            headers[\"Authorization\"] = f\"Bearer {auth_token}\"
-        
-        try:
-            if method == \"GET\":
-                response = client.get(test_path, headers=headers)
-            elif method == \"POST\":
-                response = client.post(test_path, json={}, headers=headers)
-            elif method == \"PUT\":
-                response = client.put(test_path, json={}, headers=headers)
-            elif method == \"DELETE\":
-                response = client.delete(test_path, headers=headers)
-            elif method == \"PATCH\":
-                response = client.patch(test_path, json={}, headers=headers)
-            else:
-                pytest.skip(f\"Unsupported method: {method}\")
-            
-            assert response.status_code != 404, f\"Endpoint not found: {method} {path}\"
-            assert response.status_code != 500, f\"Server error: {method} {path}\"
-            
-        except Exception as e:
-            pytest.fail(f\"Endpoint {method} {path} failed: {str(e)}\")
-    
-    def test_health_endpoint_performance(self, client):
-        import time
-        start = time.time()
-        response = client.get(\"/health\")
-        duration = (time.time() - start) * 1000
-        
-        assert duration < 1000, f\"Health endpoint too slow: {duration:.2f}ms\"
-        assert response.status_code == 200
-'''
+            with open("discovered_endpoints.json", "r") as f:
+                ENDPOINTS = json.load(f)
+        except FileNotFoundError:
+            ENDPOINTS = []
 
-with open('test_discovered_endpoints.py', 'w') as f:
-    f.write(test_code)
-        "
+        class TestDiscoveredEndpoints:
+            
+            @pytest.fixture(scope="class")
+            def client(self):
+                return TestClient(app)
+            
+            @pytest.fixture(scope="class")
+            def auth_token(self, client):
+                try:
+                    response = client.post("/auth/login", json={
+                        "email": "krijajannis@gmail.com",
+                        "password": "221224"
+                    })
+                    if response.status_code == 200:
+                        return response.json().get("access_token")
+                except:
+                    pass
+                return None
+            
+            @pytest.mark.parametrize("endpoint", ENDPOINTS)
+            def test_endpoint_responds(self, client, auth_token, endpoint):
+                method = endpoint["method"]
+                path = endpoint["path"]
+                
+                test_path = path.replace("{id}", "1").replace("{user_id}", "1")
+                
+                headers = {}
+                if auth_token and ("auth" in path or "profile" in path or "me" in path):
+                    headers["Authorization"] = f"Bearer {auth_token}"
+                
+                try:
+                    if method == "GET":
+                        response = client.get(test_path, headers=headers)
+                    elif method == "POST":
+                        response = client.post(test_path, json={}, headers=headers)
+                    elif method == "PUT":
+                        response = client.put(test_path, json={}, headers=headers)
+                    elif method == "DELETE":
+                        response = client.delete(test_path, headers=headers)
+                    elif method == "PATCH":
+                        response = client.patch(test_path, json={}, headers=headers)
+                    else:
+                        pytest.skip(f"Unsupported method: {method}")
+                    
+                    assert response.status_code != 404, f"Endpoint not found: {method} {path}"
+                    assert response.status_code != 500, f"Server error: {method} {path}"
+                    
+                except Exception as e:
+                    pytest.fail(f"Endpoint {method} {path} failed: {str(e)}")
+            
+            def test_health_endpoint_performance(self, client):
+                import time
+                start = time.time()
+                response = client.get("/health")
+                duration = (time.time() - start) * 1000
+                
+                assert duration < 1000, f"Health endpoint too slow: {duration:.2f}ms"
+                assert response.status_code == 200
+        EOF
     
     - name: Run endpoint tests
       working-directory: ./backend
