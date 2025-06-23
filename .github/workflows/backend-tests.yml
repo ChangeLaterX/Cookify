@@ -195,13 +195,13 @@ jobs:
         EOF
         python3 discover_endpoints.py
     
-    - name: Create endpoint tests
+    - name: Create endpoint testsClient class, which is then conflicting with 
       working-directory: ./backend
       run: |
         cat > test_discovered_endpoints.py << 'EOF'
         import json
         import pytest
-        from fastapi.testclient import TestClient
+        from fastapi.testclient import TestClient as FastAPITestClient
         from main import app
 
         try:
@@ -214,7 +214,7 @@ jobs:
             
             @pytest.fixture(scope="class")
             def client(self):
-                return TestClient(app)
+                return FastAPITestClient(app)
             
             @pytest.fixture(scope="class")
             def auth_token(self, client):
