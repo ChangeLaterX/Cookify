@@ -245,7 +245,7 @@ jobs:
 import json
 with open('test-report.json') as f:
     data = json.load(f)
-    
+
 summary = data.get('summary', {})
 print(f'- **Total Tests**: {summary.get("total", 0)}')
 print(f'- **Passed**: {summary.get("passed", 0)}')
