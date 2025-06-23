@@ -62,26 +62,31 @@ jobs:
         pip install -r requirements.txt
         pip install pytest-json-report pytest-html pytest-cov pytest-xdist
     
-    - name: Set up test environment
+    - name: Set up Python path and run unit tests
       working-directory: ./backend
       run: |
-        echo "ENVIRONMENT=test" > .env.test
-        echo "DEBUG=False" >> .env.test
-        echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env.test
-        echo "SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}" >> .env.test
-        echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env.test
-        echo "JWT_ALGORITHM=HS256" >> .env.test
-        echo "JWT_EXPIRATION=1440" >> .env.test
-        echo "TEST_EMAIL=krijajannis@gmail.com" >> .env.test
-        echo "TEST_PASSWORD=221224" >> .env.test
-        echo "OCR_TEST_MOCK_MODE=false" >> .env.test
-        echo "OCR_TEST_INTEGRATION=true" >> .env.test
-        echo "DB_READ_ONLY=true" >> .env.test
-    
-    - name: Run unit tests
-      working-directory: ./backend
-      run: |
-        pytest tests/ \
+        # Set environment for testing
+        export ENVIRONMENT=test
+        export DEBUG=False
+        export SUPABASE_URL="${{ secrets.SUPABASE_URL }}"
+        export SUPABASE_KEY="${{ secrets.SUPABASE_KEY }}"
+        export JWT_SECRET="${{ secrets.JWT_SECRET }}"
+        export JWT_ALGORITHM=HS256
+        export JWT_EXPIRATION=1440
+        export TEST_EMAIL=krijajannis@gmail.com
+        export TEST_PASSWORD=221224
+        export OCR_TEST_MOCK_MODE=false
+        export OCR_TEST_INTEGRATION=true
+        export DB_READ_ONLY=true
+        
+        # Add current directory to Python path
+        export PYTHONPATH="$(pwd):${PYTHONPATH}"
+        
+        # Install the backend package in editable mode to fix import issues
+        pip install -e .
+        
+        # Run pytest with proper path
+        python -m pytest tests/ \
           --verbose \
           --tb=short \
           --cov=domains \
@@ -269,7 +274,26 @@ jobs:
       working-directory: ./backend
       run: |
         if [ -f discovered_endpoints.json ]; then
-          pytest test_discovered_endpoints.py -v --tb=short --junitxml=endpoint-results.xml
+          # Set up environment variables
+          export ENVIRONMENT=test
+          export DEBUG=False
+          export SUPABASE_URL="${{ secrets.SUPABASE_URL }}"
+          export SUPABASE_KEY="${{ secrets.SUPABASE_KEY }}"
+          export JWT_SECRET="${{ secrets.JWT_SECRET }}"
+          export JWT_ALGORITHM=HS256
+          export JWT_EXPIRATION=1440
+          export TEST_EMAIL=krijajannis@gmail.com
+          export TEST_PASSWORD=221224
+          export OCR_TEST_MOCK_MODE=false
+          export OCR_TEST_INTEGRATION=true
+          export DB_READ_ONLY=true
+          
+          # Set up Python path and install package
+          export PYTHONPATH="$(pwd):${PYTHONPATH}"
+          pip install -e . 2>/dev/null || true
+          
+          # Run tests
+          python -m pytest test_discovered_endpoints.py -v --tb=short --junitxml=endpoint-results.xml
         else
           echo "No endpoints discovered, skipping tests"
         fi
