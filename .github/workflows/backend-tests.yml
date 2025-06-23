@@ -241,30 +241,30 @@ jobs:
         echo "" >> test-summary.md
         
         if [ -f test-report.json ]; then
-          python -c "
+          python3 << 'PYTHON_SCRIPT' >> test-summary.md
 import json
 with open('test-report.json') as f:
     data = json.load(f)
     
 summary = data.get('summary', {})
-print(f'- **Total Tests**: {summary.get(\"total\", 0)}')
-print(f'- **Passed**: {summary.get(\"passed\", 0)}')
-print(f'- **Failed**: {summary.get(\"failed\", 0)}')
-print(f'- **Skipped**: {summary.get(\"skipped\", 0)}')
-print(f'- **Duration**: {summary.get(\"duration\", 0):.2f}s')
-          " >> test-summary.md
+print(f'- **Total Tests**: {summary.get("total", 0)}')
+print(f'- **Passed**: {summary.get("passed", 0)}')
+print(f'- **Failed**: {summary.get("failed", 0)}')
+print(f'- **Skipped**: {summary.get("skipped", 0)}')
+print(f'- **Duration**: {summary.get("duration", 0):.2f}s')
+PYTHON_SCRIPT
         fi
         
         echo "" >> test-summary.md
         echo "### Coverage Report" >> test-summary.md
         if [ -f coverage.xml ]; then
-          python -c "
+          python3 << 'PYTHON_SCRIPT' >> test-summary.md
 import xml.etree.ElementTree as ET
 tree = ET.parse('coverage.xml')
 root = tree.getroot()
 coverage = root.attrib.get('line-rate', '0')
 print(f'- **Line Coverage**: {float(coverage)*100:.1f}%')
-          " >> test-summary.md
+PYTHON_SCRIPT
         fi
         
         cat test-summary.md
