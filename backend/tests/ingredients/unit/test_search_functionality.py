@@ -5,6 +5,7 @@ This module tests ingredient search and filtering capabilities with the real dat
 """
 
 import pytest
+
 from domains.ingredients.schemas import IngredientListResponse
 from domains.ingredients.services import IngredientError, search_ingredients
 from tests.ingredients.config import IngredientsTestBase

@@ -7,7 +7,6 @@ import uuid
 from datetime import datetime
 from typing import Any, Literal, Optional
 
-from core.config import settings
 from sqlalchemy import (
     Boolean,
     Column,
@@ -21,6 +20,8 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.orm.relationships import Relationship
+
+from core.config import settings
 
 # Create base class for models
 Base = declarative_base()

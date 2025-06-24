@@ -1,8 +1,9 @@
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from core.config import settings
 from supabase import Client, create_client
+
+from core.config import settings
 
 
 class SupabaseService:

@@ -7,6 +7,7 @@ This module tests error handling and exception scenarios with real database.
 from uuid import UUID
 
 import pytest
+
 from domains.ingredients.schemas import IngredientListResponse
 from domains.ingredients.services import (
     IngredientError,

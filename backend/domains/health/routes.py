@@ -6,9 +6,10 @@ Provides HTTP endpoints for system health monitoring.
 import time
 from datetime import datetime
 
+from fastapi import APIRouter, status
+
 from core.config import settings
 from core.logging import get_logger
-from fastapi import APIRouter, status
 
 from .metrics import get_metrics_collector
 from .schemas import DetailedHealthResponse, HealthResponse

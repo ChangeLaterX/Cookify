@@ -6,6 +6,7 @@ Tests basic authentication functionality without complex mocks
 from unittest.mock import Mock, patch
 
 import pytest
+
 from domains.auth.schemas import TokenResponse, UserCreate, UserLogin
 
 
@@ -47,8 +48,9 @@ class TestBasicAuth:
         # This bypasses complex password validation for CI/CD tests
 
         # Test email validation (without creating full UserCreate object)
-        from domains.auth.schemas import UserLogin
         from pydantic import ValidationError
+
+        from domains.auth.schemas import UserLogin
 
         # Test that UserLogin works (simpler validation)
         login = UserLogin(email="test@example.com", password="anypassword")

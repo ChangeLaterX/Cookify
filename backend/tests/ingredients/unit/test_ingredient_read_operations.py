@@ -7,6 +7,7 @@ This module tests ingredient retrieval and read-only operations using the real d
 from uuid import UUID
 
 import pytest
+
 from domains.ingredients.schemas import IngredientListResponse, IngredientMasterResponse
 from domains.ingredients.services import (
     IngredientError,

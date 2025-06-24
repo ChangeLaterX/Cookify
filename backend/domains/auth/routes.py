@@ -8,9 +8,10 @@ import logging
 from typing import Optional
 from uuid import UUID
 
-from core.logging import get_logger
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+from core.logging import get_logger
 from middleware.security import get_current_user, get_optional_user
 
 from .schemas import (

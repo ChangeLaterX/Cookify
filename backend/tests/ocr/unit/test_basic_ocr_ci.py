@@ -132,6 +132,7 @@ class TestBasicOCR:
     def test_ocr_schema_field_validation(self):
         """Test OCR schema field validation."""
         import pytest
+
         from domains.ocr.schemas import ReceiptItem
 
         # Test valid item

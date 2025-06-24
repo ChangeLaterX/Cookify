@@ -4,9 +4,10 @@ Simple Security Headers Middleware for testing.
 
 import logging
 
-from core.config import settings
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
+
+from core.config import settings
 
 logger = logging.getLogger(__name__)
 

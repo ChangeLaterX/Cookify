@@ -4,11 +4,12 @@ Global error handlers for the FastAPI application.
 
 import logging
 
-from core.config import settings
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from core.config import settings
 
 
 # Function to get request ID

@@ -5,8 +5,9 @@ Common type definitions and enums.
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
-from core.config import settings
 from pydantic import BaseModel
+
+from core.config import settings
 
 
 class RecipeSource(str, Enum):
