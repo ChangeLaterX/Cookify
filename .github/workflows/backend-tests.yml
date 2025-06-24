@@ -218,7 +218,7 @@ jobs:
           path: |
             backend/bandit-report.json
             backend/safety-report.json
-        retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
 
       - name: 📋 Code Quality Summary
         if: always()
