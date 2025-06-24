@@ -208,7 +208,9 @@ jobs:
         working-directory: ./backend
         run: |
           safety check --json --output safety-report.json || echo "⚠️ Vulnerable dependencies found"
-          safety check      - name: 📤 Upload Security Reports
+          safety check
+
+      - name: 📤 Upload Security Reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
