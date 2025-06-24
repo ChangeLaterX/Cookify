@@ -46,7 +46,7 @@ class AuthMockFactory:
         return TokenResponse(
             access_token=access_token or f"mock_access_token_{uuid.uuid4().hex[:8]}",
             refresh_token=refresh_token or f"mock_refresh_token_{uuid.uuid4().hex[:8]}",
-            token_type="bearer",
+            token_type="bearer",  # nosec B106 - Standard OAuth2 token type in tests
             expires_in=expires_in,
             user=AuthMockFactory.create_user_response(),
         )

@@ -731,7 +731,7 @@ async def dev_login() -> AuthResponse:
         data=TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
-            token_type="bearer",
+            token_type="bearer",  # nosec B106 - Standard OAuth2 token type, not a password
             expires_in=1800,
             expires_at=datetime.utcnow() + timedelta(minutes=30),
         ),

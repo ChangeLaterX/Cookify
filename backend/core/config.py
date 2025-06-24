@@ -118,7 +118,12 @@ class ServerConfig(BaseSettings):
     """Server and networking configuration."""
 
     # Server Settings
-    SERVER_HOST: str = Field(default="0.0.0.0", description="Server host")
+    # Security Note: Use "127.0.0.1" for local development, "0.0.0.0" only for 
+    # containerized deployments where the container network provides isolation
+    SERVER_HOST: str = Field(
+        default_factory=lambda: os.getenv("SERVER_HOST", "127.0.0.1"), 
+        description="Server host - use 127.0.0.1 for local dev, 0.0.0.0 for containers"
+    )
     SERVER_PORT: int = Field(default=8000, ge=1024, le=65535, description="Server port")
     SERVER_WORKERS: int = Field(default=1, ge=1, le=16, description="Number of workers")
     SERVER_RELOAD: bool = Field(default=True, description="Enable auto-reload")

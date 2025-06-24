@@ -328,9 +328,9 @@ def get_ingredients_by_scenario(scenario: str) -> List[Dict[str, Any]]:
 
 def get_random_ingredient() -> Dict[str, Any]:
     """Get a random sample ingredient."""
-    import random
+    import random  # nosec B311 - Random used for test data generation, not security purposes
 
-    return random.choice(SAMPLE_INGREDIENTS)
+    return random.choice(SAMPLE_INGREDIENTS)  # nosec B311 - Random used for test data generation
 
 
 def get_ingredient_by_name(name: str) -> Dict[str, Any]:

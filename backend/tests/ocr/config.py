@@ -105,7 +105,7 @@ class OCRTestConfig:
     @classmethod
     def get_tesseract_info(cls) -> Dict[str, Any]:
         """Get detailed Tesseract installation information."""
-        import subprocess
+        import subprocess  # nosec B404 - subprocess is used safely here with controlled args
 
         info = {
             "available": cls().TESSERACT_AVAILABLE,
@@ -117,13 +117,13 @@ class OCRTestConfig:
         if info["available"]:
             try:
                 # Get version
-                result = subprocess.run(["tesseract", "--version"], capture_output=True, text=True)
+                result = subprocess.run(["tesseract", "--version"], capture_output=True, text=True)  # nosec B603, B607 - Controlled subprocess call with fixed args
                 if result.returncode == 0:
                     info["version"] = result.stderr.split("\n")[0]
 
                 # Get available languages
                 result = subprocess.run(
-                    ["tesseract", "--list-langs"], capture_output=True, text=True
+                    ["tesseract", "--list-langs"], capture_output=True, text=True  # nosec B603, B607 - Controlled subprocess call with fixed args
                 )
                 if result.returncode == 0:
                     languages = result.stdout.strip().split("\n")[1:]  # Skip header

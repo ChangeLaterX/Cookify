@@ -411,7 +411,8 @@ class HealthCheckService:
                 return basic_info
 
             # Get system metrics with psutil
-            assert psutil is not None  # Type narrowing
+            if psutil is None:
+                raise RuntimeError("psutil is required but not available")
             memory = psutil.virtual_memory()
             cpu_percent = psutil.cpu_percent(interval=None)
             disk_usage = psutil.disk_usage("/")
@@ -464,7 +465,8 @@ class HealthCheckService:
 
         try:
             # Get system metrics
-            assert psutil is not None  # Type narrowing
+            if psutil is None:
+                raise RuntimeError("psutil is required but not available")
             memory = psutil.virtual_memory()
             cpu_percent = psutil.cpu_percent(interval=0.1)  # 100ms sample
             disk_usage = psutil.disk_usage("/")

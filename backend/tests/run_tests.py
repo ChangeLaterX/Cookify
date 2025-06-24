@@ -15,7 +15,7 @@ Usage:
 import argparse
 import json
 import os
-import subprocess
+import subprocess  # nosec B404 - subprocess used safely with controlled commands
 import sys
 import time
 from pathlib import Path
@@ -73,10 +73,10 @@ class EnterpriseTestRunner:
 
         try:
             if capture_output:
-                result = subprocess.run(cmd, capture_output=True, text=True, cwd=self.base_path)
+                result = subprocess.run(cmd, capture_output=True, text=True, cwd=self.base_path)  # nosec B603 - Controlled subprocess call
                 return result.returncode, result.stdout, result.stderr
             else:
-                result = subprocess.run(cmd, cwd=self.base_path, text=True)
+                result = subprocess.run(cmd, cwd=self.base_path, text=True)  # nosec B603 - Controlled subprocess call
                 return result.returncode, "", ""
         except Exception as e:
             self.print_error(f"Command execution failed: {e}")

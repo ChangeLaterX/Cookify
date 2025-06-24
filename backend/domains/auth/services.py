@@ -126,9 +126,9 @@ class AuthService:
 
                 # Return response indicating email verification needed
                 return TokenResponse(
-                    access_token="",  # No token until email verified
-                    refresh_token="",
-                    token_type="bearer",
+                    access_token="",  # nosec B106 - Empty string, not a hardcoded password
+                    refresh_token="",  # nosec B106 - Empty string, not a hardcoded password
+                    token_type="bearer",  # nosec B106 - Standard OAuth2 token type
                     expires_in=0,
                     expires_at=datetime.now(timezone.utc),
                 )
@@ -160,7 +160,7 @@ class AuthService:
             return TokenResponse(
                 access_token=session.access_token,
                 refresh_token=session.refresh_token,
-                token_type="bearer",
+                token_type="bearer",  # nosec B106 - Standard OAuth2 token type
                 expires_in=session.expires_in or settings.AUTH_SESSION_DEFAULT_EXPIRES_IN,
                 expires_at=expires_at,
             )
@@ -378,7 +378,7 @@ class AuthService:
             return TokenResponse(
                 access_token=session.access_token,
                 refresh_token=session.refresh_token,
-                token_type="bearer",
+                token_type="bearer",  # nosec B106 - Standard OAuth2 token type
                 expires_in=session.expires_in or settings.AUTH_SESSION_DEFAULT_EXPIRES_IN,
                 expires_at=expires_at,
             )
@@ -488,7 +488,7 @@ class AuthService:
             return TokenResponse(
                 access_token=session.access_token,
                 refresh_token=session.refresh_token,
-                token_type="bearer",
+                token_type="bearer",  # nosec B106 - Standard OAuth2 token type
                 expires_in=session.expires_in or settings.AUTH_SESSION_DEFAULT_EXPIRES_IN,
                 expires_at=expires_at,
             )
