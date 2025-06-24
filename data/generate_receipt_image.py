@@ -4,8 +4,10 @@ Generate a sample receipt image for OCR testing in Cookify.
 This creates a realistic grocery receipt with food items.
 """
 
-from PIL import Image, ImageDraw, ImageFont
 import os
+
+from PIL import Image, ImageDraw, ImageFont
+
 
 def create_receipt_image():
     """Create a sample grocery receipt image for OCR testing."""

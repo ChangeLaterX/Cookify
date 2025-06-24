@@ -6,7 +6,6 @@ from datetime import date, datetime, timedelta
 from typing import Optional
 
 import pytz
-
 from core.config import settings
 
 

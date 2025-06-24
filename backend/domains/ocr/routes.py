@@ -7,18 +7,12 @@ Enhanced with security validations and rate limiting.
 import time
 from typing import Optional
 
+from core.logging import get_logger
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import JSONResponse
 
-from core.logging import get_logger
-
-from .schemas import (
-    ErrorResponse,
-    MessageResponse,
-    OCRApiResponse,
-    OCRProcessedResponse,
-    OCRTextResponse,
-)
+from .schemas import (ErrorResponse, MessageResponse, OCRApiResponse,
+                      OCRProcessedResponse, OCRTextResponse)
 from .services import OCRError, extract_text_from_image, process_receipt_image
 
 logger = get_logger(__name__)

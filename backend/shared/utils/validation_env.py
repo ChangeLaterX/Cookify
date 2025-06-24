@@ -7,12 +7,9 @@ import logging
 import os
 from typing import Optional
 
-from .validation_config import (
-    configure_for_development,
-    configure_for_production,
-    configure_for_testing,
-    validation_config,
-)
+from .validation_config import (configure_for_development,
+                                configure_for_production,
+                                configure_for_testing, validation_config)
 
 # Configure logging
 logger = logging.getLogger(__name__)

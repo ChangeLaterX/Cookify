@@ -10,15 +10,11 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 from uuid import uuid4
 
+from domains.ingredients.schemas import (IngredientListResponse,
+                                         IngredientMasterResponse)
+from domains.ocr.schemas import (OCRItemSuggestion, OCRProcessedResponse,
+                                 OCRTextResponse, ReceiptItem)
 from pydantic import BaseModel
-
-from domains.ingredients.schemas import IngredientListResponse, IngredientMasterResponse
-from domains.ocr.schemas import (
-    OCRItemSuggestion,
-    OCRProcessedResponse,
-    OCRTextResponse,
-    ReceiptItem,
-)
 
 
 # Define missing types for test compatibility

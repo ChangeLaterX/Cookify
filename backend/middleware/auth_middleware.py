@@ -7,15 +7,14 @@ import time
 from typing import Any, Dict, Optional
 from uuid import UUID
 
-from fastapi import Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse
-
 from core.config import settings
 from core.logging import get_logger
 from domains.auth.schemas import AuthUser
 from domains.auth.services import AuthenticationError
 from domains.auth.services import get_current_user as get_user_from_token
+from fastapi import Request, Response
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
 
 logger = get_logger(__name__)
 

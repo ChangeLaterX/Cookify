@@ -3,8 +3,10 @@
 Generate a handwritten-style shopping list image for OCR testing.
 """
 
-from PIL import Image, ImageDraw, ImageFont
 import random
+
+from PIL import Image, ImageDraw, ImageFont
+
 
 def create_shopping_list_image():
     """Create a shopping list image that simulates handwritten text."""

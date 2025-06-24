@@ -5,14 +5,8 @@ This domain handles receipt OCR processing and ingredient matching for the Cooki
 """
 
 from .routes import router
-from .schemas import (
-    ErrorResponse,
-    MessageResponse,
-    OCRApiResponse,
-    OCRProcessedResponse,
-    OCRTextResponse,
-    ReceiptItem,
-)
+from .schemas import (ErrorResponse, MessageResponse, OCRApiResponse,
+                      OCRProcessedResponse, OCRTextResponse, ReceiptItem)
 from .services import OCRError, extract_text_from_image, process_receipt_image
 
 __all__ = [

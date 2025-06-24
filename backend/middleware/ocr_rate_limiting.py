@@ -13,12 +13,11 @@ from io import BytesIO
 from typing import Any, Dict, Optional, Tuple
 
 import magic
+from core.config import settings
 from fastapi import HTTPException, Request, Response, status
 from PIL import Image, UnidentifiedImageError
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
-
-from core.config import settings
 
 logger = logging.getLogger(__name__)
 

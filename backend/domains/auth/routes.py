@@ -8,49 +8,23 @@ import logging
 from typing import Optional
 from uuid import UUID
 
+from core.logging import get_logger
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-
-from core.logging import get_logger
 from middleware.security import get_current_user, get_optional_user
 
-from .schemas import (
-    ApiResponse,
-    AuthResponse,
-    AuthUser,
-    EmailVerification,
-    ErrorResponse,
-    MessageResponse,
-    PasswordChange,
-    PasswordRequirement,
-    PasswordReset,
-    PasswordResetConfirm,
-    PasswordStrengthCheck,
-    PasswordStrengthResponse,
-    ResendVerification,
-    TokenRefresh,
-    TokenResponse,
-    UserCreate,
-    UserLogin,
-    UserProfileResponse,
-    UserProfileUpdate,
-    UserResponse,
-    UserWithProfileResponse,
-)
-from .services import (
-    AuthenticationError,
-    authenticate_user,
-    change_password,
-    confirm_password_reset,
-    get_user_profile,
-    logout_user,
-    refresh_token,
-    register_user,
-    request_password_reset,
-    resend_verification_email,
-    update_user_profile,
-    verify_email,
-)
+from .schemas import (ApiResponse, AuthResponse, AuthUser, EmailVerification,
+                      ErrorResponse, MessageResponse, PasswordChange,
+                      PasswordRequirement, PasswordReset, PasswordResetConfirm,
+                      PasswordStrengthCheck, PasswordStrengthResponse,
+                      ResendVerification, TokenRefresh, TokenResponse,
+                      UserCreate, UserLogin, UserProfileResponse,
+                      UserProfileUpdate, UserResponse, UserWithProfileResponse)
+from .services import (AuthenticationError, authenticate_user, change_password,
+                       confirm_password_reset, get_user_profile, logout_user,
+                       refresh_token, register_user, request_password_reset,
+                       resend_verification_email, update_user_profile,
+                       verify_email)
 
 logger = get_logger(__name__)
 
@@ -767,10 +741,8 @@ async def check_password_strength(
         PasswordStrengthResponse with detailed analysis
     """
     try:
-        from shared.utils.password_security import (
-            PasswordStrength,
-            get_password_analysis,
-        )
+        from shared.utils.password_security import (PasswordStrength,
+                                                    get_password_analysis)
 
         # Prepare user info for personal information checks
         user_info = {}

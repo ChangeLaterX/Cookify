@@ -6,11 +6,10 @@ import hashlib
 import secrets
 from typing import Optional
 
+from core.config import settings
 from fastapi import Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from passlib.context import CryptContext
-
-from core.config import settings
 
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

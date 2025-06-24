@@ -21,12 +21,8 @@ except ImportError:
 from core.config import settings
 from domains.update.ingredient_cache import get_ingredient_cache_status
 
-from .schemas import (
-    DetailedHealthResponse,
-    HealthResponse,
-    ServiceHealthStatus,
-    ServiceStatus,
-)
+from .schemas import (DetailedHealthResponse, HealthResponse,
+                      ServiceHealthStatus, ServiceStatus)
 
 logger = logging.getLogger(__name__)
 

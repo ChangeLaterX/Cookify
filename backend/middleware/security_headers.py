@@ -5,12 +5,11 @@ Implements comprehensive security headers to protect against common web vulnerab
 
 from typing import Dict, List, Optional
 
+from core.config import settings
+from core.logging import get_logger
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
-
-from core.config import settings
-from core.logging import get_logger
 
 logger = get_logger(__name__)
 

@@ -10,10 +10,9 @@ import string
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 from urllib.parse import urlparse
 
-from email_validator import EmailNotValidError, validate_email
-
 # Import centralized configuration
 from core.config import settings
+from email_validator import EmailNotValidError, validate_email
 
 
 def is_valid_email(email: str) -> bool:

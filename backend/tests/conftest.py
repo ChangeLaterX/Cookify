@@ -14,10 +14,9 @@ from uuid import uuid4
 import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
-from supabase import Client
-
 # Import the FastAPI app
 from main import app
+from supabase import Client
 
 # ============================================================================
 # Core Application Fixtures
