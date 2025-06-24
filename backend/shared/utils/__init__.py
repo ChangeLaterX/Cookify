@@ -4,8 +4,8 @@ Utility functions and helpers.
 
 # Import validation framework components
 from .validation import *
-from .validation_config import validation_config, ValidationConfigManager
-from .validation_service import validation_service, ValidationService
+from .validation_config import ValidationConfigManager, validation_config
+from .validation_service import ValidationService, validation_service
 
 # Export all validation components
 __all__ = [

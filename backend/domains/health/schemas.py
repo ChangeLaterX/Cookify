@@ -3,10 +3,11 @@ Pydantic Schemas for Health Domain.
 Defines request/response models for health check endpoints.
 """
 
-from pydantic import BaseModel, Field
-from typing import Dict, List, Optional
 from datetime import datetime
 from enum import Enum
+from typing import Dict, List, Optional
+
+from pydantic import BaseModel, Field
 
 
 class ServiceStatus(str, Enum):

@@ -4,15 +4,16 @@ Unit Tests for Ingredient Read Operations.
 This module tests ingredient retrieval and read-only operations using the real database.
 """
 
-import pytest
 from uuid import UUID
 
+import pytest
+
+from domains.ingredients.schemas import IngredientListResponse, IngredientMasterResponse
 from domains.ingredients.services import (
-    get_ingredient_by_id,
-    get_all_ingredients,
     IngredientError,
+    get_all_ingredients,
+    get_ingredient_by_id,
 )
-from domains.ingredients.schemas import IngredientMasterResponse, IngredientListResponse
 from tests.ingredients.config import IngredientsTestBase
 
 

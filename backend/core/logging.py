@@ -44,10 +44,9 @@ import traceback
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, Any, Optional, Union, List, Callable
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from .config import settings
-
 
 # Konstanten für Log-Level-Namen
 TRACE = 5  # Niedrigeres Level als DEBUG

@@ -13,13 +13,13 @@ Usage:
 """
 
 import argparse
+import json
+import os
 import subprocess
 import sys
-import os
-import json
 import time
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional
 
 
 class Colors:

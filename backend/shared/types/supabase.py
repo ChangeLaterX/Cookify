@@ -1,8 +1,9 @@
-from pydantic import BaseModel, ConfigDict, Field
-from typing import Any, Dict, List, Optional, Union
-from datetime import datetime, date
-from uuid import UUID
+from datetime import date, datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional, Union
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class DietType(str, Enum):

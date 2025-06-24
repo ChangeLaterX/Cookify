@@ -3,23 +3,22 @@ SQLAlchemy Models for Authentication Domain.
 Maps to existing Supabase auth.users table (READ-ONLY).
 """
 
-from sqlalchemy import (
-    Column,
-    ColumnElement,
-    String,
-    DateTime,
-    Boolean,
-    Text,
-    ForeignKey,
-    Index,
-)
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID
+import uuid
 from datetime import datetime
 from typing import Any, Literal, Optional
-import uuid
 
+from sqlalchemy import (
+    Boolean,
+    Column,
+    ColumnElement,
+    DateTime,
+    ForeignKey,
+    Index,
+    String,
+    Text,
+)
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.orm.relationships import Relationship
 
 from core.config import settings

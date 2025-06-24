@@ -3,18 +3,19 @@ Update API routes for cache and data refresh operations.
 """
 
 import time
-from typing import Dict, Any
+from typing import Any, Dict
 
-from fastapi import APIRouter, HTTPException, status, Query, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, status
 from fastapi.responses import JSONResponse
 
 from core.logging import get_logger
+
 from .schemas import IngredientCacheUpdateResponse
 from .services import (
-    update_ingredient_cache,
-    get_ingredient_cache_status,
-    force_refresh_all_caches,
     UpdateError,
+    force_refresh_all_caches,
+    get_ingredient_cache_status,
+    update_ingredient_cache,
 )
 
 logger = get_logger(__name__)

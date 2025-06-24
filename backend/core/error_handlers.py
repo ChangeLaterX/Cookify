@@ -3,9 +3,10 @@ Global error handlers for the FastAPI application.
 """
 
 import logging
+
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from core.config import settings
@@ -20,9 +21,9 @@ def get_request_id(request: Request) -> str:
 from core.exceptions import (
     AuthenticationError,
     AuthorizationError,
-    ValidationError,
-    RateLimitError,
     DatabaseError,
+    RateLimitError,
+    ValidationError,
 )
 
 logger = logging.getLogger(__name__)

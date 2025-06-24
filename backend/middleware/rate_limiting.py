@@ -7,11 +7,11 @@ Implements progressive rate limiting with configurable limits and proper logging
 import logging
 import time
 from collections import defaultdict
-from typing import Dict, Any, Optional, Tuple
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Any, Dict, Optional, Tuple
 
-from fastapi import Request, Response, HTTPException, status
+from fastapi import HTTPException, Request, Response, status
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 

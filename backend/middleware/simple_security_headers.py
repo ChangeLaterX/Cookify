@@ -3,6 +3,7 @@ Simple Security Headers Middleware for testing.
 """
 
 import logging
+
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 

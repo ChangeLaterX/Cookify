@@ -2,29 +2,30 @@
 Main FastAPI application with enhanced architecture.
 """
 
+from typing import Any
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Any
 
 # Core imports
 from core.config import settings
 from core.logging import setup_logging
 
+# Domain routers
+from domains.auth.routes import router as auth_router
+from domains.health.routes import router as health_router
+from domains.ingredients.routes import router as ingredients_router
+from domains.ocr.routes import router as receipt_router
+from domains.update.routes import router as update_router
+
 # Middleware imports
 from middleware.auth_middleware import AuthContextMiddleware
-from middleware.rate_limiting import AuthRateLimitMiddleware
 from middleware.ocr_rate_limiting import OCRRateLimitMiddleware
+from middleware.rate_limiting import AuthRateLimitMiddleware
 from middleware.security_headers import SecurityHeadersMiddleware
 
 # Validation framework
-from shared.utils.validation_env import load_validation_config, get_validation_settings
-
-# Domain routers
-from domains.auth.routes import router as auth_router
-from domains.ingredients.routes import router as ingredients_router
-from domains.ocr.routes import router as receipt_router
-from domains.health.routes import router as health_router
-from domains.update.routes import router as update_router
+from shared.utils.validation_env import get_validation_settings, load_validation_config
 
 # Setup logging first
 setup_logging()
@@ -154,6 +155,7 @@ async def root() -> dict[str, Any]:
 
 if __name__ == "__main__":
     import uvicorn
+
     from core.config import settings
 
     uvicorn.run(

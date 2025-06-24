@@ -4,16 +4,17 @@ Unit Tests for Error Handling in Ingredients Service.
 This module tests error handling and exception scenarios with real database.
 """
 
-import pytest
 from uuid import UUID
 
+import pytest
+
+from domains.ingredients.schemas import IngredientListResponse
 from domains.ingredients.services import (
+    IngredientError,
     get_all_ingredients,
     get_ingredient_by_id,
     search_ingredients,
-    IngredientError,
 )
-from domains.ingredients.schemas import IngredientListResponse
 from tests.ingredients.config import IngredientsTestBase
 
 

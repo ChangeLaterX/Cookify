@@ -3,11 +3,11 @@ Pydantic Schemas for Receipt Domain.
 Defines request/response models for receipt OCR and processing endpoints.
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional, List
 from datetime import datetime
+from typing import List, Optional
 from uuid import UUID
 
+from pydantic import BaseModel, Field
 
 # ============================================================================
 # Request Schemas

@@ -3,7 +3,8 @@ Security Headers Middleware for FastAPI.
 Implements comprehensive security headers to protect against common web vulnerabilities.
 """
 
-from typing import Dict, Optional, List
+from typing import Dict, List, Optional
+
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp

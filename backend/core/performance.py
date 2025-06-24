@@ -6,9 +6,10 @@ performance metrics across the application.
 """
 
 import asyncio
-import time
 import functools
-from typing import Dict, Any, Optional, Callable, Awaitable
+import time
+from typing import Any, Awaitable, Callable, Dict, Optional
+
 from fastapi import Request, Response
 
 from .logging import get_logger

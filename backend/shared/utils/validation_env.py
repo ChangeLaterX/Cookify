@@ -3,14 +3,15 @@ Environment-specific validation configuration loader.
 This module configures the validation framework based on the application environment.
 """
 
+import logging
 import os
 from typing import Optional
-import logging
+
 from .validation_config import (
-    validation_config,
-    configure_for_production,
     configure_for_development,
+    configure_for_production,
     configure_for_testing,
+    validation_config,
 )
 
 # Configure logging

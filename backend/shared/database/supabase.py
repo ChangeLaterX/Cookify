@@ -1,7 +1,9 @@
-from supabase import create_client, Client
-from core.config import settings
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 from uuid import UUID
+
+from supabase import Client, create_client
+
+from core.config import settings
 
 
 class SupabaseService:

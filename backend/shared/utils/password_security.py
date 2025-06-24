@@ -5,9 +5,10 @@ Provides comprehensive password validation, common password detection, and passw
 
 import re
 import string
-from typing import Any, Dict, List, Optional, Set, Tuple
 from dataclasses import dataclass
 from enum import IntEnum
+from typing import Any, Dict, List, Optional, Set, Tuple
+
 from core.config import settings
 
 

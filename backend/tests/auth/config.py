@@ -6,11 +6,12 @@ This module provides the base configuration and shared utilities for all Auth te
 
 import os
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
 from dataclasses import dataclass
 from pathlib import Path
-import pytest
+from typing import Any, Dict, Optional
 from unittest.mock import Mock, patch
+
+import pytest
 
 
 @dataclass

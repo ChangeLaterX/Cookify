@@ -5,9 +5,8 @@ This module provides realistic sample ingredient data that can be used
 across different test scenarios.
 """
 
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 from uuid import uuid4
-
 
 # Sample ingredient categories with realistic nutritional profiles
 SAMPLE_INGREDIENTS: List[Dict[str, Any]] = [

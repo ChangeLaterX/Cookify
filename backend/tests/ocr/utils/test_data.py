@@ -4,20 +4,21 @@ OCR Test Data Utilities.
 This module provides utilities for generating and managing test data.
 """
 
-from typing import Dict, List, Tuple, Any, Optional
-from pathlib import Path
-from uuid import uuid4
 import json
 import random
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+from uuid import uuid4
+
 from pydantic import BaseModel
 
+from domains.ingredients.schemas import IngredientListResponse, IngredientMasterResponse
 from domains.ocr.schemas import (
-    OCRTextResponse,
-    OCRProcessedResponse,
-    ReceiptItem,
     OCRItemSuggestion,
+    OCRProcessedResponse,
+    OCRTextResponse,
+    ReceiptItem,
 )
-from domains.ingredients.schemas import IngredientMasterResponse, IngredientListResponse
 
 
 # Define missing types for test compatibility

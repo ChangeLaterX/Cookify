@@ -5,10 +5,10 @@ Provides centralized health monitoring for all application services.
 
 import asyncio
 import logging
-import time
 import platform
-from typing import List, Dict, Optional
+import time
 from datetime import datetime
+from typing import Dict, List, Optional
 
 try:
     import psutil
@@ -18,14 +18,15 @@ except ImportError:
     PSUTIL_AVAILABLE = False
     psutil = None  # type: ignore
 
-from .schemas import (
-    ServiceHealthStatus,
-    ServiceStatus,
-    HealthResponse,
-    DetailedHealthResponse,
-)
 from core.config import settings
 from domains.update.ingredient_cache import get_ingredient_cache_status
+
+from .schemas import (
+    DetailedHealthResponse,
+    HealthResponse,
+    ServiceHealthStatus,
+    ServiceStatus,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -102,8 +103,8 @@ class HealthCheckService:
         """
         try:
             # Just check if we can import core modules
-            from shared.database.supabase import get_supabase_client
             from core.config import settings
+            from shared.database.supabase import get_supabase_client
 
             # Test basic Supabase connectivity
             supabase = get_supabase_client()

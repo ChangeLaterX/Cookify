@@ -86,20 +86,117 @@ jobs:
       - name: 🎨 Check Code Formatting (Black)
         working-directory: ./backend
         run: |
-          black --check --diff --color .
-          echo "✅ Code formatting check passed"
+          echo "🔍 Checking code formatting with Black..."
+          
+          # Run black check and capture output
+          if ! black --check --diff --color . > black_output.txt 2>&1; then
+            echo "❌ Code formatting issues found!"
+            echo ""
+            echo "📋 FORMATTING ISSUES SUMMARY:"
+            echo "=============================="
+            
+            # Extract and show files that need formatting
+            grep "would reformat" black_output.txt | sed 's/would reformat /❌ /' || true
+            
+            echo ""
+            echo "🔧 DETAILED DIFF:"
+            echo "=================="
+            cat black_output.txt
+            
+            echo ""
+            echo "💡 To fix these issues, run: black ."
+            echo ""
+            
+            # Count files that need formatting
+            REFORMAT_COUNT=$(grep -c "would reformat" black_output.txt || echo "0")
+            echo "📊 Total files needing formatting: $REFORMAT_COUNT"
+            
+            exit 1
+          else
+            echo "✅ All files are properly formatted with Black"
+          fi
 
       - name: 📊 Check Import Sorting (isort)
         working-directory: ./backend
         run: |
-          isort --check-only --diff --color .
-          echo "✅ Import sorting check passed"
+          echo "🔍 Checking import sorting with isort..."
+          
+          # Run isort check and capture output
+          if ! isort --check-only --diff --color . > isort_output.txt 2>&1; then
+            echo "❌ Import sorting issues found!"
+            echo ""
+            echo "📋 IMPORT SORTING ISSUES SUMMARY:"
+            echo "=================================="
+            
+            # Extract and show files that need import sorting
+            grep "ERROR:" isort_output.txt | sed 's/ERROR: /❌ /' || true
+            grep "Skipped" isort_output.txt | sed 's/Skipped/⚠️ Skipped/' || true
+            
+            echo ""
+            echo "🔧 DETAILED DIFF:"
+            echo "=================="
+            cat isort_output.txt
+            
+            echo ""
+            echo "💡 To fix these issues, run: isort ."
+            echo ""
+            
+            # Count files that need import sorting
+            ERROR_COUNT=$(grep -c "ERROR:" isort_output.txt || echo "0")
+            echo "📊 Total files needing import sorting: $ERROR_COUNT"
+            
+            exit 1
+          else
+            echo "✅ All imports are properly sorted with isort"
+          fi
 
       - name: 🔍 Lint Code (Flake8)
         working-directory: ./backend
         run: |
+          echo "🔍 Running code linting with Flake8..."
+          
+          # Run critical error check first
+          echo "🚨 Checking for critical errors (syntax, undefined names)..."
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
+          
+          # Run full linting and capture output
+          echo ""
+          echo "📊 Running full linting check..."
+          if ! flake8 . --count --max-complexity=10 --max-line-length=88 --statistics --format='%(path)s:%(row)d:%(col)d: %(code)s %(text)s' > flake8_output.txt 2>&1; then
+            echo "❌ Linting issues found!"
+            echo ""
+            echo "📋 LINTING ISSUES SUMMARY:"
+            echo "=========================="
+            
+            # Group issues by file
+            echo "📁 Files with issues:"
+            awk -F: '{print $1}' flake8_output.txt | sort | uniq -c | sort -nr | head -10 | while read count file; do
+              echo "  ❌ $file ($count issues)"
+            done
+            
+            echo ""
+            echo "🔧 DETAILED ISSUES:"
+            echo "==================="
+            cat flake8_output.txt
+            
+            echo ""
+            echo "💡 To fix these issues, review the files listed above"
+            
+            # Count total issues
+            ISSUE_COUNT=$(wc -l < flake8_output.txt || echo "0")
+            echo "📊 Total linting issues: $ISSUE_COUNT"
+            
+            # Only fail for critical errors, warn for style issues
+            CRITICAL_COUNT=$(flake8 . --select=E9,F63,F7,F82 --count --quiet || echo "0")
+            if [ "$CRITICAL_COUNT" -gt 0 ]; then
+              echo "💥 Critical errors found - failing build"
+              exit 1
+            else
+              echo "⚠️ Style issues found but no critical errors"
+            fi
+          else
+            echo "✅ No linting issues found"
+          fi
 
       - name: 🔒 Security Scan (Bandit)
         working-directory: ./backend
@@ -111,9 +208,7 @@ jobs:
         working-directory: ./backend
         run: |
           safety check --json --output safety-report.json || echo "⚠️ Vulnerable dependencies found"
-          safety check
-
-      - name: 📤 Upload Security Reports
+          safety check      - name: 📤 Upload Security Reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -121,7 +216,82 @@ jobs:
           path: |
             backend/bandit-report.json
             backend/safety-report.json
-          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+        retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+
+      - name: 📋 Code Quality Summary
+        if: always()
+        working-directory: ./backend
+        run: |
+          echo "📊 CODE QUALITY SUMMARY REPORT"
+          echo "==============================="
+          echo ""
+          
+          # Initialize counters
+          TOTAL_ISSUES=0
+          
+          # Check for Black formatting issues
+          if [ -f "black_output.txt" ]; then
+            BLACK_COUNT=$(grep -c "would reformat" black_output.txt || echo "0")
+            if [ "$BLACK_COUNT" -gt 0 ]; then
+              echo "🎨 BLACK FORMATTING: $BLACK_COUNT files need formatting"
+              grep "would reformat" black_output.txt | head -5 | sed 's/would reformat /  ❌ /'
+              [ "$BLACK_COUNT" -gt 5 ] && echo "    ... and $((BLACK_COUNT - 5)) more files"
+              TOTAL_ISSUES=$((TOTAL_ISSUES + BLACK_COUNT))
+            else
+              echo "🎨 BLACK FORMATTING: ✅ All files properly formatted"
+            fi
+          else
+            echo "🎨 BLACK FORMATTING: ✅ All files properly formatted"
+          fi
+          
+          echo ""
+          
+          # Check for isort import sorting issues
+          if [ -f "isort_output.txt" ]; then
+            ISORT_COUNT=$(grep -c "ERROR:" isort_output.txt || echo "0")
+            if [ "$ISORT_COUNT" -gt 0 ]; then
+              echo "📊 IMPORT SORTING: $ISORT_COUNT files need sorting"
+              grep "ERROR:" isort_output.txt | head -5 | sed 's/ERROR: /  ❌ /'
+              [ "$ISORT_COUNT" -gt 5 ] && echo "    ... and $((ISORT_COUNT - 5)) more files"
+              TOTAL_ISSUES=$((TOTAL_ISSUES + ISORT_COUNT))
+            else
+              echo "📊 IMPORT SORTING: ✅ All imports properly sorted"
+            fi
+          else
+            echo "📊 IMPORT SORTING: ✅ All imports properly sorted"
+          fi
+          
+          echo ""
+          
+          # Check for Flake8 linting issues
+          if [ -f "flake8_output.txt" ]; then
+            FLAKE8_COUNT=$(wc -l < flake8_output.txt || echo "0")
+            if [ "$FLAKE8_COUNT" -gt 0 ]; then
+              echo "🔍 LINTING: $FLAKE8_COUNT issues found"
+              awk -F: '{print $1}' flake8_output.txt | sort | uniq -c | sort -nr | head -3 | while read count file; do
+                echo "  ❌ $file ($count issues)"
+              done
+              TOTAL_ISSUES=$((TOTAL_ISSUES + FLAKE8_COUNT))
+            else
+              echo "🔍 LINTING: ✅ No issues found"
+            fi
+          else
+            echo "🔍 LINTING: ✅ No issues found"
+          fi
+          
+          echo ""
+          echo "==============================="
+          
+          if [ "$TOTAL_ISSUES" -eq 0 ]; then
+            echo "🎉 OVERALL STATUS: ✅ ALL CODE QUALITY CHECKS PASSED"
+          else
+            echo "⚠️ OVERALL STATUS: $TOTAL_ISSUES issues found"
+            echo ""
+            echo "💡 QUICK FIX COMMANDS:"
+            echo "  black ."
+            echo "  isort ."
+            echo "  flake8 . --statistics"
+          fi
 
   # ============================================================================
   # 🧪 UNIT TESTS - DOMAIN MATRIX

@@ -3,29 +3,30 @@ Comprehensive Input Validation Service.
 This service provides high-level validation methods for common use cases.
 """
 
-from typing import Dict, Any, List, Optional, Tuple
-from .validation import (
-    validate_password_complexity,
-    sanitize_metadata_value,
-    validate_metadata_size,
-    sanitize_metadata_key,
-    validate_phone_number,
-    sanitize_url,
-    validate_user_input,
-    validate_search_query,
-    is_valid_email,
-    is_valid_uuid,
-    validate_required_fields,
-    sanitize_string,
-    validate_positive_integer,
-    validate_country_code,
-    sanitize_filename,
-    validate_json_structure,
-    validate_ip_address,
-)
+from typing import Any, Dict, List, Optional, Tuple
 
 # Import centralized settings
 from core.config import settings
+
+from .validation import (
+    is_valid_email,
+    is_valid_uuid,
+    sanitize_filename,
+    sanitize_metadata_key,
+    sanitize_metadata_value,
+    sanitize_string,
+    sanitize_url,
+    validate_country_code,
+    validate_ip_address,
+    validate_json_structure,
+    validate_metadata_size,
+    validate_password_complexity,
+    validate_phone_number,
+    validate_positive_integer,
+    validate_required_fields,
+    validate_search_query,
+    validate_user_input,
+)
 
 
 class ValidationService:

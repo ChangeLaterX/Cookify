@@ -5,11 +5,11 @@ This module provides mock factories and context managers for Auth tests.
 """
 
 import uuid
-from typing import Dict, Any, Optional, List
-from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+from unittest.mock import MagicMock, Mock, patch
 
-from domains.auth.schemas import UserCreate, UserLogin, TokenResponse, UserResponse
+from domains.auth.schemas import TokenResponse, UserCreate, UserLogin, UserResponse
 
 
 class AuthMockFactory:

@@ -3,17 +3,17 @@ Authentication Services with Supabase Integration.
 Handles business logic for user authentication and profile management.
 """
 
-import logging
 import json
-from typing import Optional, Dict, Any, Tuple
+import logging
 from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, Optional, Tuple
 from uuid import UUID
 
 from fastapi import HTTPException, status
 from supabase import Client
 
 try:
-    from gotrue.errors import AuthError, AuthApiError
+    from gotrue.errors import AuthApiError, AuthError
 except ImportError:
     # Fallback for missing gotrue stubs
     class AuthError(Exception):
@@ -25,19 +25,20 @@ except ImportError:
 
 from core.config import settings
 from shared.database.supabase import get_supabase_client
+
 from .schemas import (
-    UserLogin,
-    UserCreate,
-    TokenResponse,
-    UserResponse,
-    UserProfileResponse,
-    UserProfileUpdate,
     AuthUser,
+    EmailVerification,
+    PasswordChange,
     PasswordReset,
     PasswordResetConfirm,
-    EmailVerification,
     ResendVerification,
-    PasswordChange,
+    TokenResponse,
+    UserCreate,
+    UserLogin,
+    UserProfileResponse,
+    UserProfileUpdate,
+    UserResponse,
 )
 
 logger = logging.getLogger(__name__)

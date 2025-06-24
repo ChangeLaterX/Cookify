@@ -3,11 +3,11 @@ Pydantic models for Supabase database schema.
 These models match the actual database structure.
 """
 
-from pydantic import BaseModel, ConfigDict, Field
+from datetime import date, datetime
 from typing import Any, Dict, List, Optional, Union
-from datetime import datetime, date
 from uuid import UUID
 
+from pydantic import BaseModel, ConfigDict, Field
 
 # ============================================================================
 # INGREDIENT MASTER TABLE

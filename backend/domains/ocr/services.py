@@ -3,15 +3,15 @@ Receipt Services with OCR Integration.
 Handles OCR text extraction and ingredient matching for receipt processing.
 """
 
-import time
-import re
 import asyncio
 import hashlib
-import tempfile
 import os
-from typing import List, Optional, Tuple
+import re
+import tempfile
+import time
 from io import BytesIO
 from pathlib import Path
+from typing import List, Optional, Tuple
 
 from core.config import settings
 from core.logging import get_logger
@@ -65,10 +65,10 @@ except ImportError:
     INGREDIENT_SEARCH_AVAILABLE = False
 
 from .schemas import (
-    OCRTextResponse,
-    OCRProcessedResponse,
-    ReceiptItem,
     OCRItemSuggestion,
+    OCRProcessedResponse,
+    OCRTextResponse,
+    ReceiptItem,
 )
 
 logger = get_logger(__name__)
@@ -486,7 +486,7 @@ class OCRService:
                         : max_suggestions - len(suggestions)
                     ]:
                         # Create a mock UUID for local matches
-                        from uuid import uuid5, NAMESPACE_DNS
+                        from uuid import NAMESPACE_DNS, uuid5
 
                         mock_id = uuid5(
                             NAMESPACE_DNS, f"local-ingredient-{ingredient_name}"

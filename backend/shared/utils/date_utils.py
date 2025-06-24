@@ -2,8 +2,9 @@
 Date and time utility functions.
 """
 
-from datetime import datetime, date, timedelta
+from datetime import date, datetime, timedelta
 from typing import Optional
+
 import pytz
 
 from core.config import settings

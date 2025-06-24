@@ -4,20 +4,18 @@ Provides automatic user context injection and request/response processing.
 """
 
 import time
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 from uuid import UUID
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
-from domains.auth.services import (
-    get_current_user as get_user_from_token,
-    AuthenticationError,
-)
-from domains.auth.schemas import AuthUser
 from core.config import settings
 from core.logging import get_logger
+from domains.auth.schemas import AuthUser
+from domains.auth.services import AuthenticationError
+from domains.auth.services import get_current_user as get_user_from_token
 
 logger = get_logger(__name__)
 
@@ -37,6 +35,7 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
     def __init__(self, app):
         super().__init__(app)
         import logging
+
         from core.logging import get_logger
 
         self.logger = get_logger(f"{__name__}.{self.__class__.__name__}")

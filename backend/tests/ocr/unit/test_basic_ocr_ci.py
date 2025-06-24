@@ -5,10 +5,11 @@ This module contains minimal, reliable tests for the OCR domain that work
 in CI/CD environments without external dependencies.
 """
 
-import pytest
-from unittest.mock import MagicMock, patch
 from datetime import datetime
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
+
+import pytest
 
 # Mark this as CI-ready unit tests
 pytestmark = [pytest.mark.unit, pytest.mark.ocr]
@@ -130,8 +131,9 @@ class TestBasicOCR:
 
     def test_ocr_schema_field_validation(self):
         """Test OCR schema field validation."""
-        from domains.ocr.schemas import ReceiptItem
         import pytest
+
+        from domains.ocr.schemas import ReceiptItem
 
         # Test valid item
         valid_item = ReceiptItem(detected_text="Test Item", quantity=1.0, price=5.99)

@@ -8,14 +8,12 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from core.config import settings
 from domains.auth.schemas import AuthUser
-from domains.auth.services import (
-    get_current_user as get_user_from_token,
-    AuthenticationError,
-)
+from domains.auth.services import AuthenticationError
+from domains.auth.services import get_current_user as get_user_from_token
 
 logger = logging.getLogger(__name__)
 

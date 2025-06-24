@@ -5,20 +5,19 @@ This module provides cross-domain fixtures and configuration that can be used
 by all test modules (auth, ingredients, ocr, etc.).
 """
 
-import pytest
 import asyncio
 import os
-from typing import Generator, AsyncGenerator
+from typing import AsyncGenerator, Generator
 from unittest.mock import Mock, patch
 from uuid import uuid4
 
+import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
 from supabase import Client
 
 # Import the FastAPI app
 from main import app
-
 
 # ============================================================================
 # Core Application Fixtures

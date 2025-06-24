@@ -27,7 +27,7 @@ __version__ = "1.0.0"
 __author__ = "Cookify Team"
 
 # Make key test utilities available at package level
-from .config import IngredientsTestConfig, IngredientsTestBase
+from .config import IngredientsTestBase, IngredientsTestConfig
 from .utils.mocks import IngredientsMockFactory, MockContextManager
 
 # from .utils.test_data import TestDataGenerator

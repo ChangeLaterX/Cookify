@@ -3,8 +3,8 @@ Centralized validation configuration for the Input Validation Framework.
 This file defines all validation rules and settings in one place.
 """
 
-from typing import Dict, List, Set, Any, Optional
 from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Set
 
 from core.config import settings
 

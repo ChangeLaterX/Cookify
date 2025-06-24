@@ -5,15 +5,15 @@ This module handles the creation and maintenance of ingredient cache files.
 Moved from scripts/ingredient_file_manager.py to domains/update/.
 """
 
-import logging
 import asyncio
 import json
+import logging
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional
 
-from shared.database.supabase import get_supabase_client
 from core.config import settings
+from shared.database.supabase import get_supabase_client
 
 logger = logging.getLogger(__name__)
 

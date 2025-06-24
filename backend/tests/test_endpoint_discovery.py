@@ -6,18 +6,18 @@ This module automatically discovers FastAPI endpoints and performs
 basic functionality tests on them.
 """
 
+import asyncio
 import json
 import sys
 import traceback
-from pathlib import Path
-from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
-import asyncio
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 import pytest
 from fastapi import FastAPI
-from fastapi.testclient import TestClient
 from fastapi.routing import APIRoute
+from fastapi.testclient import TestClient
 
 
 @dataclass
@@ -128,8 +128,8 @@ class TestDiscoveredEndpoints:
         """Set up test class with discovered endpoints."""
         try:
             # Add current directory to path
-            import sys
             import os
+            import sys
 
             current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             if current_dir not in sys.path:
@@ -187,8 +187,8 @@ class TestDiscoveredEndpoints:
             print(f"🔍 Discovered {len(cls.endpoints)} endpoints")
 
         except ImportError as e:
-            import sys
             import os
+            import sys
 
             print(f"❌ Failed to import main app: {e}")
             print(f"Current working directory: {os.getcwd()}")

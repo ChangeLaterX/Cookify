@@ -7,9 +7,9 @@ This module provides the base configuration and shared utilities for all OCR tes
 import os
 import shutil
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any, Dict, Optional
 
 
 @dataclass

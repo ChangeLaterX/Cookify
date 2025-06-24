@@ -27,7 +27,7 @@ __version__ = "1.0.0"
 __author__ = "Cookify Team"
 
 # Make key test utilities available at package level
-from .config import AuthTestConfig, AuthTestBase
+from .config import AuthTestBase, AuthTestConfig
 from .utils.mocks import AuthMockFactory, MockContextManager
 
 __all__ = [

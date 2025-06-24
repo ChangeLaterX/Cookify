@@ -4,12 +4,13 @@ Unit Tests for User Authentication Functionality.
 This module tests user login/logout logic in the Auth service.
 """
 
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
-from domains.auth.services import AuthService, AuthenticationError
-from domains.auth.schemas import UserLogin, TokenResponse
+import pytest
+
+from domains.auth.schemas import TokenResponse, UserLogin
+from domains.auth.services import AuthenticationError, AuthService
 from tests.auth.config import AuthTestBase
 from tests.auth.utils.mocks import AuthMockFactory, MockContextManager, with_mocked_auth
 from tests.auth.utils.test_data import TestDataGenerator, TestScenarios

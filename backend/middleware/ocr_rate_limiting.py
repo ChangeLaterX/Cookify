@@ -6,17 +6,17 @@ with enhanced security features and image validation.
 
 import logging
 import time
-import magic
 from collections import defaultdict
-from typing import Dict, Any, Optional, Tuple
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from io import BytesIO
+from typing import Any, Dict, Optional, Tuple
 
-from fastapi import Request, Response, HTTPException, status
+import magic
+from fastapi import HTTPException, Request, Response, status
+from PIL import Image, UnidentifiedImageError
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
-from PIL import Image, UnidentifiedImageError
 
 from core.config import settings
 

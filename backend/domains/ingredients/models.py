@@ -3,9 +3,9 @@ Database Models for Ingredients Domain.
 Defines the data structure for ingredient master data.
 """
 
+from datetime import datetime
 from typing import Optional
 from uuid import UUID
-from datetime import datetime
 
 
 class IngredientMaster:

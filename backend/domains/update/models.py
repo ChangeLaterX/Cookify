@@ -2,9 +2,9 @@
 Update domain models.
 """
 
+from datetime import datetime
 from enum import Enum
 from typing import Optional
-from datetime import datetime
 
 
 class UpdateOperation(str, Enum):

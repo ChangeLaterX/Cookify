@@ -3,9 +3,11 @@ Simplified Auth Tests for CI/CD
 Tests basic authentication functionality without complex mocks
 """
 
-import pytest
 from unittest.mock import Mock, patch
-from domains.auth.schemas import UserLogin, UserCreate, TokenResponse
+
+import pytest
+
+from domains.auth.schemas import TokenResponse, UserCreate, UserLogin
 
 
 class TestBasicAuth:
@@ -47,6 +49,7 @@ class TestBasicAuth:
 
         # Test email validation (without creating full UserCreate object)
         from pydantic import ValidationError
+
         from domains.auth.schemas import UserLogin
 
         # Test that UserLogin works (simpler validation)

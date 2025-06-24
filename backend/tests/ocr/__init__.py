@@ -27,7 +27,7 @@ __version__ = "1.0.0"
 __author__ = "Cookify Team"
 
 # Make key test utilities available at package level
-from .config import OCRTestConfig, OCRTestBase
+from .config import OCRTestBase, OCRTestConfig
 
 # from .utils.mocks import OCRMockFactory, MockContextManager
 # from .utils.test_data import TestDataGenerator

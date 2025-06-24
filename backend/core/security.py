@@ -5,9 +5,11 @@ Security utilities and helpers.
 import hashlib
 import secrets
 from typing import Optional
-from passlib.context import CryptContext
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
 from fastapi import Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from passlib.context import CryptContext
+
 from core.config import settings
 
 # Password hashing context

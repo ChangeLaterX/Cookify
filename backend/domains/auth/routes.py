@@ -9,48 +9,48 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-
-from .schemas import (
-    UserLogin,
-    UserCreate,
-    TokenRefresh,
-    PasswordReset,
-    PasswordResetConfirm,
-    PasswordChange,
-    EmailVerification,
-    ResendVerification,
-    UserProfileUpdate,
-    TokenResponse,
-    UserResponse,
-    UserProfileResponse,
-    UserWithProfileResponse,
-    MessageResponse,
-    ErrorResponse,
-    AuthUser,
-    ApiResponse,
-    AuthResponse,
-    PasswordStrengthResponse,
-    PasswordStrengthCheck,
-    PasswordRequirement,
-)
-from .services import (
-    authenticate_user,
-    register_user,
-    refresh_token,
-    logout_user,
-    get_user_profile,
-    update_user_profile,
-    AuthenticationError,
-    request_password_reset,
-    confirm_password_reset,
-    change_password,
-    verify_email,
-    resend_verification_email,
-)
-from middleware.security import get_current_user, get_optional_user
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from core.logging import get_logger
+from middleware.security import get_current_user, get_optional_user
+
+from .schemas import (
+    ApiResponse,
+    AuthResponse,
+    AuthUser,
+    EmailVerification,
+    ErrorResponse,
+    MessageResponse,
+    PasswordChange,
+    PasswordRequirement,
+    PasswordReset,
+    PasswordResetConfirm,
+    PasswordStrengthCheck,
+    PasswordStrengthResponse,
+    ResendVerification,
+    TokenRefresh,
+    TokenResponse,
+    UserCreate,
+    UserLogin,
+    UserProfileResponse,
+    UserProfileUpdate,
+    UserResponse,
+    UserWithProfileResponse,
+)
+from .services import (
+    AuthenticationError,
+    authenticate_user,
+    change_password,
+    confirm_password_reset,
+    get_user_profile,
+    logout_user,
+    refresh_token,
+    register_user,
+    request_password_reset,
+    resend_verification_email,
+    update_user_profile,
+    verify_email,
+)
 
 logger = get_logger(__name__)
 
@@ -684,6 +684,7 @@ async def get_optional_user_info(
 
 # Import datetime for responses
 from datetime import datetime
+
 from core.config import settings
 
 
@@ -707,8 +708,9 @@ async def dev_login() -> AuthResponse:
         )
 
     # Create a mock token response for testing
-    import jwt
     from datetime import datetime, timedelta
+
+    import jwt
 
     # Mock user data
     user_data = {
@@ -766,8 +768,8 @@ async def check_password_strength(
     """
     try:
         from shared.utils.password_security import (
-            get_password_analysis,
             PasswordStrength,
+            get_password_analysis,
         )
 
         # Prepare user info for personal information checks

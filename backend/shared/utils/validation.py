@@ -3,13 +3,14 @@ Validation utility functions.
 Enhanced comprehensive input validation framework for security.
 """
 
-import re
 import html
-import string
 import ipaddress
-from typing import Any, Dict, List, Optional, Set, Union, Tuple
+import re
+import string
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 from urllib.parse import urlparse
-from email_validator import validate_email, EmailNotValidError
+
+from email_validator import EmailNotValidError, validate_email
 
 # Import centralized configuration
 from core.config import settings

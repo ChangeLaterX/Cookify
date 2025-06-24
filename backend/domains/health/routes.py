@@ -4,14 +4,16 @@ Provides HTTP endpoints for system health monitoring.
 """
 
 import time
-from fastapi import APIRouter, status
 from datetime import datetime
+
+from fastapi import APIRouter, status
 
 from core.config import settings
 from core.logging import get_logger
+
+from .metrics import get_metrics_collector
 from .schemas import DetailedHealthResponse, HealthResponse
 from .services import health_service
-from .metrics import get_metrics_collector
 
 logger = get_logger(__name__)
 

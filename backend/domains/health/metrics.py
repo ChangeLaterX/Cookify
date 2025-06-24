@@ -3,17 +3,17 @@ Health Metrics Collection and Analysis.
 Collects health check metrics over time for monitoring and alerting.
 """
 
-import time
 import logging
-from collections import deque, defaultdict
+import time
+from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Deque, Any
-from datetime import datetime, timezone
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
+from typing import Any, Deque, Dict, List, Optional
 
-from .schemas import ServiceStatus, ServiceHealthStatus, DetailedHealthResponse
 from core.config import settings
+
+from .schemas import DetailedHealthResponse, ServiceHealthStatus, ServiceStatus
 
 logger = logging.getLogger(__name__)
 

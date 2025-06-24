@@ -7,10 +7,10 @@ This module provides the base configuration and shared utilities for all Ingredi
 import os
 import shutil
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
 from pathlib import Path
-from unittest.mock import Mock, MagicMock, patch
+from typing import Any, Dict, List, Optional
+from unittest.mock import MagicMock, Mock, patch
 
 # Import smart mocks only when needed
 # from .utils.smart_mocks import SmartMockContextManager, smart_ingredients_mock

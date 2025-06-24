@@ -2,11 +2,11 @@
 Test data generators and utilities for authentication domain tests.
 """
 
+import secrets
+import string
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 from uuid import uuid4
-import secrets
-import string
 
 
 @dataclass
