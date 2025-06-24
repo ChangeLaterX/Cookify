@@ -64,9 +64,9 @@ class TestBasicAuth:
     
     def test_token_response_schema(self):
         """Test TokenResponse schema structure."""
-        from datetime import datetime, timedelta
+        from datetime import datetime, timedelta, timezone
         
-        expires_at = datetime.utcnow() + timedelta(seconds=3600)
+        expires_at = datetime.now(timezone.utc) + timedelta(seconds=3600)
         token_response = TokenResponse(
             access_token="test-access-token",
             refresh_token="test-refresh-token",

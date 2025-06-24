@@ -51,6 +51,7 @@ from .services import (
 from middleware.security import get_current_user, get_optional_user
 
 from core.logging import get_logger
+
 logger = get_logger(__name__)
 
 # Create router for auth endpoints
