@@ -117,13 +117,17 @@ class OCRTestConfig:
         if info["available"]:
             try:
                 # Get version
-                result = subprocess.run(["tesseract", "--version"], capture_output=True, text=True)  # nosec B603, B607 - Controlled subprocess call with fixed args
+                result = subprocess.run(
+                    ["tesseract", "--version"], capture_output=True, text=True
+                )  # nosec B603, B607 - Controlled subprocess call with fixed args
                 if result.returncode == 0:
                     info["version"] = result.stderr.split("\n")[0]
 
                 # Get available languages
                 result = subprocess.run(
-                    ["tesseract", "--list-langs"], capture_output=True, text=True  # nosec B603, B607 - Controlled subprocess call with fixed args
+                    ["tesseract", "--list-langs"],
+                    capture_output=True,
+                    text=True,  # nosec B603, B607 - Controlled subprocess call with fixed args
                 )
                 if result.returncode == 0:
                     languages = result.stdout.strip().split("\n")[1:]  # Skip header
