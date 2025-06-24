@@ -47,9 +47,7 @@ def is_valid_uuid(uuid_string: str) -> bool:
     return bool(uuid_pattern.match(uuid_string))
 
 
-def validate_required_fields(
-    data: Dict[str, Any], required_fields: List[str]
-) -> List[str]:
+def validate_required_fields(data: Dict[str, Any], required_fields: List[str]) -> List[str]:
     """Validate that required fields are present and not empty."""
     missing_fields = []
 
@@ -68,14 +66,8 @@ def sanitize_string(
         return ""
 
     # Use configuration defaults if not provided
-    max_length = (
-        max_length if max_length is not None else settings.INPUT_MAX_STRING_LENGTH
-    )
-    allow_html = (
-        allow_html
-        if allow_html is not None
-        else not settings.INPUT_HTML_ESCAPE_BY_DEFAULT
-    )
+    max_length = max_length if max_length is not None else settings.INPUT_MAX_STRING_LENGTH
+    allow_html = allow_html if allow_html is not None else not settings.INPUT_HTML_ESCAPE_BY_DEFAULT
 
     # Remove leading/trailing whitespace if configured
     if settings.INPUT_STRIP_WHITESPACE:
@@ -197,9 +189,7 @@ def validate_positive_integer(
         return False
 
 
-def validate_phone_number(
-    phone: str, strict_international: Optional[bool] = None
-) -> bool:
+def validate_phone_number(phone: str, strict_international: Optional[bool] = None) -> bool:
     """Enhanced phone number validation with configurable strictness."""
     if not phone or not isinstance(phone, str):
         return False
@@ -216,8 +206,7 @@ def validate_phone_number(
 
     # Basic length validation
     if (
-        len(cleaned) < settings.PHONE_MIN_LENGTH
-        or len(cleaned) > settings.PHONE_MAX_LENGTH + 1
+        len(cleaned) < settings.PHONE_MIN_LENGTH or len(cleaned) > settings.PHONE_MAX_LENGTH + 1
     ):  # +1 for the + sign
         return False
 
@@ -250,9 +239,7 @@ def sanitize_metadata_key(key: str, max_length: Optional[int] = None) -> str:
 
     # Use configuration default if not provided
     max_length = (
-        max_length
-        if max_length is not None
-        else settings.VALIDATION_METADATA_MAX_KEY_LENGTH
+        max_length if max_length is not None else settings.VALIDATION_METADATA_MAX_KEY_LENGTH
     )
 
     # Only allow alphanumeric characters, underscores, and hyphens
@@ -272,9 +259,7 @@ def sanitize_metadata_key(key: str, max_length: Optional[int] = None) -> str:
     return sanitized
 
 
-def validate_metadata_size(
-    metadata: Dict[str, Any], max_total_size: Optional[int] = None
-) -> bool:
+def validate_metadata_size(metadata: Dict[str, Any], max_total_size: Optional[int] = None) -> bool:
     """Validate total metadata size in bytes."""
     if not isinstance(metadata, dict):
         return False
@@ -312,10 +297,7 @@ def sanitize_metadata_value(value: Any, max_string_length: Optional[int] = None)
         }
     elif isinstance(value, list):
         max_items = settings.METADATA_MAX_LIST_ITEMS
-        return [
-            sanitize_metadata_value(item, max_string_length)
-            for item in value[:max_items]
-        ]
+        return [sanitize_metadata_value(item, max_string_length) for item in value[:max_items]]
     elif isinstance(value, (int, float, bool)) or value is None:
         return value
     else:
@@ -393,9 +375,7 @@ def sanitize_filename(filename: str, max_length: Optional[int] = None) -> str:
         return ""
 
     # Use configuration default if not provided
-    max_length = (
-        max_length if max_length is not None else settings.INPUT_MAX_FILENAME_LENGTH
-    )
+    max_length = max_length if max_length is not None else settings.INPUT_MAX_FILENAME_LENGTH
 
     # Remove path separators and dangerous characters
     sanitized = re.sub(r'[<>:"|?*\\/]', "", filename)
@@ -431,14 +411,9 @@ def validate_json_structure(
         return False
 
     if isinstance(data, dict):
-        return all(
-            validate_json_structure(v, max_depth, current_depth + 1)
-            for v in data.values()
-        )
+        return all(validate_json_structure(v, max_depth, current_depth + 1) for v in data.values())
     elif isinstance(data, list):
-        return all(
-            validate_json_structure(item, max_depth, current_depth + 1) for item in data
-        )
+        return all(validate_json_structure(item, max_depth, current_depth + 1) for item in data)
     else:
         return True
 
@@ -460,9 +435,7 @@ def validate_user_input(
 ) -> str:
     """Validate and sanitize general user input."""
     # Use configuration defaults if not provided
-    max_length = (
-        max_length if max_length is not None else settings.INPUT_MAX_STRING_LENGTH
-    )
+    max_length = max_length if max_length is not None else settings.INPUT_MAX_STRING_LENGTH
 
     sanitized = sanitize_string(value, max_length=max_length, allow_html=allow_html)
     if not sanitized.strip():
@@ -476,9 +449,7 @@ def validate_search_query(query: str, max_length: Optional[int] = None) -> str:
         raise ValueError("Search query must be a string")
 
     # Use configuration default if not provided
-    max_length = (
-        max_length if max_length is not None else settings.INPUT_MAX_SEARCH_QUERY_LENGTH
-    )
+    max_length = max_length if max_length is not None else settings.INPUT_MAX_SEARCH_QUERY_LENGTH
 
     # Remove excessive whitespace
     sanitized = re.sub(r"\s+", " ", query.strip())

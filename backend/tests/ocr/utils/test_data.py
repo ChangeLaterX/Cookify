@@ -231,9 +231,7 @@ class TestDataGenerator:
         ingredients = []
         for i in range(count):
             ingredients.append(
-                TestDataGenerator.generate_mock_ingredient(
-                    name=f"{query.title()} Variant {i+1}"
-                )
+                TestDataGenerator.generate_mock_ingredient(name=f"{query.title()} Variant {i+1}")
             )
 
         return IngredientSearchResult(

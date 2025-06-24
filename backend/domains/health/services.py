@@ -75,9 +75,7 @@ class HealthCheckService:
 
         # Filter out exceptions and get valid results
         valid_results = [
-            result
-            for result in service_results
-            if isinstance(result, ServiceHealthStatus)
+            result for result in service_results if isinstance(result, ServiceHealthStatus)
         ]
 
         # Determine overall status
@@ -109,18 +107,14 @@ class HealthCheckService:
             # Test basic Supabase connectivity
             supabase = get_supabase_client()
 
-            return HealthResponse(
-                status=ServiceStatus.HEALTHY, message="System is operational"
-            )
+            return HealthResponse(status=ServiceStatus.HEALTHY, message="System is operational")
         except Exception as e:
             logger.error(f"Quick health check failed: {str(e)}")
             return HealthResponse(
                 status=ServiceStatus.UNHEALTHY, message="System is experiencing issues"
             )
 
-    async def _run_service_check(
-        self, service_name: str, checker
-    ) -> ServiceHealthStatus:
+    async def _run_service_check(self, service_name: str, checker) -> ServiceHealthStatus:
         """Run an individual service health check with timing."""
         start_time = time.time()
 
@@ -293,9 +287,7 @@ class HealthCheckService:
                 status=health_status,
                 message=msg,
                 details=details,
-                error=(
-                    None if file_exists else "Ingredient file missing or inaccessible"
-                ),
+                error=(None if file_exists else "Ingredient file missing or inaccessible"),
             )
         except Exception as e:
             return ServiceHealthStatus(
@@ -319,9 +311,7 @@ class HealthCheckService:
 
             return ServiceHealthStatus(
                 name="update",
-                status=(
-                    ServiceStatus.HEALTHY if cache_healthy else ServiceStatus.DEGRADED
-                ),
+                status=(ServiceStatus.HEALTHY if cache_healthy else ServiceStatus.DEGRADED),
                 message=(
                     "Update service is operational"
                     if cache_healthy
@@ -329,9 +319,7 @@ class HealthCheckService:
                 ),
                 details={
                     "cache_status": "healthy" if cache_healthy else "degraded",
-                    "last_cache_update": str(
-                        cache_status.get("last_updated", "unknown")
-                    ),
+                    "last_cache_update": str(cache_status.get("last_updated", "unknown")),
                     "ingredient_count": str(cache_status.get("ingredient_count", 0)),
                     "service_available": "true",
                 },
@@ -357,9 +345,7 @@ class HealthCheckService:
 
             return ServiceHealthStatus(
                 name="update",
-                status=(
-                    ServiceStatus.HEALTHY if cache_healthy else ServiceStatus.DEGRADED
-                ),
+                status=(ServiceStatus.HEALTHY if cache_healthy else ServiceStatus.DEGRADED),
                 message=(
                     "Update service is operational"
                     if cache_healthy
@@ -367,9 +353,7 @@ class HealthCheckService:
                 ),
                 details={
                     "cache_status": "healthy" if cache_healthy else "degraded",
-                    "last_cache_update": str(
-                        cache_status.get("last_updated", "unknown")
-                    ),
+                    "last_cache_update": str(cache_status.get("last_updated", "unknown")),
                     "ingredient_count": str(cache_status.get("ingredient_count", 0)),
                     "service_available": "true",
                 },
@@ -382,16 +366,12 @@ class HealthCheckService:
                 error=str(e),
             )
 
-    def _determine_overall_status(
-        self, services: List[ServiceHealthStatus]
-    ) -> ServiceStatus:
+    def _determine_overall_status(self, services: List[ServiceHealthStatus]) -> ServiceStatus:
         """Determine overall system status based on individual service statuses."""
         if not services:
             return ServiceStatus.UNHEALTHY
 
-        unhealthy_count = sum(
-            1 for s in services if s.status == ServiceStatus.UNHEALTHY
-        )
+        unhealthy_count = sum(1 for s in services if s.status == ServiceStatus.UNHEALTHY)
         degraded_count = sum(1 for s in services if s.status == ServiceStatus.DEGRADED)
 
         if unhealthy_count > 0:
@@ -408,9 +388,7 @@ class HealthCheckService:
         elif status == ServiceStatus.DEGRADED:
             return f"Some services are degraded (checked {service_count} services)"
         else:
-            return (
-                f"One or more services are unhealthy (checked {service_count} services)"
-            )
+            return f"One or more services are unhealthy (checked {service_count} services)"
 
     def _get_enhanced_system_info(self, total_time_ms: int) -> Dict[str, str]:
         """Get enhanced system information including performance metrics."""
@@ -442,9 +420,7 @@ class HealthCheckService:
             load_avg = "N/A"
             try:
                 load_avg = (
-                    f"{psutil.getloadavg()[0]:.2f}"
-                    if hasattr(psutil, "getloadavg")
-                    else "N/A"
+                    f"{psutil.getloadavg()[0]:.2f}" if hasattr(psutil, "getloadavg") else "N/A"
                 )
             except (AttributeError, OSError):
                 pass

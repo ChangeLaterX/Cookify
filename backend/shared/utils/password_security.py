@@ -89,10 +89,7 @@ class CommonPasswordsValidator:
                 for replacement in replacements:
                     if char in leet_password:
                         leet_variation = leet_password.replace(char, replacement)
-                        if (
-                            len(leet_variation)
-                            >= settings.COMMON_PASSWORD_MIN_VARIATION_LENGTH
-                        ):
+                        if len(leet_variation) >= settings.COMMON_PASSWORD_MIN_VARIATION_LENGTH:
                             self._common_passwords.add(leet_variation.lower())
 
         # Add common substitution patterns from settings
@@ -162,8 +159,7 @@ class CommonPasswordsValidator:
             pattern = password_lower[:i]
             if (
                 password_lower
-                == pattern * (len(password_lower) // i)
-                + pattern[: len(password_lower) % i]
+                == pattern * (len(password_lower) // i) + pattern[: len(password_lower) % i]
             ):
                 if len(pattern) >= 2:
                     patterns.append(f"Contains repeated pattern: '{pattern}'")
@@ -203,9 +199,7 @@ class CommonPasswordsValidator:
         password_lower = password.lower()
         similar = []
 
-        for common_pwd in list(self._common_passwords)[
-            :50
-        ]:  # Check first 50 for performance
+        for common_pwd in list(self._common_passwords)[:50]:  # Check first 50 for performance
             if len(common_pwd) > 3 and common_pwd in password_lower:
                 similar.append(common_pwd)
 
@@ -305,9 +299,7 @@ class PasswordComplexityValidator:
             if not has_digit:
                 missing_types.append("digits (0-9)")
             if not has_special:
-                missing_types.append(
-                    f"special characters ({settings.PASSWORD_SPECIAL_CHARS})"
-                )
+                missing_types.append(f"special characters ({settings.PASSWORD_SPECIAL_CHARS})")
 
             errors.append(
                 f"Password must contain at least {self.MIN_CHAR_TYPES} character types. Missing: {', '.join(missing_types[:4-self.MIN_CHAR_TYPES+1])}"
@@ -344,9 +336,7 @@ class PasswordComplexityValidator:
 
         max_repeated = max(char_counts.values()) if char_counts else 0
         repeated_ratio = max_repeated / len(password) if len(password) > 0 else 1
-        meets_requirements["repeated_chars"] = (
-            repeated_ratio <= self.MAX_REPEATED_CHAR_RATIO
-        )
+        meets_requirements["repeated_chars"] = repeated_ratio <= self.MAX_REPEATED_CHAR_RATIO
 
         if repeated_ratio > self.MAX_REPEATED_CHAR_RATIO:
             errors.append(
@@ -387,17 +377,11 @@ class PasswordComplexityValidator:
             score += 10
 
         # Dictionary attack pattern detection (warning only for testing compatibility)
-        dictionary_patterns = self.common_passwords.check_dictionary_attack_patterns(
-            password
-        )
+        dictionary_patterns = self.common_passwords.check_dictionary_attack_patterns(password)
         meets_requirements["no_dictionary_patterns"] = len(dictionary_patterns) == 0
         if dictionary_patterns:
-            warnings.extend(
-                [f"Pattern detected: {pattern}" for pattern in dictionary_patterns]
-            )
-            suggestions.append(
-                "Consider avoiding predictable patterns for better security"
-            )
+            warnings.extend([f"Pattern detected: {pattern}" for pattern in dictionary_patterns])
+            suggestions.append("Consider avoiding predictable patterns for better security")
             score -= 5  # Small penalty but not blocking
         else:
             score += 5
@@ -416,9 +400,7 @@ class PasswordComplexityValidator:
 
         # Entropy check (guidance only)
         entropy_score = self._calculate_entropy(password)
-        meets_requirements["sufficient_entropy"] = (
-            entropy_score >= self.MIN_ENTROPY_SCORE
-        )
+        meets_requirements["sufficient_entropy"] = entropy_score >= self.MIN_ENTROPY_SCORE
         if entropy_score < self.MIN_ENTROPY_SCORE:
             warnings.append(
                 f"Password entropy could be improved ({entropy_score:.1f} < {self.MIN_ENTROPY_SCORE})"
@@ -433,10 +415,7 @@ class PasswordComplexityValidator:
             score += 10
         if len(password) >= settings.PASSWORD_BONUS_MIN_LENGTH:
             score += 5
-        if (
-            char_types == 4
-            and len(password) >= settings.PASSWORD_RECOMMENDED_MIN_LENGTH
-        ):
+        if char_types == 4 and len(password) >= settings.PASSWORD_RECOMMENDED_MIN_LENGTH:
             score += 10
         if unique_chars >= settings.PASSWORD_MIN_UNIQUE_CHARS_BONUS:
             score += 5
@@ -477,9 +456,7 @@ class PasswordComplexityValidator:
             meets_requirements=meets_requirements,
         )
 
-    def _check_personal_info(
-        self, password: str, user_info: Dict[str, Any]
-    ) -> List[str]:
+    def _check_personal_info(self, password: str, user_info: Dict[str, Any]) -> List[str]:
         """Check if password contains personal information."""
         violations = []
         password_lower = password.lower()
@@ -489,10 +466,7 @@ class PasswordComplexityValidator:
         if email:
             email_parts = email.lower().split("@")[0].split(".")
             for part in email_parts:
-                if (
-                    len(part) >= settings.VALIDATION_EMAIL_MIN_LENGTH
-                    and part in password_lower
-                ):
+                if len(part) >= settings.VALIDATION_EMAIL_MIN_LENGTH and part in password_lower:
                     violations.append("Password contains parts of your email address")
                     break
 
@@ -510,10 +484,7 @@ class PasswordComplexityValidator:
 
         # Check user ID patterns
         user_id = str(user_info.get("user_id", ""))
-        if (
-            len(user_id) >= settings.VALIDATION_USER_ID_MIN_LENGTH
-            and user_id in password
-        ):
+        if len(user_id) >= settings.VALIDATION_USER_ID_MIN_LENGTH and user_id in password:
             violations.append("Password contains user ID information")
 
         return violations

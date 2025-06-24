@@ -405,15 +405,11 @@ async def search_ingredients_by_name(
         HTTPException: 500 if search fails
     """
     try:
-        logger.info(
-            f"Searching ingredients with query: '{q}', limit={limit}, offset={offset}"
-        )
+        logger.info(f"Searching ingredients with query: '{q}', limit={limit}, offset={offset}")
 
         ingredient_list = await search_ingredients(query=q, limit=limit, offset=offset)
 
-        logger.info(
-            f"Found {len(ingredient_list.ingredients)} ingredients matching '{q}'"
-        )
+        logger.info(f"Found {len(ingredient_list.ingredients)} ingredients matching '{q}'")
         return IngredientListApiResponse(
             success=True,
             data=ingredient_list,

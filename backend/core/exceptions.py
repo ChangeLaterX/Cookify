@@ -10,9 +10,7 @@ from fastapi import HTTPException, status
 class DatabaseError(HTTPException):
     """Custom exception for database errors."""
 
-    def __init__(
-        self, detail: str, status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR
-    ):
+    def __init__(self, detail: str, status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR):
         super().__init__(status_code=status_code, detail=detail)
 
 
@@ -28,9 +26,7 @@ class ValidationError(HTTPException):
     """Custom exception for validation errors."""
 
     def __init__(self, detail: str):
-        super().__init__(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=detail
-        )
+        super().__init__(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=detail)
 
 
 class AuthenticationError(HTTPException):

@@ -121,9 +121,7 @@ def setup_error_handlers(app: FastAPI) -> None:
     async def http_exception_handler(request: Request, exc: StarletteHTTPException):
         """Handle HTTP exceptions."""
         request_id = get_request_id(request)
-        logger.warning(
-            f"HTTP {exc.status_code} error (Request ID: {request_id}): {exc.detail}"
-        )
+        logger.warning(f"HTTP {exc.status_code} error (Request ID: {request_id}): {exc.detail}")
 
         return JSONResponse(
             status_code=exc.status_code,
@@ -137,9 +135,7 @@ def setup_error_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(RequestValidationError)
-    async def validation_exception_handler(
-        request: Request, exc: RequestValidationError
-    ):
+    async def validation_exception_handler(request: Request, exc: RequestValidationError):
         """Handle request validation errors."""
         request_id = get_request_id(request)
         logger.warning(f"Validation error (Request ID: {request_id}): {str(exc)}")

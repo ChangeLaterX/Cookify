@@ -106,9 +106,7 @@ async def register(user_data: UserCreate) -> AuthResponse:
             detail={"error": e.message, "error_code": e.error_code},
         )
     except Exception as e:
-        logger.error(
-            f"Unexpected error during registration for {user_data.email}: {str(e)}"
-        )
+        logger.error(f"Unexpected error during registration for {user_data.email}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"error": "Internal server error", "error_code": "INTERNAL_ERROR"},
@@ -241,9 +239,7 @@ async def logout(
         return MessageResponse(
             message="Logged out (best effort)",
             success=True,
-            details={
-                "warning": "Logout completed but may not have been fully processed"
-            },
+            details={"warning": "Logout completed but may not have been fully processed"},
         )
 
 
@@ -721,9 +717,7 @@ async def dev_login() -> AuthResponse:
     }
 
     # Create test tokens
-    access_token = jwt.encode(
-        user_data, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
-    )
+    access_token = jwt.encode(user_data, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
     refresh_token = jwt.encode(
         {**user_data, "exp": datetime.utcnow() + timedelta(days=7)},
         settings.JWT_SECRET_KEY,
@@ -817,12 +811,8 @@ async def check_password_strength(
         }
 
         for key, met in analysis.meets_requirements.items():
-            description = requirement_descriptions.get(
-                key, key.replace("_", " ").title()
-            )
-            requirements.append(
-                PasswordRequirement(key=key, met=met, description=description)
-            )
+            description = requirement_descriptions.get(key, key.replace("_", " ").title())
+            requirements.append(PasswordRequirement(key=key, met=met, description=description))
 
         return PasswordStrengthResponse(
             strength=int(analysis.strength),

@@ -58,9 +58,7 @@ async def get_all_ingredients(
         supabase: Client = get_supabase_client()
 
         # Get total count
-        all_response = (
-            supabase.table("ingredient_master").select("ingredient_id").execute()
-        )
+        all_response = supabase.table("ingredient_master").select("ingredient_id").execute()
         total = len(all_response.data) if all_response.data else 0
 
         # Get paginated results
@@ -72,9 +70,7 @@ async def get_all_ingredients(
             .execute()
         )
 
-        ingredients = [
-            IngredientMasterResponse(**ingredient) for ingredient in response.data
-        ]
+        ingredients = [IngredientMasterResponse(**ingredient) for ingredient in response.data]
 
         logger.info(f"Retrieved {len(ingredients)} ingredients from database")
         return IngredientListResponse(
@@ -83,9 +79,7 @@ async def get_all_ingredients(
 
     except Exception as e:
         logger.error(f"Failed to retrieve ingredients: {str(e)}")
-        raise IngredientError(
-            message="Failed to retrieve ingredients", error_code="DATABASE_ERROR"
-        )
+        raise IngredientError(message="Failed to retrieve ingredients", error_code="DATABASE_ERROR")
 
 
 async def get_ingredient_by_id(ingredient_id: UUID) -> IngredientMasterResponse:
@@ -112,9 +106,7 @@ async def get_ingredient_by_id(ingredient_id: UUID) -> IngredientMasterResponse:
         )
 
         if not response.data:
-            raise IngredientError(
-                message="Ingredient not found", error_code="INGREDIENT_NOT_FOUND"
-            )
+            raise IngredientError(message="Ingredient not found", error_code="INGREDIENT_NOT_FOUND")
 
         ingredient = IngredientMasterResponse(**response.data[0])
         logger.info(f"Retrieved ingredient {ingredient_id}")
@@ -124,9 +116,7 @@ async def get_ingredient_by_id(ingredient_id: UUID) -> IngredientMasterResponse:
         raise
     except Exception as e:
         logger.error(f"Failed to retrieve ingredient {ingredient_id}: {str(e)}")
-        raise IngredientError(
-            message="Failed to retrieve ingredient", error_code="DATABASE_ERROR"
-        )
+        raise IngredientError(message="Failed to retrieve ingredient", error_code="DATABASE_ERROR")
 
 
 async def create_ingredient(
@@ -162,9 +152,7 @@ async def create_ingredient(
             )
 
         # Create new ingredient
-        response = (
-            supabase.table("ingredient_master").insert(ingredient_data.dict()).execute()
-        )
+        response = supabase.table("ingredient_master").insert(ingredient_data.dict()).execute()
 
         if not response.data:
             raise IngredientError(
@@ -179,9 +167,7 @@ async def create_ingredient(
         raise
     except Exception as e:
         logger.error(f"Failed to create ingredient: {str(e)}")
-        raise IngredientError(
-            message="Failed to create ingredient", error_code="DATABASE_ERROR"
-        )
+        raise IngredientError(message="Failed to create ingredient", error_code="DATABASE_ERROR")
 
 
 async def update_ingredient(
@@ -212,9 +198,7 @@ async def update_ingredient(
         )
 
         if not existing_response.data:
-            raise IngredientError(
-                message="Ingredient not found", error_code="INGREDIENT_NOT_FOUND"
-            )
+            raise IngredientError(message="Ingredient not found", error_code="INGREDIENT_NOT_FOUND")
 
         # Check if name already exists for another ingredient
         if ingredient_data.name:
@@ -243,9 +227,7 @@ async def update_ingredient(
         )
 
         if not response.data:
-            raise IngredientError(
-                message="Failed to update ingredient", error_code="UPDATE_FAILED"
-            )
+            raise IngredientError(message="Failed to update ingredient", error_code="UPDATE_FAILED")
 
         ingredient = IngredientMasterResponse(**response.data[0])
         logger.info(f"Updated ingredient: {ingredient_id}")
@@ -255,9 +237,7 @@ async def update_ingredient(
         raise
     except Exception as e:
         logger.error(f"Failed to update ingredient {ingredient_id}: {str(e)}")
-        raise IngredientError(
-            message="Failed to update ingredient", error_code="DATABASE_ERROR"
-        )
+        raise IngredientError(message="Failed to update ingredient", error_code="DATABASE_ERROR")
 
 
 async def delete_ingredient(ingredient_id: UUID) -> bool:
@@ -285,9 +265,7 @@ async def delete_ingredient(ingredient_id: UUID) -> bool:
         )
 
         if not existing_response.data:
-            raise IngredientError(
-                message="Ingredient not found", error_code="INGREDIENT_NOT_FOUND"
-            )
+            raise IngredientError(message="Ingredient not found", error_code="INGREDIENT_NOT_FOUND")
 
         # Delete ingredient
         response = (
@@ -304,9 +282,7 @@ async def delete_ingredient(ingredient_id: UUID) -> bool:
         raise
     except Exception as e:
         logger.error(f"Failed to delete ingredient {ingredient_id}: {str(e)}")
-        raise IngredientError(
-            message="Failed to delete ingredient", error_code="DATABASE_ERROR"
-        )
+        raise IngredientError(message="Failed to delete ingredient", error_code="DATABASE_ERROR")
 
 
 async def search_ingredients(
@@ -356,9 +332,7 @@ async def search_ingredients(
             .execute()
         )
 
-        ingredients = [
-            IngredientMasterResponse(**ingredient) for ingredient in response.data
-        ]
+        ingredients = [IngredientMasterResponse(**ingredient) for ingredient in response.data]
 
         logger.info(f"Found {len(ingredients)} ingredients matching '{query}'")
         return IngredientListResponse(
@@ -367,6 +341,4 @@ async def search_ingredients(
 
     except Exception as e:
         logger.error(f"Failed to search ingredients with query '{query}': {str(e)}")
-        raise IngredientError(
-            message="Failed to search ingredients", error_code="SEARCH_ERROR"
-        )
+        raise IngredientError(message="Failed to search ingredients", error_code="SEARCH_ERROR")

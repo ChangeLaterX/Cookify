@@ -229,15 +229,11 @@ class TestDiscoveredEndpoints:
 
         # Skip auth-required endpoints
         if endpoint.requires_auth:
-            pytest.skip(
-                f"Skipping auth-required endpoint: {endpoint.method} {endpoint.path}"
-            )
+            pytest.skip(f"Skipping auth-required endpoint: {endpoint.method} {endpoint.path}")
 
         # Skip endpoints with path parameters for this basic test
         if endpoint.path_params:
-            pytest.skip(
-                f"Skipping parameterized endpoint: {endpoint.method} {endpoint.path}"
-            )
+            pytest.skip(f"Skipping parameterized endpoint: {endpoint.method} {endpoint.path}")
 
         try:
             if endpoint.method == "GET":

@@ -74,9 +74,7 @@ class PhoneValidationConfig:
     min_length: int = 7
     max_length: int = 15
     require_country_code: bool = True
-    allowed_country_codes: Set[str] = field(
-        default_factory=set
-    )  # Empty set means all are allowed
+    allowed_country_codes: Set[str] = field(default_factory=set)  # Empty set means all are allowed
 
 
 @dataclass
@@ -84,9 +82,7 @@ class URLValidationConfig:
     """Configuration for URL validation."""
 
     allowed_schemes: List[str] = field(default_factory=lambda: ["http", "https"])
-    allowed_domains: List[str] = field(
-        default_factory=list
-    )  # Empty list means all domains allowed
+    allowed_domains: List[str] = field(default_factory=list)  # Empty list means all domains allowed
     allow_localhost: bool = True
     allow_private_ips: bool = False
     max_url_length: int = 2048

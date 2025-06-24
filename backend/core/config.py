@@ -76,9 +76,7 @@ class AppConfig(BaseSettings):
     """Application-level configuration settings."""
 
     # Basic App Settings
-    APP_NAME: str = Field(
-        default="Cookify Meal Planning API", description="Application name"
-    )
+    APP_NAME: str = Field(default="Cookify Meal Planning API", description="Application name")
     DEBUG: bool = Field(default=True, description="Enable debug mode")
     ENVIRONMENT: Environment = Field(
         default=Environment.DEVELOPMENT, description="Runtime environment"
@@ -102,9 +100,7 @@ class AppConfig(BaseSettings):
         default="1.0.0", pattern=r"^\d+\.\d+\.\d+(-\w+)?$", description="API version"
     )
     API_CONTACT_NAME: str = Field(default="Cookify Support", description="Contact name")
-    API_CONTACT_EMAIL: str = Field(
-        default="support@cookify.app", description="Contact email"
-    )
+    API_CONTACT_EMAIL: str = Field(default="support@cookify.app", description="Contact email")
     API_LICENSE_NAME: str = Field(default="MIT", description="License name")
     API_TERMS_OF_SERVICE: Optional[HttpUrl] = Field(
         default=None, description="Terms of service URL"
@@ -131,18 +127,12 @@ class ServerConfig(BaseSettings):
     API_MAX_REQUEST_SIZE_MB: int = Field(
         default=10, ge=1, le=100, description="Max request size in MB"
     )
-    API_DEFAULT_PAGE_SIZE: int = Field(
-        default=20, ge=1, le=100, description="Default page size"
-    )
-    API_MAX_PAGE_SIZE: int = Field(
-        default=100, ge=1, le=1000, description="Max page size"
-    )
+    API_DEFAULT_PAGE_SIZE: int = Field(default=20, ge=1, le=100, description="Default page size")
+    API_MAX_PAGE_SIZE: int = Field(default=100, ge=1, le=1000, description="Max page size")
     API_REQUEST_TIMEOUT_SECONDS: int = Field(
         default=30, ge=1, le=300, description="Request timeout"
     )
-    API_RESPONSE_CACHE_TTL: int = Field(
-        default=300, ge=0, description="Response cache TTL"
-    )
+    API_RESPONSE_CACHE_TTL: int = Field(default=300, ge=0, description="Response cache TTL")
     PAGINATION_DEFAULT_PER_PAGE: int = Field(
         default=20, ge=1, le=100, description="Default pagination per page"
     )
@@ -161,8 +151,7 @@ class SecurityConfig(BaseSettings):
         description="Supabase key",
     )
     JWT_SECRET_KEY: str = Field(
-        default_factory=lambda: os.getenv("JWT_SECRET", "")
-        or secrets.token_urlsafe(32),
+        default_factory=lambda: os.getenv("JWT_SECRET", "") or secrets.token_urlsafe(32),
         min_length=32,
         description="JWT secret key",
     )
@@ -177,8 +166,7 @@ class SecurityConfig(BaseSettings):
         description="JWT expiration in minutes",
     )
     SESSION_SECRET_KEY: str = Field(
-        default_factory=lambda: os.getenv("SESSION_SECRET_KEY", "")
-        or secrets.token_urlsafe(32),
+        default_factory=lambda: os.getenv("SESSION_SECRET_KEY", "") or secrets.token_urlsafe(32),
         min_length=32,
         description="Session secret key",
     )
@@ -187,34 +175,20 @@ class SecurityConfig(BaseSettings):
     REQUIRE_EMAIL_VERIFICATION: bool = Field(
         default=False, description="Require email verification"
     )
-    PASSWORD_MIN_LENGTH: int = Field(
-        default=8, ge=6, le=128, description="Minimum password length"
-    )
-    MAX_LOGIN_ATTEMPTS: int = Field(
-        default=5, ge=1, le=10, description="Max login attempts"
-    )
-    LOCKOUT_DURATION_MINUTES: int = Field(
-        default=15, ge=1, le=1440, description="Lockout duration"
-    )
-    FRONTEND_URL: HttpUrl = Field(
-        default="http://localhost:3000", description="Frontend URL"
-    )
+    PASSWORD_MIN_LENGTH: int = Field(default=8, ge=6, le=128, description="Minimum password length")
+    MAX_LOGIN_ATTEMPTS: int = Field(default=5, ge=1, le=10, description="Max login attempts")
+    LOCKOUT_DURATION_MINUTES: int = Field(default=15, ge=1, le=1440, description="Lockout duration")
+    FRONTEND_URL: HttpUrl = Field(default="http://localhost:3000", description="Frontend URL")
 
     # Security Headers
-    SECURITY_HEADERS_ENABLED: bool = Field(
-        default=True, description="Enable security headers"
-    )
+    SECURITY_HEADERS_ENABLED: bool = Field(default=True, description="Enable security headers")
     HSTS_MAX_AGE: int = Field(default=31536000, ge=0, description="HSTS max age")
     SECURITY_HSTS_MAX_AGE_DEFAULT: int = Field(
         default=31536000, ge=0, description="Default HSTS max age fallback"
     )
-    HSTS_INCLUDE_SUBDOMAINS: bool = Field(
-        default=True, description="HSTS include subdomains"
-    )
+    HSTS_INCLUDE_SUBDOMAINS: bool = Field(default=True, description="HSTS include subdomains")
     HSTS_PRELOAD: bool = Field(default=False, description="HSTS preload")
-    CSP_REPORT_URI: Optional[HttpUrl] = Field(
-        default=None, description="CSP report URI"
-    )
+    CSP_REPORT_URI: Optional[HttpUrl] = Field(default=None, description="CSP report URI")
     CUSTOM_SECURITY_HEADERS: Optional[dict] = Field(
         default=None, description="Custom security headers"
     )
@@ -223,9 +197,7 @@ class SecurityConfig(BaseSettings):
     SECURITY_CONTENT_TYPE_OPTIONS: str = Field(
         default="nosniff", description="X-Content-Type-Options header value"
     )
-    SECURITY_FRAME_OPTIONS: str = Field(
-        default="DENY", description="X-Frame-Options header value"
-    )
+    SECURITY_FRAME_OPTIONS: str = Field(default="DENY", description="X-Frame-Options header value")
     SECURITY_XSS_PROTECTION: str = Field(
         default="1; mode=block", description="X-XSS-Protection header value"
     )
@@ -239,9 +211,7 @@ class SecurityConfig(BaseSettings):
     )
 
     # Content Security Policy (CSP) Directives
-    CSP_DEFAULT_SRC: str = Field(
-        default="'self'", description="CSP default-src directive"
-    )
+    CSP_DEFAULT_SRC: str = Field(default="'self'", description="CSP default-src directive")
     CSP_SCRIPT_SRC: str = Field(
         default="'self' 'unsafe-inline'", description="CSP script-src directive"
     )
@@ -263,16 +233,12 @@ class SecurityConfig(BaseSettings):
         default="'self' 'unsafe-inline'",
         description="CSP style-src directive for production",
     )
-    CSP_IMG_SRC: str = Field(
-        default="'self' data: https:", description="CSP img-src directive"
-    )
+    CSP_IMG_SRC: str = Field(default="'self' data: https:", description="CSP img-src directive")
     CSP_IMG_SRC_DEV: str = Field(
         default="'self' data: blob: localhost:* 127.0.0.1:*",
         description="CSP img-src directive for development",
     )
-    CSP_CONNECT_SRC: str = Field(
-        default="'self'", description="CSP connect-src directive"
-    )
+    CSP_CONNECT_SRC: str = Field(default="'self'", description="CSP connect-src directive")
     CSP_CONNECT_SRC_DEV: str = Field(
         default="'self' localhost:* 127.0.0.1:* ws: wss:",
         description="CSP connect-src directive for development",
@@ -280,9 +246,7 @@ class SecurityConfig(BaseSettings):
     CSP_CONNECT_SRC_PROD: str = Field(
         default="'self'", description="CSP connect-src directive for production"
     )
-    CSP_FONT_SRC: str = Field(
-        default="'self' https:", description="CSP font-src directive"
-    )
+    CSP_FONT_SRC: str = Field(default="'self' https:", description="CSP font-src directive")
     CSP_FONT_SRC_DEV: str = Field(
         default="'self' https: data: https://fonts.gstatic.com https://cdn.jsdelivr.net",
         description="CSP font-src directive for development",
@@ -290,25 +254,15 @@ class SecurityConfig(BaseSettings):
     CSP_FONT_SRC_PROD: str = Field(
         default="'self' https:", description="CSP font-src directive for production"
     )
-    CSP_FRAME_ANCESTORS: str = Field(
-        default="'none'", description="CSP frame-ancestors directive"
-    )
-    CSP_OBJECT_SRC: str = Field(
-        default="'none'", description="CSP object-src directive"
-    )
+    CSP_FRAME_ANCESTORS: str = Field(default="'none'", description="CSP frame-ancestors directive")
+    CSP_OBJECT_SRC: str = Field(default="'none'", description="CSP object-src directive")
     CSP_MEDIA_SRC: str = Field(default="'self'", description="CSP media-src directive")
     CSP_FRAME_SRC: str = Field(default="'none'", description="CSP frame-src directive")
     CSP_CHILD_SRC: str = Field(default="'none'", description="CSP child-src directive")
-    CSP_FORM_ACTION: str = Field(
-        default="'self'", description="CSP form-action directive"
-    )
+    CSP_FORM_ACTION: str = Field(default="'self'", description="CSP form-action directive")
     CSP_BASE_URI: str = Field(default="'self'", description="CSP base-uri directive")
-    CSP_MANIFEST_SRC: str = Field(
-        default="'self'", description="CSP manifest-src directive"
-    )
-    CSP_WORKER_SRC: str = Field(
-        default="'self'", description="CSP worker-src directive"
-    )
+    CSP_MANIFEST_SRC: str = Field(default="'self'", description="CSP manifest-src directive")
+    CSP_WORKER_SRC: str = Field(default="'self'", description="CSP worker-src directive")
 
     # Permissions Policy Settings
     PERMISSIONS_POLICY_CAMERA: str = Field(
@@ -323,9 +277,7 @@ class SecurityConfig(BaseSettings):
     PERMISSIONS_POLICY_PAYMENT: str = Field(
         default="()", description="Permissions policy for payment"
     )
-    PERMISSIONS_POLICY_USB: str = Field(
-        default="()", description="Permissions policy for USB"
-    )
+    PERMISSIONS_POLICY_USB: str = Field(default="()", description="Permissions policy for USB")
     PERMISSIONS_POLICY_MAGNETOMETER: str = Field(
         default="()", description="Permissions policy for magnetometer"
     )
@@ -389,12 +341,8 @@ class CORSConfig(BaseSettings):
 class RateLimitConfig(BaseSettings):
     """Rate limiting configuration."""
 
-    RATE_LIMITING_ENABLED: bool = Field(
-        default=True, description="Enable rate limiting"
-    )
-    RATE_LIMIT_LOGIN_ATTEMPTS: int = Field(
-        default=5, ge=1, le=20, description="Login rate limit"
-    )
+    RATE_LIMITING_ENABLED: bool = Field(default=True, description="Enable rate limiting")
+    RATE_LIMIT_LOGIN_ATTEMPTS: int = Field(default=5, ge=1, le=20, description="Login rate limit")
     RATE_LIMIT_LOGIN_WINDOW_MINUTES: int = Field(
         default=15, ge=1, le=60, description="Login window"
     )
@@ -512,9 +460,7 @@ class DatabaseConfig(BaseSettings):
     DB_CONNECTION_POOL_MAX_OVERFLOW: int = Field(
         default=20, ge=0, le=100, description="Max pool overflow"
     )
-    DB_QUERY_TIMEOUT_SECONDS: int = Field(
-        default=30, ge=1, le=300, description="Query timeout"
-    )
+    DB_QUERY_TIMEOUT_SECONDS: int = Field(default=30, ge=1, le=300, description="Query timeout")
     DB_CONNECTION_TIMEOUT_SECONDS: int = Field(
         default=10, ge=1, le=60, description="Connection timeout"
     )
@@ -522,50 +468,34 @@ class DatabaseConfig(BaseSettings):
         default=60, ge=1, le=600, description="Transaction timeout"
     )
     DB_RETRY_ATTEMPTS: int = Field(default=3, ge=0, le=10, description="Retry attempts")
-    DB_RETRY_DELAY_SECONDS: float = Field(
-        default=1.0, ge=0.1, le=10.0, description="Retry delay"
-    )
-    DB_ENABLE_QUERY_LOGGING: bool = Field(
-        default=False, description="Enable query logging"
-    )
+    DB_RETRY_DELAY_SECONDS: float = Field(default=1.0, ge=0.1, le=10.0, description="Retry delay")
+    DB_ENABLE_QUERY_LOGGING: bool = Field(default=False, description="Enable query logging")
     DB_SLOW_QUERY_THRESHOLD_MS: int = Field(
         default=1000, ge=100, le=10000, description="Slow query threshold"
     )
 
     # Field Length Settings
-    DB_EMAIL_MAX_LENGTH: int = Field(
-        default=255, ge=50, le=500, description="Email field length"
-    )
+    DB_EMAIL_MAX_LENGTH: int = Field(default=255, ge=50, le=500, description="Email field length")
     DB_PASSWORD_MAX_LENGTH: int = Field(
         default=255, ge=50, le=500, description="Password field length"
     )
-    DB_TOKEN_MAX_LENGTH: int = Field(
-        default=255, ge=50, le=500, description="Token field length"
-    )
+    DB_TOKEN_MAX_LENGTH: int = Field(default=255, ge=50, le=500, description="Token field length")
     DB_STRING_DEFAULT_LENGTH: int = Field(
         default=255, ge=50, le=500, description="Default string length"
     )
     DB_DISPLAY_NAME_MAX_LENGTH: int = Field(
         default=100, ge=10, le=200, description="Display name length"
     )
-    DB_PHONE_MAX_LENGTH: int = Field(
-        default=20, ge=10, le=30, description="Phone number length"
-    )
-    DB_URL_MAX_LENGTH: int = Field(
-        default=2048, ge=100, le=4096, description="URL field length"
-    )
+    DB_PHONE_MAX_LENGTH: int = Field(default=20, ge=10, le=30, description="Phone number length")
+    DB_URL_MAX_LENGTH: int = Field(default=2048, ge=100, le=4096, description="URL field length")
     DB_TEXT_FIELD_MAX_LENGTH: int = Field(
         default=1000, ge=100, le=5000, description="Text field max length"
     )
     DB_STATUS_CODE_LENGTH: int = Field(
         default=20, ge=5, le=50, description="Status code field length"
     )
-    DB_CODE_LENGTH: int = Field(
-        default=6, ge=4, le=12, description="Verification code length"
-    )
-    DB_ROLE_LENGTH: int = Field(
-        default=50, ge=10, le=100, description="User role field length"
-    )
+    DB_CODE_LENGTH: int = Field(default=6, ge=4, le=12, description="Verification code length")
+    DB_ROLE_LENGTH: int = Field(default=50, ge=10, le=100, description="User role field length")
     DB_PROVIDER_LENGTH: int = Field(
         default=50, ge=5, le=100, description="Auth provider field length"
     )
@@ -575,9 +505,7 @@ class DatabaseConfig(BaseSettings):
     DB_LAST_NAME_MAX_LENGTH: int = Field(
         default=100, ge=10, le=200, description="Last name field length"
     )
-    DB_BIO_MAX_LENGTH: int = Field(
-        default=500, ge=50, le=2000, description="User bio field length"
-    )
+    DB_BIO_MAX_LENGTH: int = Field(default=500, ge=50, le=2000, description="User bio field length")
     DB_LOCATION_MAX_LENGTH: int = Field(
         default=100, ge=10, le=200, description="Location field length"
     )
@@ -592,19 +520,13 @@ class DatabaseConfig(BaseSettings):
 class CacheConfig(BaseSettings):
     """Caching configuration."""
 
-    USER_CACHE_TTL_SECONDS: int = Field(
-        default=300, ge=60, le=3600, description="User cache TTL"
-    )
+    USER_CACHE_TTL_SECONDS: int = Field(default=300, ge=60, le=3600, description="User cache TTL")
     ENABLE_USER_CACHE: bool = Field(default=True, description="Enable user cache")
     CACHE_DEFAULT_TTL_SECONDS: int = Field(
         default=1800, ge=60, le=7200, description="Default cache TTL"
     )
-    CACHE_MAX_SIZE: int = Field(
-        default=1000, ge=100, le=10000, description="Max cache size"
-    )
-    CACHE_ENABLE_COMPRESSION: bool = Field(
-        default=True, description="Enable compression"
-    )
+    CACHE_MAX_SIZE: int = Field(default=1000, ge=100, le=10000, description="Max cache size")
+    CACHE_ENABLE_COMPRESSION: bool = Field(default=True, description="Enable compression")
     CACHE_CLEANUP_INTERVAL_SECONDS: int = Field(
         default=3600, ge=300, le=7200, description="Cleanup interval"
     )
@@ -619,17 +541,13 @@ class LoggingConfig(BaseSettings):
         description="Log format",
     )
     LOG_FORMAT_JSON: bool = Field(default=False, description="JSON log format")
-    CONSOLE_LOG_LEVEL: LogLevel = Field(
-        default=LogLevel.INFO, description="Console log level"
-    )
+    CONSOLE_LOG_LEVEL: LogLevel = Field(default=LogLevel.INFO, description="Console log level")
     LOG_TO_FILE: bool = Field(default=False, description="Log to file")
     LOG_DIR: str = Field(default="backend/logs", description="Log directory")
     ENABLE_ACCESS_LOG: bool = Field(default=True, description="Enable access log")
 
     # Domain-specific logging
-    DOMAINS_LOG_LEVEL: LogLevel = Field(
-        default=LogLevel.INFO, description="Domains log level"
-    )
+    DOMAINS_LOG_LEVEL: LogLevel = Field(default=LogLevel.INFO, description="Domains log level")
     MIDDLEWARE_LOG_LEVEL: LogLevel = Field(
         default=LogLevel.INFO, description="Middleware log level"
     )
@@ -660,15 +578,11 @@ class MonitoringConfig(BaseSettings):
     """Monitoring and metrics configuration."""
 
     MONITORING_ENABLED: bool = Field(default=True, description="Enable monitoring")
-    METRICS_COLLECTION_ENABLED: bool = Field(
-        default=True, description="Enable metrics collection"
-    )
+    METRICS_COLLECTION_ENABLED: bool = Field(default=True, description="Enable metrics collection")
     PERFORMANCE_MONITORING_ENABLED: bool = Field(
         default=True, description="Enable performance monitoring"
     )
-    ERROR_TRACKING_ENABLED: bool = Field(
-        default=True, description="Enable error tracking"
-    )
+    ERROR_TRACKING_ENABLED: bool = Field(default=True, description="Enable error tracking")
     TRACE_SAMPLING_RATE: float = Field(
         default=0.1, ge=0.0, le=1.0, description="Trace sampling rate"
     )
@@ -678,9 +592,7 @@ class MonitoringConfig(BaseSettings):
     MONITORING_ENDPOINT_PREFIX: str = Field(
         default="/metrics", description="Monitoring endpoint prefix"
     )
-    MONITORING_REQUIRE_AUTH: bool = Field(
-        default=False, description="Require auth for monitoring"
-    )
+    MONITORING_REQUIRE_AUTH: bool = Field(default=False, description="Require auth for monitoring")
 
 
 class PasswordConfig(BaseSettings):
@@ -689,31 +601,19 @@ class PasswordConfig(BaseSettings):
     PASSWORD_MIN_SECURITY_LENGTH: int = Field(
         default=6, ge=4, le=32, description="Min security length"
     )
-    PASSWORD_MAX_LENGTH: int = Field(
-        default=128, ge=32, le=256, description="Max password length"
-    )
-    PASSWORD_MIN_UNIQUE_CHARS: int = Field(
-        default=6, ge=3, le=20, description="Min unique chars"
-    )
+    PASSWORD_MAX_LENGTH: int = Field(default=128, ge=32, le=256, description="Max password length")
+    PASSWORD_MIN_UNIQUE_CHARS: int = Field(default=6, ge=3, le=20, description="Min unique chars")
     PASSWORD_MAX_REPEATED_CHAR_RATIO: float = Field(
         default=0.4, ge=0.1, le=0.8, description="Max repeated char ratio"
     )
-    PASSWORD_MIN_CHAR_TYPES: int = Field(
-        default=3, ge=1, le=4, description="Min character types"
-    )
+    PASSWORD_MIN_CHAR_TYPES: int = Field(default=3, ge=1, le=4, description="Min character types")
     PASSWORD_MIN_ENTROPY_SCORE: int = Field(
         default=35, ge=10, le=100, description="Min entropy score"
     )
-    PASSWORD_REQUIRE_UPPERCASE: bool = Field(
-        default=True, description="Require uppercase"
-    )
-    PASSWORD_REQUIRE_LOWERCASE: bool = Field(
-        default=True, description="Require lowercase"
-    )
+    PASSWORD_REQUIRE_UPPERCASE: bool = Field(default=True, description="Require uppercase")
+    PASSWORD_REQUIRE_LOWERCASE: bool = Field(default=True, description="Require lowercase")
     PASSWORD_REQUIRE_DIGITS: bool = Field(default=True, description="Require digits")
-    PASSWORD_REQUIRE_SPECIAL: bool = Field(
-        default=True, description="Require special chars"
-    )
+    PASSWORD_REQUIRE_SPECIAL: bool = Field(default=True, description="Require special chars")
 
     # Password Complexity
     PASSWORD_SPECIAL_CHARS: str = Field(
@@ -828,22 +728,14 @@ class OCRConfig(BaseSettings):
         default=["JPEG", "JPG", "PNG", "WEBP", "BMP", "TIFF"],
         description="Allowed image formats",
     )
-    OCR_MIN_IMAGE_WIDTH: int = Field(
-        default=100, ge=50, le=1000, description="Min image width"
-    )
-    OCR_MIN_IMAGE_HEIGHT: int = Field(
-        default=100, ge=50, le=1000, description="Min image height"
-    )
-    OCR_MAX_IMAGE_WIDTH: int = Field(
-        default=4000, ge=1000, le=8000, description="Max image width"
-    )
+    OCR_MIN_IMAGE_WIDTH: int = Field(default=100, ge=50, le=1000, description="Min image width")
+    OCR_MIN_IMAGE_HEIGHT: int = Field(default=100, ge=50, le=1000, description="Min image height")
+    OCR_MAX_IMAGE_WIDTH: int = Field(default=4000, ge=1000, le=8000, description="Max image width")
     OCR_MAX_IMAGE_HEIGHT: int = Field(
         default=4000, ge=1000, le=8000, description="Max image height"
     )
     OCR_DEFAULT_DPI: int = Field(default=300, ge=72, le=600, description="Default DPI")
-    OCR_PREPROCESSING_ENABLED: bool = Field(
-        default=True, description="Enable preprocessing"
-    )
+    OCR_PREPROCESSING_ENABLED: bool = Field(default=True, description="Enable preprocessing")
     OCR_GAUSSIAN_BLUR_RADIUS: float = Field(
         default=0.5,
         ge=0.1,
@@ -858,9 +750,7 @@ class OCRConfig(BaseSettings):
     OCR_MIN_CONFIDENCE_SCORE: float = Field(
         default=30.0, ge=0.0, le=100.0, description="Minimum confidence score"
     )
-    OCR_PROCESSING_TIMEOUT: int = Field(
-        default=30, ge=5, le=120, description="Processing timeout"
-    )
+    OCR_PROCESSING_TIMEOUT: int = Field(default=30, ge=5, le=120, description="Processing timeout")
     OCR_DEFAULT_LANGUAGE: OCRLanguage = Field(
         default=OCRLanguage.GERMAN, description="Default language"
     )
@@ -897,12 +787,8 @@ class OCRConfig(BaseSettings):
     OCR_FALLBACK_PSM_11_CONFIG: str = Field(
         default="--psm 11 --oem 1", description="Fallback PSM 11 configuration"
     )
-    OCR_DEFAULT_CONFIG: str = Field(
-        default="--psm 6", description="Default OCR configuration"
-    )
-    OCR_SIMPLE_CONFIG: str = Field(
-        default="--psm 6", description="Simple OCR configuration"
-    )
+    OCR_DEFAULT_CONFIG: str = Field(default="--psm 6", description="Default OCR configuration")
+    OCR_SIMPLE_CONFIG: str = Field(default="--psm 6", description="Simple OCR configuration")
 
     # Price extraction settings
     OCR_MIN_PRICE: float = Field(
@@ -957,12 +843,8 @@ class ValidationConfig(BaseSettings):
     )
 
     # Email validation settings
-    EMAIL_MAX_LENGTH: int = Field(
-        default=254, ge=50, le=320, description="Maximum email length"
-    )
-    EMAIL_MIN_LENGTH: int = Field(
-        default=5, ge=3, le=20, description="Minimum email length"
-    )
+    EMAIL_MAX_LENGTH: int = Field(default=254, ge=50, le=320, description="Maximum email length")
+    EMAIL_MIN_LENGTH: int = Field(default=5, ge=3, le=20, description="Minimum email length")
     EMAIL_DANGEROUS_CHARS: str = Field(
         default="<>\"'&;\\", description="Dangerous characters in email"
     )
@@ -981,9 +863,7 @@ class ValidationConfig(BaseSettings):
     INPUT_HTML_ESCAPE_BY_DEFAULT: bool = Field(
         default=True, description="HTML escape input by default"
     )
-    INPUT_STRIP_WHITESPACE: bool = Field(
-        default=True, description="Strip whitespace from input"
-    )
+    INPUT_STRIP_WHITESPACE: bool = Field(default=True, description="Strip whitespace from input")
     INPUT_FORBIDDEN_CONTROL_CHARS: bool = Field(
         default=True, description="Forbid control characters in input"
     )
@@ -994,9 +874,7 @@ class ValidationConfig(BaseSettings):
     INPUT_MAX_FILENAME_LENGTH: int = Field(
         default=255, ge=50, le=512, description="Max input filename length"
     )
-    INPUT_MAX_JSON_DEPTH: int = Field(
-        default=10, ge=3, le=50, description="Max input JSON depth"
-    )
+    INPUT_MAX_JSON_DEPTH: int = Field(default=10, ge=3, le=50, description="Max input JSON depth")
     INPUT_MAX_SEARCH_QUERY_LENGTH: int = Field(
         default=200, ge=50, le=1000, description="Max input search query length"
     )
@@ -1023,9 +901,7 @@ class ValidationConfig(BaseSettings):
     PHONE_STRICT_INTERNATIONAL: bool = Field(
         default=False, description="Strict international phone validation"
     )
-    PHONE_MIN_LENGTH: int = Field(
-        default=7, ge=5, le=15, description="Minimum phone number length"
-    )
+    PHONE_MIN_LENGTH: int = Field(default=7, ge=5, le=15, description="Minimum phone number length")
     PHONE_MAX_LENGTH: int = Field(
         default=15, ge=10, le=20, description="Maximum phone number length"
     )
@@ -1156,9 +1032,7 @@ class ValidationConfig(BaseSettings):
     )
 
     # OTP token validation
-    OTP_TOKEN_MIN_LENGTH: int = Field(
-        default=4, ge=4, le=6, description="Minimum OTP token length"
-    )
+    OTP_TOKEN_MIN_LENGTH: int = Field(default=4, ge=4, le=6, description="Minimum OTP token length")
     OTP_TOKEN_MAX_LENGTH: int = Field(
         default=10, ge=6, le=12, description="Maximum OTP token length"
     )
@@ -1209,26 +1083,18 @@ class UpdateConfig(BaseSettings):
     )
 
     # Cache settings
-    UPDATE_CACHE_TTL_HOURS: int = Field(
-        default=24, ge=1, le=168, description="Cache TTL in hours"
-    )
-    UPDATE_AUTO_REFRESH_ENABLED: bool = Field(
-        default=True, description="Enable auto refresh"
-    )
+    UPDATE_CACHE_TTL_HOURS: int = Field(default=24, ge=1, le=168, description="Cache TTL in hours")
+    UPDATE_AUTO_REFRESH_ENABLED: bool = Field(default=True, description="Enable auto refresh")
     UPDATE_MAX_INGREDIENTS: int = Field(
         default=10000, ge=100, le=50000, description="Max ingredients to cache"
     )
     UPDATE_INGREDIENT_CACHE_INTERVAL_DAYS: int = Field(
         default=7, ge=1, le=30, description="Ingredient cache update interval in days"
     )
-    UPDATE_CACHE_FILE_PERMISSIONS: int = Field(
-        default=0o755, description="Cache file permissions"
-    )
+    UPDATE_CACHE_FILE_PERMISSIONS: int = Field(default=0o755, description="Cache file permissions")
 
     # Database update settings
-    UPDATE_DATABASE_SYNC_ENABLED: bool = Field(
-        default=True, description="Enable database sync"
-    )
+    UPDATE_DATABASE_SYNC_ENABLED: bool = Field(default=True, description="Enable database sync")
     UPDATE_MAX_BATCH_SIZE: int = Field(
         default=1000, ge=100, le=5000, description="Max batch size for updates"
     )
@@ -1243,9 +1109,7 @@ class UpdateConfig(BaseSettings):
 class HealthConfig(BaseSettings):
     """Health monitoring configuration."""
 
-    HEALTH_MONITORING_ENABLED: bool = Field(
-        default=True, description="Enable health monitoring"
-    )
+    HEALTH_MONITORING_ENABLED: bool = Field(default=True, description="Enable health monitoring")
     HEALTH_DATABASE_QUERY_TIMEOUT: int = Field(
         default=5000, ge=1000, le=30000, description="DB query timeout (ms)"
     )
@@ -1316,35 +1180,23 @@ class EndpointConfig(BaseSettings):
     """API endpoint paths and descriptions."""
 
     # Health Endpoints
-    HEALTH_PREFIX: str = Field(
-        default="/health", pattern=r"^/[\w-]+$", description="Health prefix"
-    )
+    HEALTH_PREFIX: str = Field(default="/health", pattern=r"^/[\w-]+$", description="Health prefix")
     HEALTH_TAG: str = Field(default="Health", description="Health tag")
     HEALTH_ROOT_ENDPOINT: str = Field(default="/", description="Root endpoint")
     HEALTH_QUICK_ENDPOINT: str = Field(default="/quick", description="Quick endpoint")
-    HEALTH_LIVENESS_ENDPOINT: str = Field(
-        default="/liveness", description="Liveness endpoint"
-    )
-    HEALTH_READINESS_ENDPOINT: str = Field(
-        default="/readiness", description="Readiness endpoint"
-    )
-    HEALTH_METRICS_ENDPOINT: str = Field(
-        default="/metrics", description="Health metrics endpoint"
-    )
+    HEALTH_LIVENESS_ENDPOINT: str = Field(default="/liveness", description="Liveness endpoint")
+    HEALTH_READINESS_ENDPOINT: str = Field(default="/readiness", description="Readiness endpoint")
+    HEALTH_METRICS_ENDPOINT: str = Field(default="/metrics", description="Health metrics endpoint")
     HEALTH_DETAILED_ENDPOINT: str = Field(
         default="/detailed", description="Detailed health endpoint"
     )
-    HEALTH_ALERTS_ENDPOINT: str = Field(
-        default="/alerts", description="Health alerts endpoint"
-    )
+    HEALTH_ALERTS_ENDPOINT: str = Field(default="/alerts", description="Health alerts endpoint")
     HEALTH_SERVICE_HISTORY_ENDPOINT: str = Field(
         default="/service-history", description="Service history endpoint"
     )
 
     # Health API Documentation
-    HEALTH_ROOT_TITLE: str = Field(
-        default="Health Check", description="Root health endpoint title"
-    )
+    HEALTH_ROOT_TITLE: str = Field(default="Health Check", description="Root health endpoint title")
     HEALTH_ROOT_DESCRIPTION: str = Field(
         default="Comprehensive health check with detailed service status",
         description="Root health endpoint description",
@@ -1400,33 +1252,21 @@ class EndpointConfig(BaseSettings):
     )
 
     # Auth Endpoints
-    AUTH_PREFIX: str = Field(
-        default="/auth", pattern=r"^/[\w-]+$", description="Auth prefix"
-    )
+    AUTH_PREFIX: str = Field(default="/auth", pattern=r"^/[\w-]+$", description="Auth prefix")
     AUTH_TAG: str = Field(default="Authentication", description="Auth tag")
-    AUTH_REGISTER_ENDPOINT: str = Field(
-        default="/register", description="Register endpoint"
-    )
+    AUTH_REGISTER_ENDPOINT: str = Field(default="/register", description="Register endpoint")
     AUTH_LOGIN_ENDPOINT: str = Field(default="/login", description="Login endpoint")
     AUTH_LOGOUT_ENDPOINT: str = Field(default="/logout", description="Logout endpoint")
-    AUTH_REFRESH_ENDPOINT: str = Field(
-        default="/refresh", description="Refresh endpoint"
-    )
+    AUTH_REFRESH_ENDPOINT: str = Field(default="/refresh", description="Refresh endpoint")
 
     # Ingredients Endpoints
     INGREDIENTS_PREFIX: str = Field(
         default="/ingredients", pattern=r"^/[\w-]+$", description="Ingredients prefix"
     )
     INGREDIENTS_TAG: str = Field(default="Ingredients", description="Ingredients tag")
-    INGREDIENTS_MASTER_ENDPOINT: str = Field(
-        default="/master", description="Master endpoint"
-    )
-    INGREDIENTS_SEARCH_ENDPOINT: str = Field(
-        default="/search", description="Search endpoint"
-    )
-    INGREDIENTS_PANTRY_ENDPOINT: str = Field(
-        default="/pantry", description="Pantry endpoint"
-    )
+    INGREDIENTS_MASTER_ENDPOINT: str = Field(default="/master", description="Master endpoint")
+    INGREDIENTS_SEARCH_ENDPOINT: str = Field(default="/search", description="Search endpoint")
+    INGREDIENTS_PANTRY_ENDPOINT: str = Field(default="/pantry", description="Pantry endpoint")
 
     # Ingredients API Documentation
     INGREDIENTS_MASTER_LIST_TITLE: str = Field(
@@ -1452,9 +1292,7 @@ class EndpointConfig(BaseSettings):
     )
 
     # OCR Endpoints
-    OCR_PREFIX: str = Field(
-        default="/ocr", pattern=r"^/[\w-]+$", description="OCR prefix"
-    )
+    OCR_PREFIX: str = Field(default="/ocr", pattern=r"^/[\w-]+$", description="OCR prefix")
     OCR_TAG: str = Field(default="OCR", description="OCR tag")
     OCR_EXTRACT_TEXT_ENDPOINT: str = Field(
         default="/extract-text", description="Extract text endpoint"
@@ -1695,9 +1533,7 @@ class Settings(
 
         return env_vars
 
-    def print_config(
-        self, mask_secrets: bool = True, show_warnings: bool = True
-    ) -> None:
+    def print_config(self, mask_secrets: bool = True, show_warnings: bool = True) -> None:
         """
         Prints the current configuration, useful for debugging purposes.
 

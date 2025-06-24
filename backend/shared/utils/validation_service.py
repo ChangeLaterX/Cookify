@@ -52,9 +52,7 @@ class ValidationService:
         required = settings.USER_REGISTRATION_REQUIRED_FIELDS
         missing_fields = validate_required_fields(data, required)
         if missing_fields:
-            errors.extend(
-                [f"Missing required field: {field}" for field in missing_fields]
-            )
+            errors.extend([f"Missing required field: {field}" for field in missing_fields])
             return False, errors, {}
 
         # Email validation
@@ -98,9 +96,7 @@ class ValidationService:
                     for key, value in metadata.items():
                         sanitized_key = sanitize_metadata_key(key)
                         if sanitized_key:
-                            sanitized_metadata[sanitized_key] = sanitize_metadata_value(
-                                value
-                            )
+                            sanitized_metadata[sanitized_key] = sanitize_metadata_value(value)
                     sanitized["user_metadata"] = sanitized_metadata
 
         return len(errors) == 0, errors, sanitized
@@ -151,9 +147,7 @@ class ValidationService:
                     for key, value in metadata.items():
                         sanitized_key = sanitize_metadata_key(key)
                         if sanitized_key:
-                            sanitized_metadata[sanitized_key] = sanitize_metadata_value(
-                                value
-                            )
+                            sanitized_metadata[sanitized_key] = sanitize_metadata_value(value)
                     sanitized["user_metadata"] = sanitized_metadata
 
         return len(errors) == 0, errors, sanitized
@@ -175,9 +169,7 @@ class ValidationService:
         required = settings.PASSWORD_RESET_REQUIRED_FIELDS
         missing_fields = validate_required_fields(data, required)
         if missing_fields:
-            errors.extend(
-                [f"Missing required field: {field}" for field in missing_fields]
-            )
+            errors.extend([f"Missing required field: {field}" for field in missing_fields])
             return False, errors, {}
 
         # Email validation
@@ -206,9 +198,7 @@ class ValidationService:
         required = settings.PASSWORD_UPDATE_REQUIRED_FIELDS
         missing_fields = validate_required_fields(data, required)
         if missing_fields:
-            errors.extend(
-                [f"Missing required field: {field}" for field in missing_fields]
-            )
+            errors.extend([f"Missing required field: {field}" for field in missing_fields])
             return False, errors, {}
 
         # Password validation
@@ -238,9 +228,7 @@ class ValidationService:
         required = settings.MAGIC_LINK_REQUIRED_FIELDS
         missing_fields = validate_required_fields(data, required)
         if missing_fields:
-            errors.extend(
-                [f"Missing required field: {field}" for field in missing_fields]
-            )
+            errors.extend([f"Missing required field: {field}" for field in missing_fields])
             return False, errors, {}
 
         # Email validation
@@ -278,9 +266,7 @@ class ValidationService:
         required = settings.OTP_VERIFICATION_REQUIRED_FIELDS
         missing_fields = validate_required_fields(data, required)
         if missing_fields:
-            errors.extend(
-                [f"Missing required field: {field}" for field in missing_fields]
-            )
+            errors.extend([f"Missing required field: {field}" for field in missing_fields])
             return False, errors, {}
 
         # Email validation
@@ -297,8 +283,7 @@ class ValidationService:
         elif not token.isdigit():
             errors.append("Token must contain only digits")
         elif (
-            len(token) < settings.OTP_TOKEN_MIN_LENGTH
-            or len(token) > settings.OTP_TOKEN_MAX_LENGTH
+            len(token) < settings.OTP_TOKEN_MIN_LENGTH or len(token) > settings.OTP_TOKEN_MAX_LENGTH
         ):
             errors.append(
                 f"Token must be {settings.OTP_TOKEN_MIN_LENGTH}-{settings.OTP_TOKEN_MAX_LENGTH} digits long"
@@ -380,9 +365,7 @@ class ValidationService:
         # Pagination
         page = data.get("page")
         if page is not None:
-            if not validate_positive_integer(
-                page, min_value=settings.PAGINATION_PAGE_MIN
-            ):
+            if not validate_positive_integer(page, min_value=settings.PAGINATION_PAGE_MIN):
                 errors.append("Page must be a positive integer")
             else:
                 sanitized["page"] = int(page)

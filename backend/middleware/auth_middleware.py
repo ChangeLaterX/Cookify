@@ -85,9 +85,7 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
                 try:
                     await self._inject_user_context(request)
                 except Exception as auth_error:
-                    self.logger.debug(
-                        f"Auth context injection failed: {str(auth_error)}"
-                    )
+                    self.logger.debug(f"Auth context injection failed: {str(auth_error)}")
                     # Continue processing - auth failures shouldn't stop the request
 
             # Process request
@@ -95,9 +93,7 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
 
             # Log successful request
             duration = time.time() - start_time
-            self._log_request(
-                request, response, duration, client_ip, user_agent, request_id
-            )
+            self._log_request(request, response, duration, client_ip, user_agent, request_id)
 
             return response
 
@@ -188,9 +184,7 @@ class AuthContextMiddleware(BaseHTTPMiddleware):
         # Check for forwarded headers (when behind proxy)
         forwarded_for = request.headers.get("x-forwarded-for")
         if forwarded_for:
-            return forwarded_for.split(",")[
-                settings.SECURITY_IP_HEADER_SPLIT_INDEX
-            ].strip()
+            return forwarded_for.split(",")[settings.SECURITY_IP_HEADER_SPLIT_INDEX].strip()
 
         real_ip = request.headers.get("x-real-ip")
         if real_ip:

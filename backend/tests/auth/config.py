@@ -20,9 +20,7 @@ class AuthTestConfig:
 
     # Test modes
     MOCK_MODE: bool = os.getenv("AUTH_TEST_MOCK_MODE", "true").lower() == "true"
-    INTEGRATION_MODE: bool = (
-        os.getenv("AUTH_TEST_INTEGRATION", "false").lower() == "true"
-    )
+    INTEGRATION_MODE: bool = os.getenv("AUTH_TEST_INTEGRATION", "false").lower() == "true"
 
     # Paths
     PROJECT_ROOT: Path = Path(__file__).parent.parent.parent
@@ -31,8 +29,7 @@ class AuthTestConfig:
 
     # Dependencies
     SUPABASE_AVAILABLE: bool = (
-        os.getenv("SUPABASE_URL") is not None
-        and os.getenv("SUPABASE_ANON_KEY") is not None
+        os.getenv("SUPABASE_URL") is not None and os.getenv("SUPABASE_ANON_KEY") is not None
     )
 
     # Test database settings
@@ -40,14 +37,10 @@ class AuthTestConfig:
     TEST_ANON_KEY: Optional[str] = os.getenv("TEST_SUPABASE_ANON_KEY")
 
     # Rate limiting settings for tests
-    RATE_LIMIT_TESTING: bool = (
-        os.getenv("AUTH_TEST_RATE_LIMITING", "false").lower() == "true"
-    )
+    RATE_LIMIT_TESTING: bool = os.getenv("AUTH_TEST_RATE_LIMITING", "false").lower() == "true"
 
     # Email testing settings
-    EMAIL_TESTING_ENABLED: bool = (
-        os.getenv("AUTH_TEST_EMAIL", "false").lower() == "true"
-    )
+    EMAIL_TESTING_ENABLED: bool = os.getenv("AUTH_TEST_EMAIL", "false").lower() == "true"
     TEST_EMAIL_DOMAIN: str = os.getenv("AUTH_TEST_EMAIL_DOMAIN", "test.cookify.app")
 
     # Test environment
@@ -63,9 +56,7 @@ class AuthTestConfig:
     )
 
     # Security test settings
-    SECURITY_TEST_ENABLED: bool = (
-        os.getenv("SECURITY_TEST_ENABLED", "true").lower() == "true"
-    )
+    SECURITY_TEST_ENABLED: bool = os.getenv("SECURITY_TEST_ENABLED", "true").lower() == "true"
 
     # Email verification bypass for testing
     BYPASS_EMAIL_VERIFICATION: bool = (
@@ -217,17 +208,13 @@ class MockSupabaseTable:
         self.update_response = None
 
     def insert(self, data: Dict[str, Any]):
-        return MockSupabaseQuery(
-            self.insert_response or {"data": [data], "error": None}
-        )
+        return MockSupabaseQuery(self.insert_response or {"data": [data], "error": None})
 
     def select(self, columns: str = "*"):
         return MockSupabaseQuery(self.select_response or {"data": [], "error": None})
 
     def update(self, data: Dict[str, Any]):
-        return MockSupabaseQuery(
-            self.update_response or {"data": [data], "error": None}
-        )
+        return MockSupabaseQuery(self.update_response or {"data": [data], "error": None})
 
 
 class MockSupabaseQuery:

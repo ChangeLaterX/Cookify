@@ -93,16 +93,12 @@ async def update_ingredient_cache(force: bool = False) -> IngredientCacheUpdateR
                 details={
                     "force_update": force,
                     "cache_was_fresh": False,
-                    "update_duration_seconds": (
-                        datetime.now() - start_time
-                    ).total_seconds(),
+                    "update_duration_seconds": (datetime.now() - start_time).total_seconds(),
                     "update_interval_days": manager.update_interval_days,
                 },
             )
         else:
-            raise UpdateError(
-                "Failed to update ingredient cache", "CACHE_UPDATE_FAILED"
-            )
+            raise UpdateError("Failed to update ingredient cache", "CACHE_UPDATE_FAILED")
 
     except UpdateError:
         raise
@@ -162,9 +158,7 @@ async def force_refresh_all_caches() -> Dict[str, Any]:
         # Add more cache updates here as needed
         # results["other_cache"] = await update_other_cache()
 
-        overall_success = all(
-            result.get("success", False) for result in results.values()
-        )
+        overall_success = all(result.get("success", False) for result in results.values())
 
         logger.info(f"Force refresh completed. Overall success: {overall_success}")
 

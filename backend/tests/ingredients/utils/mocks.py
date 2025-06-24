@@ -129,9 +129,7 @@ class IngredientsMockFactory:
     ) -> IngredientListResponse:
         """Create a mock IngredientListResponse."""
         if ingredients is None:
-            ingredients = [
-                IngredientsMockFactory.create_ingredient_dict() for _ in range(3)
-            ]
+            ingredients = [IngredientsMockFactory.create_ingredient_dict() for _ in range(3)]
 
         ingredient_responses = [IngredientMasterResponse(**ing) for ing in ingredients]
 
@@ -201,9 +199,7 @@ class MockContextManager:
             query_chain = Mock()
 
             # Mock data for responses
-            response_data = self.mock_data or [
-                IngredientsMockFactory.create_ingredient_dict()
-            ]
+            response_data = self.mock_data or [IngredientsMockFactory.create_ingredient_dict()]
 
             # Mock execute responses
             execute_response = Mock()
@@ -244,9 +240,7 @@ class MockContextManager:
         return client
 
 
-def with_mocked_ingredients(
-    success: bool = True, mock_data: Optional[List[Dict[str, Any]]] = None
-):
+def with_mocked_ingredients(success: bool = True, mock_data: Optional[List[Dict[str, Any]]] = None):
     """Decorator for mocking Ingredients dependencies in tests."""
 
     def decorator(test_func):
@@ -286,9 +280,7 @@ class MockIngredientValidator:
     """Mock ingredient validation for testing."""
 
     @staticmethod
-    def validate_nutrition_data(
-        calories: float, proteins: float, fat: float, carbs: float
-    ) -> bool:
+    def validate_nutrition_data(calories: float, proteins: float, fat: float, carbs: float) -> bool:
         """Mock nutrition data validation."""
         # Simple validation rules
         return all(

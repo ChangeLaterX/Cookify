@@ -233,12 +233,8 @@ async def health_metrics() -> dict:
             "uptime_percentage": round(
                 metrics.uptime_percentage, settings.HEALTH_METRICS_DECIMAL_PLACES
             ),
-            "last_check": (
-                metrics.last_check.isoformat() if metrics.last_check else None
-            ),
-            "last_failure": (
-                metrics.last_failure.isoformat() if metrics.last_failure else None
-            ),
+            "last_check": (metrics.last_check.isoformat() if metrics.last_check else None),
+            "last_failure": (metrics.last_failure.isoformat() if metrics.last_failure else None),
             "consecutive_failures": metrics.consecutive_failures,
             "consecutive_successes": metrics.consecutive_successes,
         }
@@ -267,8 +263,7 @@ async def health_alerts(hours: int = settings.HEALTH_ALERTS_DEFAULT_HOURS) -> di
         Dictionary with recent alerts
     """
     if (
-        hours < settings.HEALTH_ALERTS_MIN_HOURS
-        or hours > settings.HEALTH_ALERTS_MAX_HOURS
+        hours < settings.HEALTH_ALERTS_MIN_HOURS or hours > settings.HEALTH_ALERTS_MAX_HOURS
     ):  # Max 1 week
         hours = settings.HEALTH_ALERTS_DEFAULT_HOURS
 

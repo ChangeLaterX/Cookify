@@ -102,18 +102,12 @@ class RecipeBase(BaseModel):
     image_url: Optional[str] = Field(None, description="URL of the recipe image")
     ingredients: Dict[str, Any] = Field(..., description="Ingredients as JSONB")
     instructions: str = Field(..., description="Cooking instructions")
-    estimated_time: Optional[int] = Field(
-        None, description="Estimated cooking time in minutes"
-    )
+    estimated_time: Optional[int] = Field(None, description="Estimated cooking time in minutes")
     difficulty: Optional[str] = Field(None, description="Difficulty level")
     calories: Optional[int] = Field(None, description="Calories per serving")
-    user_generated: bool = Field(
-        default=False, description="Whether recipe is user-generated"
-    )
+    user_generated: bool = Field(default=False, description="Whether recipe is user-generated")
     tags: Optional[str] = Field(None, description="Recipe tags")
-    nutrition: Optional[Dict[str, Any]] = Field(
-        None, description="Nutrition info as JSONB"
-    )
+    nutrition: Optional[Dict[str, Any]] = Field(None, description="Nutrition info as JSONB")
 
 
 class RecipeCreate(RecipeBase):
@@ -156,9 +150,7 @@ class PreferencesBase(BaseModel):
     """Base schema for preferences table."""
 
     diet_type: str = Field(..., description="Type of diet")
-    disliked_items: Optional[Dict[str, Any]] = Field(
-        None, description="Disliked items as JSONB"
-    )
+    disliked_items: Optional[Dict[str, Any]] = Field(None, description="Disliked items as JSONB")
     cuisine_preferences: Optional[Dict[str, Any]] = Field(
         None, description="Cuisine preferences as JSONB"
     )
@@ -232,9 +224,7 @@ class MealPlanBase(BaseModel):
 
     week_start_date: date = Field(..., description="Start date of the week")
     meals: Optional[Dict[str, Any]] = Field(None, description="Meals data as JSONB")
-    budget_allocated: Optional[float] = Field(
-        None, description="Budget allocated for the week"
-    )
+    budget_allocated: Optional[float] = Field(None, description="Budget allocated for the week")
     notes: Optional[str] = Field(None, description="Additional notes")
 
 

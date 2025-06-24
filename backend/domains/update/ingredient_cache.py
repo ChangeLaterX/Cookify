@@ -42,9 +42,7 @@ class IngredientNamesManager:
         self.update_interval_days = settings.UPDATE_INGREDIENT_CACHE_INTERVAL_DAYS
 
         # Ensure the data directory exists
-        self.file_path.parent.mkdir(
-            exist_ok=True, mode=settings.UPDATE_CACHE_FILE_PERMISSIONS
-        )
+        self.file_path.parent.mkdir(exist_ok=True, mode=settings.UPDATE_CACHE_FILE_PERMISSIONS)
 
     def _get_metadata(self) -> Dict:
         """Get metadata about the last update."""
@@ -106,10 +104,7 @@ class IngredientNamesManager:
 
             # First, get the total count
             count_response = (
-                supabase.table("ingredient_master")
-                .select("*", count="exact")
-                .limit(1)
-                .execute()
+                supabase.table("ingredient_master").select("*", count="exact").limit(1).execute()
             )
 
             total_count = count_response.count if count_response.count else 0
@@ -121,9 +116,7 @@ class IngredientNamesManager:
             offset = 0
 
             while offset < total_count:
-                logger.info(
-                    f"Loading batch {offset}-{offset + batch_size} of {total_count}"
-                )
+                logger.info(f"Loading batch {offset}-{offset + batch_size} of {total_count}")
 
                 response = (
                     supabase.table("ingredient_master")
@@ -299,9 +292,7 @@ async def initialize_ingredient_cache() -> bool:
         status = ingredient_manager.get_status()
 
         if status["file_exists"]:
-            logger.info(
-                f"✅ Ingredient cache ready: {status['ingredient_count']} ingredients"
-            )
+            logger.info(f"✅ Ingredient cache ready: {status['ingredient_count']} ingredients")
             logger.info(f"   File path: {status['file_path']}")
             logger.info(f"   Last updated: {status['last_updated']}")
             return True

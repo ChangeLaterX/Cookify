@@ -24,12 +24,8 @@ class ServiceHealthStatus(BaseModel):
     name: str = Field(..., description="Service name")
     status: ServiceStatus = Field(..., description="Service health status")
     message: str = Field(..., description="Health status message")
-    response_time_ms: Optional[int] = Field(
-        None, description="Response time in milliseconds"
-    )
-    details: Optional[Dict[str, str]] = Field(
-        None, description="Additional service details"
-    )
+    response_time_ms: Optional[int] = Field(None, description="Response time in milliseconds")
+    details: Optional[Dict[str, str]] = Field(None, description="Additional service details")
     error: Optional[str] = Field(None, description="Error message if unhealthy")
 
 
@@ -55,9 +51,7 @@ class DetailedHealthResponse(BaseModel):
         ..., description="Individual service health statuses"
     )
     system_info: Dict[str, str] = Field(..., description="System information")
-    uptime_seconds: Optional[int] = Field(
-        None, description="Application uptime in seconds"
-    )
+    uptime_seconds: Optional[int] = Field(None, description="Application uptime in seconds")
 
 
 # Export schemas

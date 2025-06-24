@@ -73,9 +73,7 @@ class EnterpriseTestRunner:
 
         try:
             if capture_output:
-                result = subprocess.run(
-                    cmd, capture_output=True, text=True, cwd=self.base_path
-                )
+                result = subprocess.run(cmd, capture_output=True, text=True, cwd=self.base_path)
                 return result.returncode, result.stdout, result.stderr
             else:
                 result = subprocess.run(cmd, cwd=self.base_path, text=True)
@@ -89,9 +87,7 @@ class EnterpriseTestRunner:
         self.print_info("Setting up test environment...")
 
         # Set Python path
-        os.environ["PYTHONPATH"] = (
-            f"{self.base_path}:{os.environ.get('PYTHONPATH', '')}"
-        )
+        os.environ["PYTHONPATH"] = f"{self.base_path}:{os.environ.get('PYTHONPATH', '')}"
 
         # Set test environment variables
         test_env = {
@@ -337,9 +333,7 @@ Examples:
     )
 
     # Test options
-    parser.add_argument(
-        "--coverage", action="store_true", help="Run with coverage reporting"
-    )
+    parser.add_argument("--coverage", action="store_true", help="Run with coverage reporting")
     parser.add_argument("--parallel", action="store_true", help="Run tests in parallel")
     parser.add_argument(
         "--ci-mode",
@@ -348,15 +342,9 @@ Examples:
     )
 
     # Quality checks
-    parser.add_argument(
-        "--code-quality", action="store_true", help="Run code quality checks"
-    )
-    parser.add_argument(
-        "--security-scan", action="store_true", help="Run security scans"
-    )
-    parser.add_argument(
-        "--performance-check", action="store_true", help="Run performance tests"
-    )
+    parser.add_argument("--code-quality", action="store_true", help="Run code quality checks")
+    parser.add_argument("--security-scan", action="store_true", help="Run security scans")
+    parser.add_argument("--performance-check", action="store_true", help="Run performance tests")
 
     # Comprehensive options
     parser.add_argument(
@@ -364,9 +352,7 @@ Examples:
         action="store_true",
         help="Run complete test suite with all checks",
     )
-    parser.add_argument(
-        "--quick", action="store_true", help="Run quick unit tests only"
-    )
+    parser.add_argument("--quick", action="store_true", help="Run quick unit tests only")
 
     args = parser.parse_args()
 
@@ -402,11 +388,7 @@ Examples:
             success &= runner.run_security_scan()
 
         # Always run tests if no specific quality checks are requested
-        if (
-            not args.code_quality
-            and not args.security_scan
-            and not args.performance_check
-        ):
+        if not args.code_quality and not args.security_scan and not args.performance_check:
             success &= runner.run_tests(
                 domain=args.domain,
                 test_type=args.type,

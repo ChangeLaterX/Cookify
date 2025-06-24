@@ -22,9 +22,7 @@ class IngredientsTestConfig:
 
     # Test modes
     MOCK_MODE: bool = os.getenv("INGREDIENTS_TEST_MOCK_MODE", "true").lower() == "true"
-    INTEGRATION_MODE: bool = (
-        os.getenv("INGREDIENTS_TEST_INTEGRATION", "false").lower() == "true"
-    )
+    INTEGRATION_MODE: bool = os.getenv("INGREDIENTS_TEST_INTEGRATION", "false").lower() == "true"
 
     # Paths
     PROJECT_ROOT: Path = Path(__file__).parent.parent.parent
@@ -32,28 +30,18 @@ class IngredientsTestConfig:
     FIXTURES_PATH: Path = TEST_ROOT / "fixtures"
 
     # Dependencies
-    SUPABASE_AVAILABLE: bool = all(
-        [os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_ANON_KEY")]
-    )
+    SUPABASE_AVAILABLE: bool = all([os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_ANON_KEY")])
 
     # Test database settings
-    TEST_EMAIL_DOMAIN: str = os.getenv(
-        "INGREDIENTS_TEST_EMAIL_DOMAIN", "test.cookify.app"
-    )
-    PERFORMANCE_TESTING: bool = (
-        os.getenv("INGREDIENTS_TEST_PERFORMANCE", "false").lower() == "true"
-    )
+    TEST_EMAIL_DOMAIN: str = os.getenv("INGREDIENTS_TEST_EMAIL_DOMAIN", "test.cookify.app")
+    PERFORMANCE_TESTING: bool = os.getenv("INGREDIENTS_TEST_PERFORMANCE", "false").lower() == "true"
 
     # Feature flags for testing
-    SEARCH_TESTING_ENABLED: bool = (
-        os.getenv("INGREDIENTS_TEST_SEARCH", "true").lower() == "true"
-    )
+    SEARCH_TESTING_ENABLED: bool = os.getenv("INGREDIENTS_TEST_SEARCH", "true").lower() == "true"
     VALIDATION_TESTING_ENABLED: bool = (
         os.getenv("INGREDIENTS_TEST_VALIDATION", "true").lower() == "true"
     )
-    BULK_OPERATIONS_TESTING: bool = (
-        os.getenv("INGREDIENTS_TEST_BULK", "true").lower() == "true"
-    )
+    BULK_OPERATIONS_TESTING: bool = os.getenv("INGREDIENTS_TEST_BULK", "true").lower() == "true"
 
 
 class IngredientsTestBase(ABC):

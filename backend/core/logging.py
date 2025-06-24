@@ -399,9 +399,7 @@ def setup_logging() -> None:
 
         # Handler zu allen Loggern hinzufügen
         for logger_name in logging_config["loggers"]:
-            logging_config["loggers"][logger_name]["handlers"].extend(
-                ["file", "error_file"]
-            )
+            logging_config["loggers"][logger_name]["handlers"].extend(["file", "error_file"])
 
     # Logging-Konfiguration anwenden
     logging.config.dictConfig(logging_config)

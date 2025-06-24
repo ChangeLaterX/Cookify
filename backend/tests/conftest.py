@@ -149,9 +149,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "integration: mark test as an integration test")
     config.addinivalue_line("markers", "unit: mark test as a unit test")
     config.addinivalue_line("markers", "auth: mark test as auth domain related")
-    config.addinivalue_line(
-        "markers", "ingredients: mark test as ingredients domain related"
-    )
+    config.addinivalue_line("markers", "ingredients: mark test as ingredients domain related")
     config.addinivalue_line("markers", "ocr: mark test as ocr domain related")
     config.addinivalue_line(
         "markers", "email_verification: mark test as email verification related"
@@ -168,9 +166,7 @@ def pytest_configure(config):
 @pytest.fixture
 def mock_password_validation():
     """Mock password strength validation."""
-    with patch(
-        "shared.utils.password_security.validate_password_strength"
-    ) as mock_validate:
+    with patch("shared.utils.password_security.validate_password_strength") as mock_validate:
         mock_validate.return_value = (True, [])
         yield mock_validate
 

@@ -43,12 +43,7 @@ class SupabaseService:
     # Pantry Items Methods
     def get_pantry_items(self, user_id: UUID):
         """Retrieves pantry items for a user."""
-        return (
-            self.client.table("pantry_items")
-            .select("*")
-            .eq("user_id", str(user_id))
-            .execute()
-        )
+        return self.client.table("pantry_items").select("*").eq("user_id", str(user_id)).execute()
 
     def add_pantry_item(self, item_data: Dict[str, Any]):
         """Adds an item to the pantry."""
@@ -57,40 +52,21 @@ class SupabaseService:
     def update_pantry_item(self, item_id: UUID, update_data: Dict[str, Any]):
         """Updates a pantry item."""
         return (
-            self.client.table("pantry_items")
-            .update(update_data)
-            .eq("id", str(item_id))
-            .execute()
+            self.client.table("pantry_items").update(update_data).eq("id", str(item_id)).execute()
         )
 
     def delete_pantry_item(self, item_id: UUID):
         """Deletes a pantry item."""
-        return (
-            self.client.table("pantry_items").delete().eq("id", str(item_id)).execute()
-        )
+        return self.client.table("pantry_items").delete().eq("id", str(item_id)).execute()
 
     # Recipes Methods
-    def get_recipes(
-        self, limit: int = settings.PAGINATION_DEFAULT_PER_PAGE, offset: int = 0
-    ):
+    def get_recipes(self, limit: int = settings.PAGINATION_DEFAULT_PER_PAGE, offset: int = 0):
         """Retrieves recipes."""
-        return (
-            self.client.table("recipes")
-            .select("*")
-            .limit(limit)
-            .offset(offset)
-            .execute()
-        )
+        return self.client.table("recipes").select("*").limit(limit).offset(offset).execute()
 
     def get_recipe_by_id(self, recipe_id: UUID):
         """Retrieves a recipe by ID."""
-        return (
-            self.client.table("recipes")
-            .select("*")
-            .eq("id", str(recipe_id))
-            .single()
-            .execute()
-        )
+        return self.client.table("recipes").select("*").eq("id", str(recipe_id)).single().execute()
 
     def search_recipes(self, search_term: str):
         """Searches recipes based on title or description."""
@@ -108,12 +84,7 @@ class SupabaseService:
     # Preferences Methods
     def get_user_preferences(self, user_id: UUID):
         """Retrieves user preferences."""
-        return (
-            self.client.table("preferences")
-            .select("*")
-            .eq("user_id", str(user_id))
-            .execute()
-        )
+        return self.client.table("preferences").select("*").eq("user_id", str(user_id)).execute()
 
     def upsert_preferences(self, preferences_data: Dict[str, Any]):
         """Creates or updates user preferences."""
@@ -174,12 +145,7 @@ class SupabaseService:
 
     def update_meal_plan(self, plan_id: UUID, update_data: Dict[str, Any]):
         """Updates a meal plan."""
-        return (
-            self.client.table("meal_plans")
-            .update(update_data)
-            .eq("id", str(plan_id))
-            .execute()
-        )
+        return self.client.table("meal_plans").update(update_data).eq("id", str(plan_id)).execute()
 
     # Shopping Lists Methods
     def get_shopping_lists(self, user_id: UUID):
@@ -194,12 +160,7 @@ class SupabaseService:
 
     def get_shopping_list_by_plan(self, plan_id: UUID):
         """Retrieves shopping list for a specific meal plan."""
-        return (
-            self.client.table("shopping_lists")
-            .select("*")
-            .eq("plan_id", str(plan_id))
-            .execute()
-        )
+        return self.client.table("shopping_lists").select("*").eq("plan_id", str(plan_id)).execute()
 
     def create_shopping_list(self, shopping_list_data: Dict[str, Any]):
         """Creates a new shopping list."""
@@ -208,20 +169,12 @@ class SupabaseService:
     def update_shopping_list(self, list_id: UUID, update_data: Dict[str, Any]):
         """Updates a shopping list."""
         return (
-            self.client.table("shopping_lists")
-            .update(update_data)
-            .eq("id", str(list_id))
-            .execute()
+            self.client.table("shopping_lists").update(update_data).eq("id", str(list_id)).execute()
         )
 
     def delete_shopping_list(self, list_id: UUID):
         """Deletes a shopping list."""
-        return (
-            self.client.table("shopping_lists")
-            .delete()
-            .eq("id", str(list_id))
-            .execute()
-        )
+        return self.client.table("shopping_lists").delete().eq("id", str(list_id)).execute()
 
 
 # Global service instance

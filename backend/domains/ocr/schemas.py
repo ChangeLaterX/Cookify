@@ -31,12 +31,8 @@ class OCRTextResponse(BaseModel):
     """Schema for OCR text extraction response."""
 
     extracted_text: str = Field(..., description="Raw text extracted from the image")
-    confidence: Optional[float] = Field(
-        None, description="OCR confidence score (0-100)"
-    )
-    processing_time_ms: Optional[int] = Field(
-        None, description="Processing time in milliseconds"
-    )
+    confidence: Optional[float] = Field(None, description="OCR confidence score (0-100)")
+    processing_time_ms: Optional[int] = Field(None, description="Processing time in milliseconds")
 
 
 class OCRItemSuggestion(BaseModel):
@@ -44,9 +40,7 @@ class OCRItemSuggestion(BaseModel):
 
     ingredient_id: UUID = Field(..., description="ID of the suggested ingredient")
     ingredient_name: str = Field(..., description="Name of the suggested ingredient")
-    confidence_score: float = Field(
-        ..., description="Matching confidence score (0-100)"
-    )
+    confidence_score: float = Field(..., description="Matching confidence score (0-100)")
     detected_text: str = Field(..., description="Original text that was matched")
 
 
@@ -54,9 +48,7 @@ class ReceiptItem(BaseModel):
     """Schema for a single receipt item."""
 
     detected_text: str = Field(..., description="Original text detected in receipt")
-    quantity: Optional[float] = Field(
-        None, description="Detected quantity if available"
-    )
+    quantity: Optional[float] = Field(None, description="Detected quantity if available")
     unit: Optional[str] = Field(None, description="Detected unit if available")
     price: Optional[float] = Field(None, description="Detected price if available")
     suggestions: List[OCRItemSuggestion] = Field(
@@ -75,9 +67,7 @@ class OCRProcessedResponse(BaseModel):
     processing_time_ms: Optional[int] = Field(
         None, description="Total processing time in milliseconds"
     )
-    total_items_detected: int = Field(
-        0, description="Number of items detected in receipt"
-    )
+    total_items_detected: int = Field(0, description="Number of items detected in receipt")
 
 
 class MessageResponse(BaseModel):
@@ -113,8 +103,6 @@ class OCRApiResponse(BaseModel):
     """Specialized API response wrapper for OCR operations."""
 
     success: bool = Field(..., description="Operation success status")
-    data: Optional[OCRProcessedResponse] = Field(
-        None, description="OCR processing results"
-    )
+    data: Optional[OCRProcessedResponse] = Field(None, description="OCR processing results")
     message: str = Field(..., description="Response message")
     error: Optional[str] = Field(None, description="Error message if any")

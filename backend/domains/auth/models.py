@@ -40,9 +40,7 @@ class User(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
     # Core user fields from Supabase auth.users
-    email = Column(
-        String(settings.DB_EMAIL_MAX_LENGTH), unique=True, nullable=False, index=True
-    )
+    email = Column(String(settings.DB_EMAIL_MAX_LENGTH), unique=True, nullable=False, index=True)
     encrypted_password = Column(
         String(settings.DB_PASSWORD_MAX_LENGTH), nullable=True
     )  # Handled by Supabase
@@ -60,21 +58,15 @@ class User(Base):
     raw_user_meta_data = Column(Text, nullable=True)
     is_super_admin = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
-    )
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     phone = Column(String(settings.DB_PHONE_MAX_LENGTH), nullable=True)
     phone_confirmed_at = Column(DateTime, nullable=True)
     phone_change = Column(String(settings.DB_PHONE_MAX_LENGTH), nullable=True)
     phone_change_token = Column(String(settings.DB_TOKEN_MAX_LENGTH), nullable=True)
     phone_change_sent_at = Column(DateTime, nullable=True)
     confirmed_at = Column(DateTime, nullable=True)
-    email_change_token_current = Column(
-        String(settings.DB_TOKEN_MAX_LENGTH), nullable=True
-    )
-    email_change_confirm_status = Column(
-        String(settings.DB_STATUS_CODE_LENGTH), nullable=True
-    )
+    email_change_token_current = Column(String(settings.DB_TOKEN_MAX_LENGTH), nullable=True)
+    email_change_confirm_status = Column(String(settings.DB_STATUS_CODE_LENGTH), nullable=True)
     banned_until = Column(DateTime, nullable=True)
     reauthentication_token = Column(String(settings.DB_TOKEN_MAX_LENGTH), nullable=True)
     reauthentication_sent_at = Column(DateTime, nullable=True)
@@ -94,9 +86,7 @@ class User(Base):
         # Convert SQLAlchemy expressions to Python booleans for type safety
         email_confirmed: bool = self.email_confirmed_at is not None
         not_deleted: bool = self.deleted_at is None
-        not_banned: bool = (
-            self.banned_until is None or self.banned_until < datetime.utcnow()
-        )
+        not_banned: bool = self.banned_until is None or self.banned_until < datetime.utcnow()
 
         return bool(email_confirmed and not_deleted and not_banned)
 
@@ -144,15 +134,15 @@ class UserProfile(Base):
 
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
-    )
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Relationship back to user
     user = relationship("User", back_populates="profile")
 
     def __repr__(self) -> str:
-        return f"<UserProfile(id={self.id}, user_id={self.user_id}, display_name={self.display_name})>"
+        return (
+            f"<UserProfile(id={self.id}, user_id={self.user_id}, display_name={self.display_name})>"
+        )
 
 
 # Export models for easy importing

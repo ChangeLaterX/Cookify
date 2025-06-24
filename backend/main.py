@@ -89,9 +89,7 @@ def create_application() -> FastAPI:
     application.add_event_handler("startup", on_startup)
     application.add_event_handler("shutdown", on_shutdown)
 
-    logger.info(
-        f"FastAPI application created - {settings.APP_NAME} v{settings.VERSION}"
-    )
+    logger.info(f"FastAPI application created - {settings.APP_NAME} v{settings.VERSION}")
     return application
 
 
@@ -110,9 +108,7 @@ async def on_startup() -> None:
         if cache_success:
             logger.info("✅ Ingredient cache initialized successfully")
         else:
-            logger.warning(
-                "⚠️ Ingredient cache initialization failed - check logs for details"
-            )
+            logger.warning("⚠️ Ingredient cache initialization failed - check logs for details")
     except Exception as e:
         logger.error(f"❌ Error initializing ingredient cache: {str(e)}")
 

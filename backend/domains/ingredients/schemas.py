@@ -21,13 +21,9 @@ class IngredientMasterCreate(BaseModel):
 
     name: str = Field(..., min_length=1, max_length=255, description="Ingredient name")
     calories_per_100g: float = Field(..., ge=0, description="Calories per 100g")
-    proteins_per_100g: float = Field(
-        ..., ge=0, description="Proteins per 100g in grams"
-    )
+    proteins_per_100g: float = Field(..., ge=0, description="Proteins per 100g in grams")
     fat_per_100g: float = Field(..., ge=0, description="Fat per 100g in grams")
-    carbs_per_100g: float = Field(
-        ..., ge=0, description="Carbohydrates per 100g in grams"
-    )
+    carbs_per_100g: float = Field(..., ge=0, description="Carbohydrates per 100g in grams")
     category: Optional[str] = Field(None, description="Ingredient category")
 
     @field_validator("name")
@@ -42,18 +38,10 @@ class IngredientMasterCreate(BaseModel):
 class IngredientMasterUpdate(BaseModel):
     """Schema for updating an existing master ingredient."""
 
-    name: Optional[str] = Field(
-        None, min_length=1, max_length=255, description="Ingredient name"
-    )
-    calories_per_100g: Optional[float] = Field(
-        None, ge=0, description="Calories per 100g"
-    )
-    proteins_per_100g: Optional[float] = Field(
-        None, ge=0, description="Proteins per 100g in grams"
-    )
-    fat_per_100g: Optional[float] = Field(
-        None, ge=0, description="Fat per 100g in grams"
-    )
+    name: Optional[str] = Field(None, min_length=1, max_length=255, description="Ingredient name")
+    calories_per_100g: Optional[float] = Field(None, ge=0, description="Calories per 100g")
+    proteins_per_100g: Optional[float] = Field(None, ge=0, description="Proteins per 100g in grams")
+    fat_per_100g: Optional[float] = Field(None, ge=0, description="Fat per 100g in grams")
     carbs_per_100g: Optional[float] = Field(
         None, ge=0, description="Carbohydrates per 100g in grams"
     )
@@ -104,9 +92,7 @@ class IngredientMasterResponse(BaseModel):
 class IngredientListResponse(BaseModel):
     """Schema for paginated ingredient list responses."""
 
-    ingredients: List[IngredientMasterResponse] = Field(
-        ..., description="List of ingredients"
-    )
+    ingredients: List[IngredientMasterResponse] = Field(..., description="List of ingredients")
     total: int = Field(..., description="Total number of ingredients")
     limit: int = Field(..., description="Maximum number of results per page")
     offset: int = Field(..., description="Number of results skipped")
@@ -143,16 +129,12 @@ class ApiResponse(BaseModel):
 class IngredientResponse(ApiResponse):
     """API response for single ingredient operations."""
 
-    data: Optional[IngredientMasterResponse] = Field(
-        None, description="Ingredient data"
-    )
+    data: Optional[IngredientMasterResponse] = Field(None, description="Ingredient data")
     error: Optional[str] = Field(None, description="Error message if any")
 
 
 class IngredientListApiResponse(ApiResponse):
     """API response for ingredient list operations."""
 
-    data: Optional[IngredientListResponse] = Field(
-        None, description="Ingredient list data"
-    )
+    data: Optional[IngredientListResponse] = Field(None, description="Ingredient list data")
     error: Optional[str] = Field(None, description="Error message if any")

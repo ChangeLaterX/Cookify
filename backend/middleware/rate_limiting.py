@@ -177,16 +177,12 @@ class AuthRateLimitMiddleware(BaseHTTPMiddleware):
                     "details": {
                         "endpoint": path,
                         "limit_window": f"{self._get_window_minutes(path)} minutes",
-                        "max_requests": self._get_rate_limit_config(
-                            path
-                        ).requests_per_window,
+                        "max_requests": self._get_rate_limit_config(path).requests_per_window,
                     },
                 },
                 headers={
                     "Retry-After": str(retry_after),
-                    "X-RateLimit-Limit": str(
-                        self._get_rate_limit_config(path).requests_per_window
-                    ),
+                    "X-RateLimit-Limit": str(self._get_rate_limit_config(path).requests_per_window),
                     "X-RateLimit-Remaining": "0",
                     "X-RateLimit-Reset": str(int(current_time + retry_after)),
                 },
@@ -203,9 +199,7 @@ class AuthRateLimitMiddleware(BaseHTTPMiddleware):
 
             response.headers["X-RateLimit-Limit"] = str(config.requests_per_window)
             response.headers["X-RateLimit-Remaining"] = str(remaining)
-            response.headers["X-RateLimit-Reset"] = str(
-                int(current_time + config.window_seconds)
-            )
+            response.headers["X-RateLimit-Reset"] = str(int(current_time + config.window_seconds))
 
         return response
 
@@ -348,11 +342,8 @@ class AuthRateLimitMiddleware(BaseHTTPMiddleware):
         expired_clients = []
         for client_key, client_data in self.client_data.items():
             # Check if all requests are old and no recent violations
-            if (
-                not client_data.requests or max(client_data.requests) < cutoff_time
-            ) and (
-                not client_data.last_violation
-                or client_data.last_violation < cutoff_time
+            if (not client_data.requests or max(client_data.requests) < cutoff_time) and (
+                not client_data.last_violation or client_data.last_violation < cutoff_time
             ):
                 expired_clients.append(client_key)
 
@@ -360,9 +351,7 @@ class AuthRateLimitMiddleware(BaseHTTPMiddleware):
             del self.client_data[client_key]
 
         if expired_clients:
-            self.logger.debug(
-                f"Cleaned up rate limit data for {len(expired_clients)} clients"
-            )
+            self.logger.debug(f"Cleaned up rate limit data for {len(expired_clients)} clients")
 
     def _log_rate_limit_violation(
         self, request: Request, client_ip: str, user_agent: str, retry_after: int

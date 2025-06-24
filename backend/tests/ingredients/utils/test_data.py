@@ -342,9 +342,7 @@ class TestDataGenerator:
         return search_ingredients
 
     @classmethod
-    def generate_pagination_test_data(
-        cls, total_items: int = 50
-    ) -> List[TestIngredientData]:
+    def generate_pagination_test_data(cls, total_items: int = 50) -> List[TestIngredientData]:
         """Generate ingredients for pagination testing."""
         ingredients = []
         for i in range(total_items):
@@ -354,9 +352,7 @@ class TestDataGenerator:
         return ingredients
 
     @classmethod
-    def generate_update_scenarios(
-        cls, base_ingredient: TestIngredientData
-    ) -> List[Dict[str, Any]]:
+    def generate_update_scenarios(cls, base_ingredient: TestIngredientData) -> List[Dict[str, Any]]:
         """Generate various update scenarios for testing."""
         scenarios = [
             # Update name only
@@ -385,9 +381,7 @@ class TestDataGenerator:
         return scenarios
 
     @staticmethod
-    def generate_ingredients_by_category(
-        category: str, count: int
-    ) -> List[Dict[str, Any]]:
+    def generate_ingredients_by_category(category: str, count: int) -> List[Dict[str, Any]]:
         """Generate ingredients for a specific category."""
         # Generate basic ingredients data
         ingredients = []
@@ -414,9 +408,7 @@ class TestDataGenerator:
         ]
 
         for i, data in enumerate(invalid_data):
-            scenario_name = (
-                scenario_names[i] if i < len(scenario_names) else f"invalid_data_{i}"
-            )
+            scenario_name = scenario_names[i] if i < len(scenario_names) else f"invalid_data_{i}"
 
             scenarios.append(
                 {

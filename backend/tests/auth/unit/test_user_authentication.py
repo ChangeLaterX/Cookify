@@ -76,9 +76,7 @@ class TestUserAuthentication(AuthTestBase):
             auth_error = AuthMockFactory.create_auth_error("User not found", 404)
             service.supabase.auth.sign_in_with_password.side_effect = auth_error
 
-            login_data = UserLogin(
-                email="nonexistent@example.com", password="anypassword123"
-            )
+            login_data = UserLogin(email="nonexistent@example.com", password="anypassword123")
 
             # Test login should fail
             with pytest.raises(AuthenticationError) as exc_info:
@@ -95,9 +93,7 @@ class TestUserAuthentication(AuthTestBase):
 
             # Create detailed mock response
             supabase_user = TestDataGenerator.generate_supabase_user_dict(user_data)
-            supabase_session = TestDataGenerator.generate_supabase_session_dict(
-                user_data
-            )
+            supabase_session = TestDataGenerator.generate_supabase_session_dict(user_data)
 
             mock_response = AuthMockFactory.create_supabase_response(
                 success=True, user_data=supabase_user, session_data=supabase_session
@@ -232,12 +228,8 @@ class TestUserAuthentication(AuthTestBase):
                 with MockContextManager(success_responses=True) as mock_ctx:
                     service = AuthService()
 
-                    mock_response = AuthMockFactory.create_supabase_response(
-                        success=True
-                    )
-                    service.supabase.auth.sign_in_with_password.return_value = (
-                        mock_response
-                    )
+                    mock_response = AuthMockFactory.create_supabase_response(success=True)
+                    service.supabase.auth.sign_in_with_password.return_value = mock_response
 
                     result = await service.authenticate_user(scenario["credentials"])
                     assert isinstance(result, TokenResponse)
@@ -245,9 +237,7 @@ class TestUserAuthentication(AuthTestBase):
                 with MockContextManager(success_responses=False) as mock_ctx:
                     service = AuthService()
 
-                    auth_error = AuthMockFactory.create_auth_error(
-                        "Authentication failed"
-                    )
+                    auth_error = AuthMockFactory.create_auth_error("Authentication failed")
                     service.supabase.auth.sign_in_with_password.side_effect = auth_error
 
                     with pytest.raises(AuthenticationError):

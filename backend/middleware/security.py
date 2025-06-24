@@ -225,9 +225,7 @@ def extract_token_from_header(authorization: str) -> str:
     if not authorization.startswith("Bearer "):
         raise ValueError("Invalid authorization header format")
 
-    return authorization[
-        settings.MIDDLEWARE_BEARER_PREFIX_LENGTH :
-    ]  # Remove "Bearer " prefix
+    return authorization[settings.MIDDLEWARE_BEARER_PREFIX_LENGTH :]  # Remove "Bearer " prefix
 
 
 def validate_token_format(token: str) -> bool:
@@ -245,9 +243,7 @@ def validate_token_format(token: str) -> bool:
 
     # JWT tokens should have 3 parts separated by dots
     parts = token.split(".")
-    return len(parts) == settings.MIDDLEWARE_JWT_PARTS_COUNT and all(
-        part for part in parts
-    )
+    return len(parts) == settings.MIDDLEWARE_JWT_PARTS_COUNT and all(part for part in parts)
 
 
 # Export dependencies and utilities

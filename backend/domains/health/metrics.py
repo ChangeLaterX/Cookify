@@ -83,9 +83,7 @@ class HealthMetricsCollector:
             alert_retention_hours: Hours to retain alert history (uses settings default)
         """
         self.max_metrics = max_metrics or settings.HEALTH_METRICS_MAX_RETENTION
-        self.alert_retention_hours = (
-            alert_retention_hours or settings.HEALTH_ALERT_RETENTION_HOURS
-        )
+        self.alert_retention_hours = alert_retention_hours or settings.HEALTH_ALERT_RETENTION_HOURS
 
         # Metrics storage: service_name -> deque of HealthMetric
         self.metrics: Dict[str, Deque[HealthMetric]] = defaultdict(
@@ -127,9 +125,7 @@ class HealthMetricsCollector:
     def _update_service_metrics(self, service_name: str, metric: HealthMetric) -> None:
         """Update aggregated metrics for a service."""
         if service_name not in self.service_metrics:
-            self.service_metrics[service_name] = ServiceMetrics(
-                service_name=service_name
-            )
+            self.service_metrics[service_name] = ServiceMetrics(service_name=service_name)
 
         service_metric = self.service_metrics[service_name]
         service_metric.total_checks += 1
@@ -244,9 +240,7 @@ class HealthMetricsCollector:
         cutoff_time = datetime.utcnow() - timedelta(hours=hours)
         return [alert for alert in self.alerts if alert.timestamp >= cutoff_time]
 
-    def get_service_history(
-        self, service_name: str, hours: int = 1
-    ) -> List[HealthMetric]:
+    def get_service_history(self, service_name: str, hours: int = 1) -> List[HealthMetric]:
         """Get metric history for a service."""
         cutoff_time = datetime.utcnow() - timedelta(hours=hours)
         return [
@@ -259,9 +253,7 @@ class HealthMetricsCollector:
         """Get overall system health overview."""
         total_services = len(self.service_metrics)
         healthy_services = sum(
-            1
-            for metrics in self.service_metrics.values()
-            if metrics.consecutive_failures == 0
+            1 for metrics in self.service_metrics.values() if metrics.consecutive_failures == 0
         )
 
         recent_alerts = self.get_recent_alerts(hours=1)
@@ -278,8 +270,7 @@ class HealthMetricsCollector:
             "average_uptime_percent": round(avg_uptime, 2),
             "recent_alerts_1h": len(recent_alerts),
             "critical_alerts_1h": len(critical_alerts),
-            "system_uptime_hours": (datetime.utcnow() - self.start_time).total_seconds()
-            / 3600,
+            "system_uptime_hours": (datetime.utcnow() - self.start_time).total_seconds() / 3600,
             "metrics_collected": sum(len(deque) for deque in self.metrics.values()),
         }
 
@@ -292,9 +283,7 @@ class HealthMetricsCollector:
             self.alerts.popleft()
 
         # Note: Metrics are automatically cleaned by deque maxlen
-        logger.debug(
-            f"Cleaned up health data older than {self.alert_retention_hours} hours"
-        )
+        logger.debug(f"Cleaned up health data older than {self.alert_retention_hours} hours")
 
 
 # Global metrics collector instance

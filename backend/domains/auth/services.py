@@ -98,9 +98,7 @@ class AuthService:
             )
 
             if not auth_response.user:
-                raise AuthenticationError(
-                    "User creation failed", "USER_CREATION_FAILED"
-                )
+                raise AuthenticationError("User creation failed", "USER_CREATION_FAILED")
 
             # Session might be None if email verification is required
             if not auth_response.session:
@@ -119,12 +117,8 @@ class AuthService:
                             "created_at": datetime.utcnow().isoformat(),
                             "updated_at": datetime.utcnow().isoformat(),
                         }
-                        self.supabase.table("user_profiles").insert(
-                            profile_data
-                        ).execute()
-                        self.logger.info(
-                            f"Profile created for user: {auth_response.user.id}"
-                        )
+                        self.supabase.table("user_profiles").insert(profile_data).execute()
+                        self.logger.info(f"Profile created for user: {auth_response.user.id}")
                     except Exception as e:
                         self.logger.warning(
                             f"Failed to create profile for {auth_response.user.id}: {str(e)}"
@@ -156,9 +150,7 @@ class AuthService:
                     self.supabase.table("user_profiles").insert(profile_data).execute()
                     self.logger.info(f"Profile created for user: {user.id}")
                 except Exception as e:
-                    self.logger.warning(
-                        f"Failed to create profile for {user.id}: {str(e)}"
-                    )
+                    self.logger.warning(f"Failed to create profile for {user.id}: {str(e)}")
 
             # Calculate expiration time
             expires_at = datetime.utcnow() + timedelta(
@@ -169,15 +161,12 @@ class AuthService:
                 access_token=session.access_token,
                 refresh_token=session.refresh_token,
                 token_type="bearer",
-                expires_in=session.expires_in
-                or settings.AUTH_SESSION_DEFAULT_EXPIRES_IN,
+                expires_in=session.expires_in or settings.AUTH_SESSION_DEFAULT_EXPIRES_IN,
                 expires_at=expires_at,
             )
 
         except AuthError as e:
-            self.logger.warning(
-                f"Supabase registration error for {user_data.email}: {str(e)}"
-            )
+            self.logger.warning(f"Supabase registration error for {user_data.email}: {str(e)}")
             if "already registered" in str(e).lower():
                 raise AuthenticationError("Email already registered", "EMAIL_EXISTS")
             raise AuthenticationError("Registration failed", "REGISTRATION_ERROR")
@@ -238,10 +227,7 @@ class AuthService:
 
             # For now, we'll implement a basic token validation
             # In production, this should integrate with Supabase's reset flow
-            if (
-                not reset_data.token
-                or len(reset_data.token) < settings.AUTH_TOKEN_MIN_LENGTH
-            ):
+            if not reset_data.token or len(reset_data.token) < settings.AUTH_TOKEN_MIN_LENGTH:
                 raise AuthenticationError("Invalid reset token", "INVALID_TOKEN")
 
             # This would normally verify the token with Supabase
@@ -255,9 +241,7 @@ class AuthService:
             self.logger.error(f"Password reset confirmation error: {str(e)}")
             raise AuthenticationError("Password reset service error", "SERVICE_ERROR")
 
-    async def change_password(
-        self, user_id: UUID, password_data: PasswordChange
-    ) -> bool:
+    async def change_password(self, user_id: UUID, password_data: PasswordChange) -> bool:
         """
         Change user password (requires current password).
 
@@ -283,9 +267,7 @@ class AuthService:
                 raise AuthenticationError("Missing password data", "INVALID_INPUT")
 
             if password_data.old_password == password_data.new_password:
-                raise AuthenticationError(
-                    "New password must be different", "SAME_PASSWORD"
-                )
+                raise AuthenticationError("New password must be different", "SAME_PASSWORD")
 
             self.logger.info(f"Password changed successfully for user: {user_id}")
             return True
@@ -330,9 +312,7 @@ class AuthService:
             raise
         except Exception as e:
             self.logger.error(f"Email verification error: {str(e)}")
-            raise AuthenticationError(
-                "Email verification service error", "SERVICE_ERROR"
-            )
+            raise AuthenticationError("Email verification service error", "SERVICE_ERROR")
 
     async def resend_verification_email(self, email: str) -> bool:
         """
@@ -399,15 +379,12 @@ class AuthService:
                 access_token=session.access_token,
                 refresh_token=session.refresh_token,
                 token_type="bearer",
-                expires_in=session.expires_in
-                or settings.AUTH_SESSION_DEFAULT_EXPIRES_IN,
+                expires_in=session.expires_in or settings.AUTH_SESSION_DEFAULT_EXPIRES_IN,
                 expires_at=expires_at,
             )
 
         except AuthError as e:
-            self.logger.warning(
-                f"Supabase auth error for {credentials.email}: {str(e)}"
-            )
+            self.logger.warning(f"Supabase auth error for {credentials.email}: {str(e)}")
             raise AuthenticationError("Authentication failed", "AUTH_ERROR")
         except Exception as e:
             self.logger.error(
@@ -442,9 +419,7 @@ class AuthService:
             raise AuthenticationError("Invalid or expired token", "TOKEN_EXPIRED")
         except Exception as e:
             self.logger.error(f"Token verification error: {str(e)}")
-            raise AuthenticationError(
-                "Token verification service error", "SERVICE_ERROR"
-            )
+            raise AuthenticationError("Token verification service error", "SERVICE_ERROR")
 
     async def get_user_from_token(self, token: str) -> AuthUser:
         """
@@ -514,8 +489,7 @@ class AuthService:
                 access_token=session.access_token,
                 refresh_token=session.refresh_token,
                 token_type="bearer",
-                expires_in=session.expires_in
-                or settings.AUTH_SESSION_DEFAULT_EXPIRES_IN,
+                expires_in=session.expires_in or settings.AUTH_SESSION_DEFAULT_EXPIRES_IN,
                 expires_at=expires_at,
             )
 
@@ -606,9 +580,7 @@ class AuthService:
                 # Create new profile
                 update_data["user_id"] = str(user_id)
                 update_data["created_at"] = datetime.utcnow().isoformat()
-                response = (
-                    self.supabase.table("user_profiles").insert(update_data).execute()
-                )
+                response = self.supabase.table("user_profiles").insert(update_data).execute()
 
             if not response.data:
                 raise HTTPException(
@@ -621,9 +593,7 @@ class AuthService:
             # Parse preferences back to dict
             if profile_dict.get("preferences"):
                 try:
-                    profile_dict["preferences"] = json.loads(
-                        profile_dict["preferences"]
-                    )
+                    profile_dict["preferences"] = json.loads(profile_dict["preferences"])
                 except json.JSONDecodeError:
                     profile_dict["preferences"] = None
 
@@ -638,9 +608,7 @@ class AuthService:
                 detail="Failed to update user profile",
             )
 
-    async def _get_user_profile_by_id(
-        self, user_id: UUID
-    ) -> Optional[UserProfileResponse]:
+    async def _get_user_profile_by_id(self, user_id: UUID) -> Optional[UserProfileResponse]:
         """
         Internal method to get user profile by ID.
 
@@ -664,9 +632,7 @@ class AuthService:
                 # Parse preferences JSON
                 if profile_dict.get("preferences"):
                     try:
-                        profile_dict["preferences"] = json.loads(
-                            profile_dict["preferences"]
-                        )
+                        profile_dict["preferences"] = json.loads(profile_dict["preferences"])
                     except json.JSONDecodeError:
                         profile_dict["preferences"] = None
 

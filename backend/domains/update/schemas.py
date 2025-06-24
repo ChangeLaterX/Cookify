@@ -27,9 +27,7 @@ class IngredientCacheUpdateResponse(UpdateResponse):
     ingredient_count: Optional[int] = Field(
         None, description="Number of ingredients in the updated cache"
     )
-    cache_file_path: Optional[str] = Field(
-        None, description="Path to the updated cache file"
-    )
+    cache_file_path: Optional[str] = Field(None, description="Path to the updated cache file")
     last_database_update: Optional[datetime] = Field(
         None, description="Last database update timestamp"
     )
@@ -39,15 +37,7 @@ class UpdateStatus(BaseModel):
     """Status information for update operations."""
 
     operation: str = Field(..., description="Name of the operation")
-    status: str = Field(
-        ..., description="Current status (pending, running, completed, failed)"
-    )
-    started_at: Optional[datetime] = Field(
-        None, description="When the operation started"
-    )
-    completed_at: Optional[datetime] = Field(
-        None, description="When the operation completed"
-    )
-    error_message: Optional[str] = Field(
-        None, description="Error message if operation failed"
-    )
+    status: str = Field(..., description="Current status (pending, running, completed, failed)")
+    started_at: Optional[datetime] = Field(None, description="When the operation started")
+    completed_at: Optional[datetime] = Field(None, description="When the operation completed")
+    error_message: Optional[str] = Field(None, description="Error message if operation failed")

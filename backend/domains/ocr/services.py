@@ -86,9 +86,7 @@ def _load_ingredient_names_from_file() -> List[str]:
         try:
             return get_ingredient_names_for_ocr()
         except Exception as e:
-            logger.warning(
-                f"Failed to load ingredients from cache: {e}, falling back to file"
-            )
+            logger.warning(f"Failed to load ingredients from cache: {e}, falling back to file")
 
     # Fallback to reading directly from file
     try:
@@ -172,8 +170,9 @@ def _validate_image_security(image_data: bytes) -> None:
     """
     # Check file size
     if len(image_data) > settings.OCR_MAX_IMAGE_SIZE_BYTES:
+        max_size = settings.OCR_MAX_IMAGE_SIZE_BYTES
         raise OCRError(
-            f"Image file too large: {len(image_data)} bytes (max: {settings.OCR_MAX_IMAGE_SIZE_BYTES})",
+            f"Image file too large: {len(image_data)} bytes (max: {max_size})",
             "IMAGE_TOO_LARGE",
         )
 
@@ -202,9 +201,7 @@ def _validate_image_security(image_data: bytes) -> None:
                     "file_size": len(image_data),
                 },
             )
-            raise OCRError(
-                "Suspicious content detected in image file", "MALICIOUS_CONTENT"
-            )
+            raise OCRError("Suspicious content detected in image file", "MALICIOUS_CONTENT")
 
     # Validate MIME type if magic is available
     if MAGIC_AVAILABLE and magic:
@@ -223,27 +220,22 @@ def _validate_image_security(image_data: bytes) -> None:
         with Image.open(BytesIO(image_data)) as img:
             # Check format
             if img.format not in settings.OCR_ALLOWED_IMAGE_FORMATS:
-                raise OCRError(
-                    f"Unsupported image format: {img.format}", "UNSUPPORTED_FORMAT"
-                )
+                raise OCRError(f"Unsupported image format: {img.format}", "UNSUPPORTED_FORMAT")
 
             # Check dimensions
             width, height = img.size
-            if (
-                width < settings.OCR_MIN_IMAGE_WIDTH
-                or height < settings.OCR_MIN_IMAGE_HEIGHT
-            ):
+            min_w, min_h = settings.OCR_MIN_IMAGE_WIDTH, settings.OCR_MIN_IMAGE_HEIGHT
+            max_w, max_h = settings.OCR_MAX_IMAGE_WIDTH, settings.OCR_MAX_IMAGE_HEIGHT
+
+            if width < min_w or height < min_h:
                 raise OCRError(
-                    f"Image too small: {width}x{height} (min: {settings.OCR_MIN_IMAGE_WIDTH}x{settings.OCR_MIN_IMAGE_HEIGHT})",
+                    f"Image too small: {width}x{height} (min: {min_w}x{min_h})",
                     "IMAGE_TOO_SMALL",
                 )
 
-            if (
-                width > settings.OCR_MAX_IMAGE_WIDTH
-                or height > settings.OCR_MAX_IMAGE_HEIGHT
-            ):
+            if width > max_w or height > max_h:
                 raise OCRError(
-                    f"Image too large: {width}x{height} (max: {settings.OCR_MAX_IMAGE_WIDTH}x{settings.OCR_MAX_IMAGE_HEIGHT})",
+                    f"Image too large: {width}x{height} (max: {max_w}x{max_h})",
                     "IMAGE_TOO_LARGE",
                 )
 
@@ -342,10 +334,7 @@ def _get_ingredient_names() -> List[str]:
     current_time = time.time()
 
     # Load from cache if available and not expired
-    if (
-        _ingredient_names_cache is not None
-        and current_time - _cache_last_loaded < _cache_ttl
-    ):
+    if _ingredient_names_cache is not None and current_time - _cache_last_loaded < _cache_ttl:
         return _ingredient_names_cache
 
     # Load fresh data
@@ -383,9 +372,7 @@ class OCRService:
             tesseract_paths = [
                 shutil.which("tesseract"),  # PATH lookup (should work in Docker)
                 *settings.OCR_TESSERACT_PATHS,  # Config-defined paths
-                os.environ.get(
-                    settings.OCR_TESSERACT_CMD_ENV_VAR
-                ),  # Environment variable override
+                os.environ.get(settings.OCR_TESSERACT_CMD_ENV_VAR),  # Environment variable override
             ]
 
             for path in tesseract_paths:
@@ -408,9 +395,7 @@ class OCRService:
 
         # Load ingredient names at initialization
         self._ingredient_names = _get_ingredient_names()
-        logger.info(
-            f"OCR Service initialized with {len(self._ingredient_names)} ingredient names"
-        )
+        logger.info(f"OCR Service initialized with {len(self._ingredient_names)} ingredient names")
 
     async def _find_ingredient_suggestions(
         self,
@@ -433,9 +418,7 @@ class OCRService:
 
         try:
             # Clean the item text for better matching
-            clean_text = re.sub(
-                r"\s*\([^)]*\)\s*", " ", item_text
-            )  # Remove parentheses content
+            clean_text = re.sub(r"\s*\([^)]*\)\s*", " ", item_text)  # Remove parentheses content
             clean_text = re.sub(r"\s*\$[\d.,]+\s*", " ", clean_text)  # Remove prices
             clean_text = re.sub(r"[^\w\s]", " ", clean_text)  # Remove special chars
             clean_text = re.sub(r"\s+", " ", clean_text).strip().lower()
@@ -464,9 +447,7 @@ class OCRService:
                             suggestions.append(suggestion)
 
                 except Exception as e:
-                    logger.debug(
-                        f"Database ingredient search failed for '{clean_text}': {e}"
-                    )
+                    logger.debug(f"Database ingredient search failed for '{clean_text}': {e}")
 
             # Method 2: Use local ingredient names file for fuzzy matching
             if len(suggestions) < max_suggestions and self._ingredient_names:
@@ -488,9 +469,7 @@ class OCRService:
                         # Create a mock UUID for local matches
                         from uuid import NAMESPACE_DNS, uuid5
 
-                        mock_id = uuid5(
-                            NAMESPACE_DNS, f"local-ingredient-{ingredient_name}"
-                        )
+                        mock_id = uuid5(NAMESPACE_DNS, f"local-ingredient-{ingredient_name}")
 
                         suggestion = OCRItemSuggestion(
                             ingredient_id=mock_id,
@@ -501,9 +480,7 @@ class OCRService:
                         suggestions.append(suggestion)
 
                 except Exception as e:
-                    logger.debug(
-                        f"Local ingredient matching failed for '{clean_text}': {e}"
-                    )
+                    logger.debug(f"Local ingredient matching failed for '{clean_text}': {e}")
 
             # Sort by confidence score and limit results
             suggestions.sort(key=lambda x: x.confidence_score, reverse=True)
@@ -654,9 +631,7 @@ class OCRService:
                 context={
                     "processing_time_ms": processing_time_ms,
                     "confidence_score": best_confidence,
-                    "extracted_text_length": (
-                        len(best_result.strip()) if best_result else 0
-                    ),
+                    "extracted_text_length": (len(best_result.strip()) if best_result else 0),
                     "configs_tried": len(configs),
                     "image_preprocessed": True,
                 },
@@ -687,9 +662,7 @@ class OCRService:
                     "image_size_available": "image_data" in locals(),
                 },
             )
-            raise OCRError(
-                f"Failed to process image: {str(e)}", "OCR_PROCESSING_FAILED"
-            )
+            raise OCRError(f"Failed to process image: {str(e)}", "OCR_PROCESSING_FAILED")
         finally:
             # Always cleanup temporary file
             if temp_file_path:
@@ -763,30 +736,16 @@ class OCRService:
         for line in lines:
             # Fix common OCR errors in units
             corrected_line = line
-            corrected_line = re.sub(
-                r"\b(its|ibs)\b", "lbs", corrected_line, flags=re.IGNORECASE
-            )
-            corrected_line = re.sub(
-                r"\b(ib|1b|11b)\b", "lb", corrected_line, flags=re.IGNORECASE
-            )
-            corrected_line = re.sub(
-                r"\b(be|bs)\b", "lbs", corrected_line, flags=re.IGNORECASE
-            )
-            corrected_line = re.sub(
-                r"\b(ts)\b", "lbs", corrected_line, flags=re.IGNORECASE
-            )
-            corrected_line = re.sub(
-                r"\b(goz)\b", "8oz", corrected_line, flags=re.IGNORECASE
-            )
-            corrected_line = re.sub(
-                r"\b(cound)\b", "count", corrected_line, flags=re.IGNORECASE
-            )
+            corrected_line = re.sub(r"\b(its|ibs)\b", "lbs", corrected_line, flags=re.IGNORECASE)
+            corrected_line = re.sub(r"\b(ib|1b|11b)\b", "lb", corrected_line, flags=re.IGNORECASE)
+            corrected_line = re.sub(r"\b(be|bs)\b", "lbs", corrected_line, flags=re.IGNORECASE)
+            corrected_line = re.sub(r"\b(ts)\b", "lbs", corrected_line, flags=re.IGNORECASE)
+            corrected_line = re.sub(r"\b(goz)\b", "8oz", corrected_line, flags=re.IGNORECASE)
+            corrected_line = re.sub(r"\b(cound)\b", "count", corrected_line, flags=re.IGNORECASE)
             corrected_line = re.sub(
                 r"\b(bults|butte)\b", "bulbs", corrected_line, flags=re.IGNORECASE
             )
-            corrected_line = re.sub(
-                r"\b(tresh)\b", "fresh", corrected_line, flags=re.IGNORECASE
-            )
+            corrected_line = re.sub(r"\b(tresh)\b", "fresh", corrected_line, flags=re.IGNORECASE)
 
             # Fix price formatting OCR errors
             corrected_line = re.sub(
@@ -813,8 +772,7 @@ class OCRService:
 
             # Check if line has product indicators or looks like a product line
             has_product_indicator = any(
-                re.search(pattern, line, re.IGNORECASE)
-                for pattern in product_indicators
+                re.search(pattern, line, re.IGNORECASE) for pattern in product_indicators
             )
             has_letters_and_price = re.search(r"[a-zA-Z].*\$\d+[.,]\d{1,2}", line)
 
@@ -893,9 +851,7 @@ class OCRService:
                 "basilfresh",
             ]
 
-            starts_with_food = any(
-                line.lower().startswith(word) for word in food_start_words
-            )
+            starts_with_food = any(line.lower().startswith(word) for word in food_start_words)
 
             if has_product_indicator or has_letters_and_price or starts_with_food:
                 # Advanced cleaning pipeline
@@ -939,30 +895,18 @@ class OCRService:
                 cleaned_line = re.sub(
                     r"\btomatnes\b", "tomatoes", cleaned_line, flags=re.IGNORECASE
                 )
-                cleaned_line = re.sub(
-                    r"\bgarlie\b", "garlic", cleaned_line, flags=re.IGNORECASE
-                )
+                cleaned_line = re.sub(r"\bgarlie\b", "garlic", cleaned_line, flags=re.IGNORECASE)
                 cleaned_line = re.sub(
                     r"\bbellpeppers\b",
                     "bell peppers",
                     cleaned_line,
                     flags=re.IGNORECASE,
                 )
-                cleaned_line = re.sub(
-                    r"\bcancts\b", "carrots", cleaned_line, flags=re.IGNORECASE
-                )
-                cleaned_line = re.sub(
-                    r"\bmitk|imtik\b", "milk", cleaned_line, flags=re.IGNORECASE
-                )
-                cleaned_line = re.sub(
-                    r"\bfggs\b", "eggs", cleaned_line, flags=re.IGNORECASE
-                )
-                cleaned_line = re.sub(
-                    r"\bchesidar\b", "cheddar", cleaned_line, flags=re.IGNORECASE
-                )
-                cleaned_line = re.sub(
-                    r"\bpasa\b", "pasta", cleaned_line, flags=re.IGNORECASE
-                )
+                cleaned_line = re.sub(r"\bcancts\b", "carrots", cleaned_line, flags=re.IGNORECASE)
+                cleaned_line = re.sub(r"\bmitk|imtik\b", "milk", cleaned_line, flags=re.IGNORECASE)
+                cleaned_line = re.sub(r"\bfggs\b", "eggs", cleaned_line, flags=re.IGNORECASE)
+                cleaned_line = re.sub(r"\bchesidar\b", "cheddar", cleaned_line, flags=re.IGNORECASE)
+                cleaned_line = re.sub(r"\bpasa\b", "pasta", cleaned_line, flags=re.IGNORECASE)
                 cleaned_line = re.sub(
                     r"\botiweoit|otiveoil\b",
                     "olive oil",
@@ -1013,8 +957,7 @@ class OCRService:
                     # More lenient acceptance criteria
                     is_likely_product = (
                         contains_food_keyword
-                        or len(cleaned_line.split())
-                        <= 5  # Slightly longer items allowed
+                        or len(cleaned_line.split()) <= 5  # Slightly longer items allowed
                         or starts_with_food
                         or re.search(
                             r"^[A-Z][a-z]+", cleaned_line
@@ -1023,16 +966,12 @@ class OCRService:
 
                     if is_likely_product:
                         # Final cleanup
-                        cleaned_line = (
-                            cleaned_line.title()
-                        )  # Proper case for better readability
+                        cleaned_line = cleaned_line.title()  # Proper case for better readability
                         items.append(cleaned_line)
 
         return items
 
-    async def process_receipt_without_suggestions(
-        self, image_data: bytes
-    ) -> OCRProcessedResponse:
+    async def process_receipt_without_suggestions(self, image_data: bytes) -> OCRProcessedResponse:
         """
         Process receipt image and extract items without database suggestions.
 
@@ -1061,15 +1000,9 @@ class OCRService:
                 quantity, unit, price = self._extract_quantity_and_price(item_text)
 
                 # Clean product name
-                clean_name = re.sub(
-                    r"\s*\$\d+[.,]\d{2}\s*$", "", item_text
-                )  # remove price
-                clean_name = re.sub(
-                    r"\s*\(\d+.*?\)\s*", " ", clean_name
-                )  # remove quantity info
-                clean_name = re.sub(
-                    r"\s+", " ", clean_name
-                ).strip()  # normalize whitespace
+                clean_name = re.sub(r"\s*\$\d+[.,]\d{2}\s*$", "", item_text)  # remove price
+                clean_name = re.sub(r"\s*\(\d+.*?\)\s*", " ", clean_name)  # remove quantity info
+                clean_name = re.sub(r"\s+", " ", clean_name).strip()  # normalize whitespace
 
                 receipt_item = ReceiptItem(
                     detected_text=clean_name,
@@ -1115,9 +1048,7 @@ class OCRService:
             raise  # Re-raise OCR errors
         except Exception as e:
             logger.error(f"Receipt processing failed: {str(e)}")
-            raise OCRError(
-                f"Failed to process receipt: {str(e)}", "RECEIPT_PROCESSING_FAILED"
-            )
+            raise OCRError(f"Failed to process receipt: {str(e)}", "RECEIPT_PROCESSING_FAILED")
 
     def _preprocess_image_for_ocr(self, image):
         """
@@ -1144,15 +1075,11 @@ class OCRService:
             # Step 1: OPTIMAL - Contrast enhancement (best performer in tests)
             # This setting showed the highest item detection rates across all test images
             contrast_enhancer = ImageEnhance.Contrast(gray_image)
-            enhanced_image = contrast_enhancer.enhance(
-                1.5
-            )  # Optimal contrast boost from testing
+            enhanced_image = contrast_enhancer.enhance(1.5)  # Optimal contrast boost from testing
 
             # Step 2: Light sharpening (supporting enhancement)
             sharpness_enhancer = ImageEnhance.Sharpness(enhanced_image)
-            sharpened_image = sharpness_enhancer.enhance(
-                1.3
-            )  # Reduced from 1.5 to balance
+            sharpened_image = sharpness_enhancer.enhance(1.3)  # Reduced from 1.5 to balance
 
             # Step 3: Noise reduction with very light blur
             denoised = sharpened_image.filter(
@@ -1179,9 +1106,7 @@ class OCRService:
                     # Try modern PIL first
                     from PIL.Image import Resampling
 
-                    final_sharp = final_sharp.resize(
-                        (new_width, new_height), Resampling.LANCZOS
-                    )
+                    final_sharp = final_sharp.resize((new_width, new_height), Resampling.LANCZOS)
                 except (ImportError, AttributeError):
                     try:
                         # Fallback for older PIL versions
@@ -1195,9 +1120,7 @@ class OCRService:
                     except AttributeError:
                         # Final fallback - use basic resize
                         final_sharp = final_sharp.resize((new_width, new_height))
-                logger.info(
-                    f"Upscaled image from {width}x{height} to {new_width}x{new_height}"
-                )
+                logger.info(f"Upscaled image from {width}x{height} to {new_width}x{new_height}")
 
             # Convert back to RGB for tesseract compatibility
             processed_image = final_sharp.convert("RGB")
@@ -1206,9 +1129,7 @@ class OCRService:
             return processed_image
 
         except Exception as e:
-            logger.warning(
-                f"Image preprocessing failed, using basic preprocessing: {str(e)}"
-            )
+            logger.warning(f"Image preprocessing failed, using basic preprocessing: {str(e)}")
             # Fallback to basic preprocessing
             try:
                 if image.mode != "RGB":
@@ -1222,9 +1143,7 @@ class OCRService:
 
                 return enhanced
             except Exception as e2:
-                logger.warning(
-                    f"Basic preprocessing also failed, using original: {str(e2)}"
-                )
+                logger.warning(f"Basic preprocessing also failed, using original: {str(e2)}")
                 return image.convert("RGB") if image.mode != "RGB" else image
 
     def _extract_quantity_and_price(
@@ -1357,26 +1276,14 @@ class OCRService:
                     if len(matches[0]) == 2:  # (quantity, unit)
                         qty_str, unit_str = matches[0]
                         # Simple quantity parsing with OCR correction
-                        qty_str = (
-                            qty_str.replace("O", "0")
-                            .replace("I", "1")
-                            .replace("l", "1")
-                        )
+                        qty_str = qty_str.replace("O", "0").replace("I", "1").replace("l", "1")
                         quantity = float(qty_str.replace(",", "."))
                         unit = unit_str.strip()
                     elif len(matches[0]) == 3:  # (multiplier, quantity, unit)
                         mult_str, qty_str, unit_str = matches[0]
                         # Simple parsing with OCR correction
-                        mult_str = (
-                            mult_str.replace("O", "0")
-                            .replace("I", "1")
-                            .replace("l", "1")
-                        )
-                        qty_str = (
-                            qty_str.replace("O", "0")
-                            .replace("I", "1")
-                            .replace("l", "1")
-                        )
+                        mult_str = mult_str.replace("O", "0").replace("I", "1").replace("l", "1")
+                        qty_str = qty_str.replace("O", "0").replace("I", "1").replace("l", "1")
                         multiplier = float(mult_str.replace(",", "."))
                         base_qty = float(qty_str.replace(",", "."))
                         quantity = multiplier * base_qty

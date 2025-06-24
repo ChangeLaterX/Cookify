@@ -28,9 +28,7 @@ class TestIngredientSearch(IngredientsTestBase):
 
         # Check that results contain tomato-related ingredients if any exist
         if result.ingredients:
-            tomato_results = [
-                ing for ing in result.ingredients if "tomato" in ing.name.lower()
-            ]
+            tomato_results = [ing for ing in result.ingredients if "tomato" in ing.name.lower()]
             # Should find at least some tomato ingredients
             assert len(tomato_results) > 0
 
@@ -59,9 +57,7 @@ class TestIngredientSearch(IngredientsTestBase):
     @pytest.mark.asyncio
     async def test_search_no_results(self):
         """Test search with no matching results."""
-        result = await search_ingredients(
-            query="nonexistent_ingredient_xyz123", limit=10, offset=0
-        )
+        result = await search_ingredients(query="nonexistent_ingredient_xyz123", limit=10, offset=0)
 
         assert isinstance(result, IngredientListResponse)
         assert len(result.ingredients) == 0

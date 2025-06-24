@@ -147,9 +147,7 @@ async def force_refresh_all_caches_endpoint() -> Dict[str, Any]:
         else:
             logger.warning("Some cache refreshes failed")
             # Return 207 Multi-Status to indicate partial success
-            return JSONResponse(
-                status_code=status.HTTP_207_MULTI_STATUS, content=result
-            )
+            return JSONResponse(status_code=status.HTTP_207_MULTI_STATUS, content=result)
 
     except Exception as e:
         logger.error(f"Unexpected error during force refresh: {str(e)}")

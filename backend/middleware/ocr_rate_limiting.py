@@ -62,9 +62,7 @@ class OCRRateLimitMiddleware(BaseHTTPMiddleware):
         self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
 
         # Rate limit storage (in production, use Redis)
-        self.client_data: Dict[str, ClientOCRData] = defaultdict(
-            lambda: ClientOCRData(requests=[])
-        )
+        self.client_data: Dict[str, ClientOCRData] = defaultdict(lambda: ClientOCRData(requests=[]))
 
         # OCR-specific rate limit rules
         self.ocr_rate_limits = {
@@ -106,9 +104,7 @@ class OCRRateLimitMiddleware(BaseHTTPMiddleware):
 
         try:
             # Check rate limits first
-            rate_limit_result = self._check_rate_limit(
-                client_ip, endpoint, current_time
-            )
+            rate_limit_result = self._check_rate_limit(client_ip, endpoint, current_time)
             if rate_limit_result:
                 return rate_limit_result
 
@@ -151,9 +147,7 @@ class OCRRateLimitMiddleware(BaseHTTPMiddleware):
 
     def _is_ocr_endpoint(self, path: str) -> bool:
         """Check if the request path is an OCR endpoint."""
-        return any(
-            path.startswith(ocr_path) for ocr_path in self.ocr_rate_limits.keys()
-        )
+        return any(path.startswith(ocr_path) for ocr_path in self.ocr_rate_limits.keys())
 
     def _get_client_ip(self, request: Request) -> str:
         """Extract client IP address with proxy support."""
@@ -218,9 +212,7 @@ class OCRRateLimitMiddleware(BaseHTTPMiddleware):
 
         # Check request count
         if len(client_data.requests) >= config.requests_per_window:
-            self._handle_rate_limit_violation(
-                client_ip, client_data, config, current_time
-            )
+            self._handle_rate_limit_violation(client_ip, client_data, config, current_time)
 
             retry_after = config.window_seconds
             if client_data.progressive_delay_until:
@@ -283,9 +275,7 @@ class OCRRateLimitMiddleware(BaseHTTPMiddleware):
                 },
             )
 
-    async def _validate_request(
-        self, request: Request, endpoint: str
-    ) -> Optional[JSONResponse]:
+    async def _validate_request(self, request: Request, endpoint: str) -> Optional[JSONResponse]:
         """Validate OCR request for security and compliance."""
         config = self.ocr_rate_limits.get(endpoint)
         if not config:
@@ -412,10 +402,7 @@ class OCRRateLimitMiddleware(BaseHTTPMiddleware):
                 # Check image dimensions
                 width, height = img.size
 
-                if (
-                    width < settings.OCR_MIN_IMAGE_WIDTH
-                    or height < settings.OCR_MIN_IMAGE_HEIGHT
-                ):
+                if width < settings.OCR_MIN_IMAGE_WIDTH or height < settings.OCR_MIN_IMAGE_HEIGHT:
                     return JSONResponse(
                         status_code=status.HTTP_400_BAD_REQUEST,
                         content={
@@ -425,10 +412,7 @@ class OCRRateLimitMiddleware(BaseHTTPMiddleware):
                         },
                     )
 
-                if (
-                    width > settings.OCR_MAX_IMAGE_WIDTH
-                    or height > settings.OCR_MAX_IMAGE_HEIGHT
-                ):
+                if width > settings.OCR_MAX_IMAGE_WIDTH or height > settings.OCR_MAX_IMAGE_HEIGHT:
                     return JSONResponse(
                         status_code=status.HTTP_400_BAD_REQUEST,
                         content={
@@ -514,8 +498,7 @@ class OCRRateLimitMiddleware(BaseHTTPMiddleware):
 
             # Remove clients with no recent activity
             if not client_data.requests and (
-                not client_data.last_violation
-                or client_data.last_violation < cutoff_time
+                not client_data.last_violation or client_data.last_violation < cutoff_time
             ):
                 clients_to_remove.append(client_ip)
 

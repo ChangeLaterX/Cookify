@@ -29,9 +29,7 @@ class AuthMockFactory:
         )
 
     @staticmethod
-    def create_user_login(
-        email: Optional[str] = None, password: Optional[str] = None
-    ) -> UserLogin:
+    def create_user_login(email: Optional[str] = None, password: Optional[str] = None) -> UserLogin:
         """Create a mock UserLogin schema."""
         return UserLogin(
             email=email or "test@test.cookify.app",
@@ -99,13 +97,10 @@ class AuthMockFactory:
         """Create a mock Supabase session dictionary."""
         return {
             "access_token": access_token or f"mock_access_token_{uuid.uuid4().hex[:8]}",
-            "refresh_token": refresh_token
-            or f"mock_refresh_token_{uuid.uuid4().hex[:8]}",
+            "refresh_token": refresh_token or f"mock_refresh_token_{uuid.uuid4().hex[:8]}",
             "expires_in": expires_in,
             "token_type": "bearer",
-            "expires_at": (
-                datetime.utcnow() + timedelta(seconds=expires_in)
-            ).timestamp(),
+            "expires_at": (datetime.utcnow() + timedelta(seconds=expires_in)).timestamp(),
         }
 
     @staticmethod
@@ -120,9 +115,7 @@ class AuthMockFactory:
 
         if success:
             response.user = Mock()
-            response.user.__dict__.update(
-                user_data or AuthMockFactory.create_supabase_user_dict()
-            )
+            response.user.__dict__.update(user_data or AuthMockFactory.create_supabase_user_dict())
 
             response.session = Mock()
             response.session.__dict__.update(
@@ -144,9 +137,7 @@ class AuthMockFactory:
 
         # Use a simple fallback implementation for tests
         class MockAuthError(Exception):
-            def __init__(
-                self, message: str, code: str = error_code, status: int = status_code
-            ):
+            def __init__(self, message: str, code: str = error_code, status: int = status_code):
                 self.message = message
                 self.status = status
                 self.code = code
@@ -209,22 +200,18 @@ class MockContextManager:
         client.auth = Mock()
 
         if self.success_responses:
-            client.auth.sign_up.return_value = (
-                AuthMockFactory.create_supabase_response()
-            )
+            client.auth.sign_up.return_value = AuthMockFactory.create_supabase_response()
             client.auth.sign_in_with_password.return_value = (
                 AuthMockFactory.create_supabase_response()
             )
             client.auth.sign_out.return_value = Mock(error=None)
-            client.auth.refresh_session.return_value = (
-                AuthMockFactory.create_supabase_response()
-            )
+            client.auth.refresh_session.return_value = AuthMockFactory.create_supabase_response()
         else:
             client.auth.sign_up.side_effect = AuthMockFactory.create_auth_error(
                 "Registration failed"
             )
-            client.auth.sign_in_with_password.side_effect = (
-                AuthMockFactory.create_auth_error("Login failed")
+            client.auth.sign_in_with_password.side_effect = AuthMockFactory.create_auth_error(
+                "Login failed"
             )
 
         # Mock table operations

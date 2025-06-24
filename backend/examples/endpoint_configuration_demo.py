@@ -268,9 +268,7 @@ def show_environment_overrides():
     print()
 
     print("🐳 DOCKER ENVIRONMENT:")
-    print(
-        "   docker run -e HEALTH_PREFIX='/status' -e INGREDIENTS_PREFIX='/food' cookify-backend"
-    )
+    print("   docker run -e HEALTH_PREFIX='/status' -e INGREDIENTS_PREFIX='/food' cookify-backend")
     print()
 
     print("📝 .ENV FILE:")

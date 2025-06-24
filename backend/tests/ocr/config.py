@@ -18,9 +18,7 @@ class OCRTestConfig:
 
     # Test modes
     MOCK_MODE: bool = os.getenv("OCR_TEST_MOCK_MODE", "true").lower() == "true"
-    INTEGRATION_MODE: bool = (
-        os.getenv("OCR_TEST_INTEGRATION", "false").lower() == "true"
-    )
+    INTEGRATION_MODE: bool = os.getenv("OCR_TEST_INTEGRATION", "false").lower() == "true"
 
     # Paths
     PROJECT_ROOT: Path = Path(__file__).parent.parent.parent
@@ -119,9 +117,7 @@ class OCRTestConfig:
         if info["available"]:
             try:
                 # Get version
-                result = subprocess.run(
-                    ["tesseract", "--version"], capture_output=True, text=True
-                )
+                result = subprocess.run(["tesseract", "--version"], capture_output=True, text=True)
                 if result.returncode == 0:
                     info["version"] = result.stderr.split("\n")[0]
 

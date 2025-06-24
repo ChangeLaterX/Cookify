@@ -26,9 +26,7 @@ class SecurityHeadersConfig:
         self.referrer_policy = settings.SECURITY_REFERRER_POLICY
 
         # HSTS - only in production or when explicitly enabled
-        self.hsts_max_age = (
-            settings.HSTS_MAX_AGE or settings.SECURITY_HSTS_MAX_AGE_DEFAULT
-        )
+        self.hsts_max_age = settings.HSTS_MAX_AGE or settings.SECURITY_HSTS_MAX_AGE_DEFAULT
         self.hsts_include_subdomains = True
         self.hsts_preload = False  # Can be enabled per environment
 
@@ -132,9 +130,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     def _log_config(self) -> None:
         """Log the security headers configuration."""
         logger.info("Security Headers Middleware initialized")
-        logger.info(
-            f"Environment: {'development' if settings.is_development else 'production'}"
-        )
+        logger.info(f"Environment: {'development' if settings.is_development else 'production'}")
         logger.info(f"HSTS enabled: {self.config.get_hsts_header() is not None}")
         logger.debug(f"CSP directives: {len(self.config.csp_directives)} configured")
 
@@ -160,9 +156,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         """Add all security headers to the response."""
         try:
             # Basic security headers
-            response.headers["X-Content-Type-Options"] = (
-                self.config.x_content_type_options
-            )
+            response.headers["X-Content-Type-Options"] = self.config.x_content_type_options
             response.headers["X-Frame-Options"] = self.config.x_frame_options
             response.headers["X-XSS-Protection"] = self.config.x_xss_protection
             response.headers["Referrer-Policy"] = self.config.referrer_policy
