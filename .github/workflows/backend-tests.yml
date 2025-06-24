@@ -80,7 +80,7 @@ jobs:
       - name: 📦 Install Quality Tools
         run: |
           python -m pip install --upgrade pip
-          pip install black isort flake8 mypy bandit safety
+          pip install black "isort[colors]" flake8 mypy bandit safety colorama
           pip install -r backend/requirements.txt
 
       - name: 🎨 Check Code Formatting (Black)
@@ -121,8 +121,8 @@ jobs:
         run: |
           echo "🔍 Checking import sorting with isort..."
           
-          # Run isort check and capture output
-          if ! isort --check-only --diff --color . > isort_output.txt 2>&1; then
+          # Run isort check and capture output (without color to avoid colorama issues)
+          if ! isort --check-only --diff . > isort_output.txt 2>&1; then
             echo "❌ Import sorting issues found!"
             echo ""
             echo "📋 IMPORT SORTING ISSUES SUMMARY:"
@@ -131,6 +131,7 @@ jobs:
             # Extract and show files that need import sorting
             grep "ERROR:" isort_output.txt | sed 's/ERROR: /❌ /' || true
             grep "Skipped" isort_output.txt | sed 's/Skipped/⚠️ Skipped/' || true
+            grep "would reformat" isort_output.txt | sed 's/would reformat/❌ Needs sorting:/' || true
             
             echo ""
             echo "🔧 DETAILED DIFF:"
@@ -142,7 +143,7 @@ jobs:
             echo ""
             
             # Count files that need import sorting
-            ERROR_COUNT=$(grep -c "ERROR:" isort_output.txt || echo "0")
+            ERROR_COUNT=$(grep -c "ERROR:\|would reformat" isort_output.txt || echo "0")
             echo "📊 Total files needing import sorting: $ERROR_COUNT"
             
             exit 1
