@@ -84,7 +84,9 @@ class AppConfig(BaseSettings):
         default=Environment.DEVELOPMENT, description="Runtime environment"
     )
     VERSION: str = Field(
-        default="0.1.0", pattern=r"^\d+\.\d+\.\d+(-\w+)?$", description="Application version"
+        default="0.1.0",
+        pattern=r"^\d+\.\d+\.\d+(-\w+)?$",
+        description="Application version",
     )
 
     # API Documentation
@@ -408,15 +410,18 @@ class RateLimitConfig(BaseSettings):
     RATE_LIMIT_PASSWORD_RESET_WINDOW_MINUTES: int = Field(
         default=60, ge=1, le=240, description="Password reset window"
     )
-    
+
     # Password reset confirmation settings (separate from initiation)
     RATE_LIMIT_RESET_PASSWORD_ATTEMPTS: int = Field(
         default=5, ge=1, le=15, description="Password reset confirmation attempts"
     )
     RATE_LIMIT_RESET_PASSWORD_WINDOW: int = Field(
-        default=900, ge=300, le=3600, description="Password reset confirmation window in seconds"
+        default=900,
+        ge=300,
+        le=3600,
+        description="Password reset confirmation window in seconds",
     )
-    
+
     # Email verification settings
     RATE_LIMIT_VERIFY_EMAIL_ATTEMPTS: int = Field(
         default=3, ge=1, le=10, description="Email verification attempts"
@@ -424,15 +429,18 @@ class RateLimitConfig(BaseSettings):
     RATE_LIMIT_VERIFY_EMAIL_WINDOW: int = Field(
         default=300, ge=60, le=1800, description="Email verification window in seconds"
     )
-    
+
     # Resend verification settings
     RATE_LIMIT_RESEND_VERIFICATION_ATTEMPTS: int = Field(
         default=2, ge=1, le=5, description="Resend verification attempts"
     )
     RATE_LIMIT_RESEND_VERIFICATION_WINDOW: int = Field(
-        default=600, ge=300, le=1800, description="Resend verification window in seconds"
+        default=600,
+        ge=300,
+        le=1800,
+        description="Resend verification window in seconds",
     )
-    
+
     # Refresh token settings
     RATE_LIMIT_REFRESH_TOKEN_ATTEMPTS: int = Field(
         default=10, ge=1, le=50, description="Refresh token attempts"
@@ -440,7 +448,7 @@ class RateLimitConfig(BaseSettings):
     RATE_LIMIT_REFRESH_TOKEN_WINDOW: int = Field(
         default=300, ge=60, le=1800, description="Refresh token window in seconds"
     )
-    
+
     # Default auth settings (fallback)
     RATE_LIMIT_DEFAULT_AUTH_ATTEMPTS: int = Field(
         default=5, ge=1, le=20, description="Default auth attempts"
@@ -448,7 +456,7 @@ class RateLimitConfig(BaseSettings):
     RATE_LIMIT_DEFAULT_AUTH_WINDOW: int = Field(
         default=900, ge=300, le=3600, description="Default auth window in seconds"
     )
-    
+
     RATE_LIMIT_PROGRESSIVE_MULTIPLIER: float = Field(
         default=2.0, ge=1.0, le=5.0, description="Progressive multiplier"
     )
@@ -458,7 +466,7 @@ class RateLimitConfig(BaseSettings):
     RATE_LIMIT_CLEANUP_INTERVAL: int = Field(
         default=600, ge=60, le=3600, description="Cleanup interval"
     )
-    
+
     # Additional rate limiting utility settings
     RATE_LIMIT_USER_AGENT_LENGTH: int = Field(
         default=50, ge=10, le=200, description="User agent string length for tracking"
@@ -626,13 +634,22 @@ class LoggingConfig(BaseSettings):
         default=LogLevel.INFO, description="Middleware log level"
     )
     MIDDLEWARE_DURATION_DECIMAL_PLACES: int = Field(
-        default=3, ge=1, le=6, description="Decimal places for middleware duration logging"
+        default=3,
+        ge=1,
+        le=6,
+        description="Decimal places for middleware duration logging",
     )
     MIDDLEWARE_HTTP_SERVER_ERROR_THRESHOLD: int = Field(
-        default=500, ge=400, le=599, description="HTTP status code threshold for server errors"
+        default=500,
+        ge=400,
+        le=599,
+        description="HTTP status code threshold for server errors",
     )
     MIDDLEWARE_HTTP_CLIENT_ERROR_THRESHOLD: int = Field(
-        default=400, ge=400, le=499, description="HTTP status code threshold for client errors"
+        default=400,
+        ge=400,
+        le=499,
+        description="HTTP status code threshold for client errors",
     )
     SHARED_LOG_LEVEL: LogLevel = Field(
         default=LogLevel.INFO, description="Shared modules log level"
@@ -712,7 +729,7 @@ class PasswordConfig(BaseSettings):
         ],
         description="Forbidden patterns",
     )
-    
+
     # Password Strength Thresholds
     PASSWORD_STRENGTH_VERY_WEAK_THRESHOLD: int = Field(
         default=10, ge=0, le=50, description="Very weak password threshold"
@@ -732,31 +749,47 @@ class PasswordConfig(BaseSettings):
     PASSWORD_STRENGTH_VERY_STRONG_THRESHOLD: int = Field(
         default=90, ge=70, le=100, description="Very strong password threshold"
     )
-    
+
     # Common Passwords
     COMMON_PASSWORD_DICTIONARY: List[str] = Field(
         default=[
-            "password", "123456", "password123", "admin", "qwerty", "abc123",
-            "letmein", "monkey", "password1", "123456789", "welcome", "admin123",
-            "user", "guest", "login", "root", "test", "demo", "sample", "example"
+            "password",
+            "123456",
+            "password123",
+            "admin",
+            "qwerty",
+            "abc123",
+            "letmein",
+            "monkey",
+            "password1",
+            "123456789",
+            "welcome",
+            "admin123",
+            "user",
+            "guest",
+            "login",
+            "root",
+            "test",
+            "demo",
+            "sample",
+            "example",
         ],
-        description="List of common passwords to reject"
+        description="List of common passwords to reject",
     )
     COMMON_PASSWORD_SUFFIX_LIST: List[str] = Field(
         default=["123", "!", "1", "2023", "2024", "01", "99", "@", "#"],
-        description="Common password suffixes"
+        description="Common password suffixes",
     )
     COMMON_PASSWORD_PREFIX_LIST: List[str] = Field(
         default=["admin", "user", "test", "demo", "guest"],
-        description="Common password prefixes"
+        description="Common password prefixes",
     )
     COMMON_PASSWORD_YEAR_LIST: List[str] = Field(
         default=["2023", "2024", "2022", "2021", "2020"],
-        description="Common password years"
+        description="Common password years",
     )
     COMMON_PASSWORD_MIN_VARIATION_LENGTH: int = Field(
-        default=3, ge=2, le=10,
-        description="Minimum length for password variations"
+        default=3, ge=2, le=10, description="Minimum length for password variations"
     )
     COMMON_PASSWORD_SUBSTITUTIONS: List[Tuple[str, str]] = Field(
         default=[
@@ -764,9 +797,9 @@ class PasswordConfig(BaseSettings):
             ("admin", "@dmin"),
             ("user", "us3r"),
             ("login", "l0gin"),
-            ("welcome", "w3lc0m3")
+            ("welcome", "w3lc0m3"),
         ],
-        description="Common password substitution patterns"
+        description="Common password substitution patterns",
     )
     LEET_SPEAK_SUBSTITUTIONS: dict = Field(
         default={
@@ -778,9 +811,9 @@ class PasswordConfig(BaseSettings):
             "t": ["7"],
             "l": ["1"],
             "g": ["9"],
-            "b": ["6"]
+            "b": ["6"],
         },
-        description="Leet speak character substitutions"
+        description="Leet speak character substitutions",
     )
 
 
@@ -935,12 +968,10 @@ class ValidationConfig(BaseSettings):
     )
 
     # UUID validation settings
-    UUID_LENGTH: int = Field(
-        default=36, description="Standard UUID length"
-    )
+    UUID_LENGTH: int = Field(default=36, description="Standard UUID length")
     UUID_PATTERN: str = Field(
         default=r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-        description="UUID validation pattern"
+        description="UUID validation pattern",
     )
 
     # Input validation settings
@@ -958,7 +989,7 @@ class ValidationConfig(BaseSettings):
     )
     CONTROL_CHARS_PATTERN: str = Field(
         default=r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]",
-        description="Control characters pattern"
+        description="Control characters pattern",
     )
     INPUT_MAX_FILENAME_LENGTH: int = Field(
         default=255, ge=50, le=512, description="Max input filename length"
@@ -977,9 +1008,7 @@ class ValidationConfig(BaseSettings):
     URL_ALLOWED_DOMAINS: List[str] = Field(
         default=[], description="Allowed domains (empty = all allowed)"
     )
-    URL_ALLOW_LOCALHOST: bool = Field(
-        default=True, description="Allow localhost URLs"
-    )
+    URL_ALLOW_LOCALHOST: bool = Field(default=True, description="Allow localhost URLs")
     DB_URL_MAX_LENGTH: int = Field(
         default=2048, ge=100, le=4096, description="Maximum database URL length"
     )
@@ -987,7 +1016,7 @@ class ValidationConfig(BaseSettings):
     # Hostname validation
     HOSTNAME_VALIDATION_PATTERN: str = Field(
         default=r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$",
-        description="Hostname validation pattern"
+        description="Hostname validation pattern",
     )
 
     # Phone validation settings
@@ -1016,13 +1045,14 @@ class ValidationConfig(BaseSettings):
     )
 
     # Date validation settings
-    DATE_WEEK_DAYS: int = Field(
-        default=7, description="Number of days in a week"
-    )
+    DATE_WEEK_DAYS: int = Field(default=7, description="Number of days in a week")
 
     # Additional validation settings for personal info checks
     VALIDATION_EMAIL_MIN_LENGTH: int = Field(
-        default=3, ge=2, le=10, description="Min length for email parts in password check"
+        default=3,
+        ge=2,
+        le=10,
+        description="Min length for email parts in password check",
     )
     VALIDATION_NAME_MIN_LENGTH: int = Field(
         default=2, ge=1, le=5, description="Min length for name parts in password check"
@@ -1072,48 +1102,57 @@ class ValidationConfig(BaseSettings):
 
     # Pattern lists for password validation
     INCREMENTAL_PATTERN_LIST: List[str] = Field(
-        default=["123", "234", "345", "456", "567", "678", "789", "abc", "bcd", "cde", "def"],
-        description="Incremental patterns to detect in passwords"
+        default=[
+            "123",
+            "234",
+            "345",
+            "456",
+            "567",
+            "678",
+            "789",
+            "abc",
+            "bcd",
+            "cde",
+            "def",
+        ],
+        description="Incremental patterns to detect in passwords",
     )
     ALTERNATING_PATTERN_LIST: List[str] = Field(
         default=["aba", "121", "010", "aba", "cdc", "efe"],
-        description="Alternating patterns to detect in passwords"
+        description="Alternating patterns to detect in passwords",
     )
 
     # Metadata forbidden keys
     METADATA_FORBIDDEN_KEYS: List[str] = Field(
         default=["password", "secret", "key", "token", "auth", "session", "private"],
-        description="Forbidden keys in metadata"
+        description="Forbidden keys in metadata",
     )
 
     # User registration validation
     USER_REGISTRATION_REQUIRED_FIELDS: List[str] = Field(
         default=["email", "password"],
-        description="Required fields for user registration"
+        description="Required fields for user registration",
     )
 
     # Password reset validation
     PASSWORD_RESET_REQUIRED_FIELDS: List[str] = Field(
-        default=["email"],
-        description="Required fields for password reset"
+        default=["email"], description="Required fields for password reset"
     )
 
     # Password update validation
     PASSWORD_UPDATE_REQUIRED_FIELDS: List[str] = Field(
-        default=["password"],
-        description="Required fields for password update"
+        default=["password"], description="Required fields for password update"
     )
 
     # Magic link validation
     MAGIC_LINK_REQUIRED_FIELDS: List[str] = Field(
-        default=["email"],
-        description="Required fields for magic link request"
+        default=["email"], description="Required fields for magic link request"
     )
 
     # OTP verification validation
     OTP_VERIFICATION_REQUIRED_FIELDS: List[str] = Field(
         default=["email", "token", "type"],
-        description="Required fields for OTP verification"
+        description="Required fields for OTP verification",
     )
 
     # OTP token validation
@@ -1127,7 +1166,7 @@ class ValidationConfig(BaseSettings):
     # OTP allowed types
     OTP_ALLOWED_TYPES: List[str] = Field(
         default=["email", "sms", "phone_change"],
-        description="Allowed OTP verification types"
+        description="Allowed OTP verification types",
     )
 
     # Search validation
@@ -1145,17 +1184,14 @@ class ValidationConfig(BaseSettings):
     PAGINATION_PER_PAGE_MIN: int = Field(
         default=1, ge=1, le=10, description="Minimum items per page"
     )
-    PAGINATION_PAGE_MIN: int = Field(
-        default=1, description="Minimum page number"
-    )
+    PAGINATION_PAGE_MIN: int = Field(default=1, description="Minimum page number")
 
     # API sorting validation
     API_SORT_BY_MAX_LENGTH: int = Field(
         default=50, ge=20, le=100, description="Maximum length for sort_by field"
     )
     API_ALLOWED_SORT_ORDERS: List[str] = Field(
-        default=["asc", "desc"],
-        description="Allowed sort orders"
+        default=["asc", "desc"], description="Allowed sort orders"
     )
 
 

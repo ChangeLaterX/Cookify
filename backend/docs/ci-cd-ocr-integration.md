@@ -5,6 +5,7 @@ This document describes the CI/CD setup for ensuring OCR tests work correctly ac
 ## Overview
 
 The OCR testing system is designed to handle varying environments gracefully:
+
 - **Development**: Full OCR testing with Tesseract
 - **CI/CD**: Intelligent fallback to mocked tests when Tesseract is unavailable
 - **Docker**: Containerized testing with Tesseract pre-installed
@@ -12,16 +13,19 @@ The OCR testing system is designed to handle varying environments gracefully:
 ## Test Categories
 
 ### Unit Tests (`ocr_unit`)
+
 - **Dependencies**: None (fully mocked)
 - **CI Safe**: ✅ Always run
 - **Purpose**: Test logic without external dependencies
 
 ### Integration Tests (`ocr_integration`)
+
 - **Dependencies**: Tesseract OCR
 - **CI Safe**: ⚠️ Conditional (skipped if Tesseract unavailable)
 - **Purpose**: Test real OCR functionality
 
 ### Performance Tests (`ocr_performance`)
+
 - **Dependencies**: Tesseract OCR
 - **CI Safe**: ⚠️ Conditional with relaxed thresholds
 - **Purpose**: Ensure OCR performance meets requirements
@@ -39,13 +43,13 @@ should_run_integration = OCRTestConfig.should_run_integration_tests()
 
 ### Environment Variables
 
-| Variable | Purpose | Default | CI Override |
-|----------|---------|---------|-------------|
-| `OCR_TEST_MOCK_MODE` | Force mocked OCR | `true` | `false` if Tesseract available |
-| `OCR_TEST_INTEGRATION` | Enable integration tests | `false` | `true` if Tesseract available |
-| `TEST_ENVIRONMENT` | Environment type | `development` | `ci` |
-| `OCR_TEST_MAX_AVG_LATENCY_MS` | Performance threshold | `30000` | `60000` (relaxed) |
-| `OCR_TEST_MAX_E2E_AVG_MS` | E2E performance | `45000` | `90000` (relaxed) |
+| Variable                      | Purpose                  | Default       | CI Override                    |
+| ----------------------------- | ------------------------ | ------------- | ------------------------------ |
+| `OCR_TEST_MOCK_MODE`          | Force mocked OCR         | `true`        | `false` if Tesseract available |
+| `OCR_TEST_INTEGRATION`        | Enable integration tests | `false`       | `true` if Tesseract available  |
+| `TEST_ENVIRONMENT`            | Environment type         | `development` | `ci`                           |
+| `OCR_TEST_MAX_AVG_LATENCY_MS` | Performance threshold    | `30000`       | `60000` (relaxed)              |
+| `OCR_TEST_MAX_E2E_AVG_MS`     | E2E performance          | `45000`       | `90000` (relaxed)              |
 
 ## GitHub Actions Integration
 
@@ -63,6 +67,7 @@ strategy:
 ```
 
 **Features:**
+
 - Matrix builds for different test modes
 - Conditional Tesseract installation
 - Automatic test categorization
@@ -77,6 +82,7 @@ strategy:
 ```
 
 **Features:**
+
 - Dedicated OCR testing workflow
 - Triggered by OCR-related file changes
 - Manual workflow dispatch with test type selection
@@ -100,7 +106,7 @@ services:
     environment:
       - OCR_TEST_MOCK_MODE=false
       - OCR_TEST_INTEGRATION=true
-      - OCR_TEST_MAX_AVG_LATENCY_MS=90000  # Relaxed for containers
+      - OCR_TEST_MAX_AVG_LATENCY_MS=90000 # Relaxed for containers
 ```
 
 ## Test Execution Scripts
@@ -133,32 +139,33 @@ Containerized testing for consistency:
 
 Tests are properly marked for selective execution:
 
-| Marker | Description | CI Behavior |
-|--------|-------------|-------------|
-| `unit` | Unit tests | Always run |
-| `integration` | Integration tests | Conditional |
-| `ocr` | All OCR tests | Mixed |
-| `ocr_unit` | OCR unit tests | Always run |
-| `ocr_integration` | OCR integration tests | Conditional |
-| `requires_tesseract` | Needs Tesseract | Skip if unavailable |
-| `ci_safe` | Safe for CI | Always run |
+| Marker               | Description           | CI Behavior         |
+| -------------------- | --------------------- | ------------------- |
+| `unit`               | Unit tests            | Always run          |
+| `integration`        | Integration tests     | Conditional         |
+| `ocr`                | All OCR tests         | Mixed               |
+| `ocr_unit`           | OCR unit tests        | Always run          |
+| `ocr_integration`    | OCR integration tests | Conditional         |
+| `requires_tesseract` | Needs Tesseract       | Skip if unavailable |
+| `ci_safe`            | Safe for CI           | Always run          |
 
 ## Performance Thresholds
 
 CI environments use relaxed performance thresholds:
 
-| Metric | Development | CI Environment |
-|--------|-------------|----------------|
-| Average Latency | 30s | 60s |
-| E2E Processing | 45s | 90s |
-| Memory Growth | 100MB | 300MB |
-| Min Throughput | 0.1 tps | 0.02 tps |
+| Metric          | Development | CI Environment |
+| --------------- | ----------- | -------------- |
+| Average Latency | 30s         | 60s            |
+| E2E Processing  | 45s         | 90s            |
+| Memory Growth   | 100MB       | 300MB          |
+| Min Throughput  | 0.1 tps     | 0.02 tps       |
 
 ## Troubleshooting
 
 ### Common CI Issues
 
 1. **Tesseract Installation Failed**
+
    ```yaml
    - name: Install Tesseract OCR
      run: |
@@ -167,6 +174,7 @@ CI environments use relaxed performance thresholds:
    ```
 
 2. **Tests Timing Out**
+
    - Check performance thresholds in environment variables
    - Verify CI-specific configuration is applied
 
@@ -193,21 +201,25 @@ pytest tests/ocr/ -m "ci_safe"
 ## Best Practices
 
 ### 1. Test Design
+
 - Always provide mocked alternatives for integration tests
 - Use appropriate markers for test categorization
 - Design tests to be environment-aware
 
 ### 2. CI Configuration
+
 - Install Tesseract conditionally based on test requirements
 - Use matrix builds to test different scenarios
 - Set appropriate timeouts and thresholds
 
 ### 3. Error Handling
+
 - Gracefully handle missing dependencies
 - Provide clear skip reasons
 - Log environment context for debugging
 
 ### 4. Performance
+
 - Use relaxed thresholds in CI environments
 - Cache dependencies when possible
 - Optimize test execution order
@@ -215,11 +227,13 @@ pytest tests/ocr/ -m "ci_safe"
 ## Migration Guide
 
 ### From Manual Testing
+
 1. Add pytest markers to existing tests
 2. Configure environment variables
 3. Update CI pipeline configuration
 
 ### Adding New OCR Tests
+
 1. Choose appropriate markers (`ocr_unit` vs `ocr_integration`)
 2. Use `OCRTestConfig.should_skip_ocr_tests()` for conditional skipping
 3. Provide mocked alternatives when possible
@@ -227,11 +241,13 @@ pytest tests/ocr/ -m "ci_safe"
 ## Monitoring and Metrics
 
 ### Test Results
+
 - JUnit XML reports for CI integration
 - Coverage reports with codecov integration
 - Performance metrics tracking
 
 ### Environment Health
+
 - Tesseract version and language availability
 - Performance threshold compliance
 - Test execution time trends

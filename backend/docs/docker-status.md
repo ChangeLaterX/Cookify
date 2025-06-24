@@ -5,16 +5,19 @@
 ### New/Improved Files:
 
 #### 1. **Main Configuration**
+
 - **Dockerfile**: Production-ready with multi-layer security
 - **docker-compose.yml**: Standard configuration with security features
 - **.dockerignore**: Optimized for better build performance
 
 #### 2. **Environment-specific Configurations**
+
 - **docker-compose.dev.yml**: Development setup with live-reload
 - **docker-compose.prod.yml**: Production setup with maximum security
 - **nginx/nginx.conf**: Reverse proxy with rate limiting and SSL
 
 #### 3. **Deployment & Management**
+
 - **scripts/deploy-docker.sh**: Fully automated deployment script
 - **scripts/test-ocr-security.sh**: Security testing for OCR endpoints
 
@@ -23,6 +26,7 @@
 ## 🔧 **New Docker Features**
 
 ### Security Improvements:
+
 - ✅ **Non-root User**: Container runs as `appuser` (UID 1000)
 - ✅ **Versioned Dependencies**: Pinned package versions
 - ✅ **Secure Temp Directory**: Isolated `/tmp/ocr_secure` with `noexec,nosuid`
@@ -31,12 +35,14 @@
 - ✅ **Optimized Healthchecks**: Improved monitoring
 
 ### Performance Optimizations:
+
 - ✅ **BuildKit Support**: Faster image builds
 - ✅ **Layer Caching**: Better Docker layer utilization
 - ✅ **.dockerignore**: Reduced build context size
 - ✅ **Multi-Stage Potential**: Prepared for multi-stage builds
 
 ### Production Features:
+
 - ✅ **Nginx Reverse Proxy**: Load balancing and SSL termination
 - ✅ **Rate Limiting**: At Nginx and application level
 - ✅ **Logging Configuration**: Structured logs with rotation
@@ -47,6 +53,7 @@
 ## 🚀 **Usage**
 
 ### Start Development:
+
 ```bash
 # Standard Development Setup
 docker-compose -f docker-compose.dev.yml up -d
@@ -56,6 +63,7 @@ docker-compose -f docker-compose.dev.yml up
 ```
 
 ### Deploy Production:
+
 ```bash
 # Fully automated deployment
 ./scripts/deploy-docker.sh deploy
@@ -65,6 +73,7 @@ docker-compose -f docker-compose.prod.yml up -d
 ```
 
 ### Management Commands:
+
 ```bash
 # Check status
 ./scripts/deploy-docker.sh status
@@ -84,6 +93,7 @@ docker-compose -f docker-compose.prod.yml up -d
 ## 🛡️ **Sicherheits-Konfiguration**
 
 ### Container-Sicherheit:
+
 ```yaml
 security_opt:
   - no-new-privileges:true
@@ -97,11 +107,12 @@ deploy:
 ```
 
 ### Nginx-Rate-Limiting:
+
 ```nginx
 # API Endpoints: 10 req/sec
 limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
 
-# OCR Endpoints: 2 req/sec  
+# OCR Endpoints: 2 req/sec
 limit_req_zone $binary_remote_addr zone=ocr:10m rate=2r/s;
 
 # Login Endpoints: 1 req/sec
@@ -113,17 +124,20 @@ limit_req_zone $binary_remote_addr zone=login:10m rate=1r/s;
 ## 📊 **Monitoring & Logging**
 
 ### Health Check:
+
 - **Endpoint**: `/api/health`
 - **Interval**: 30 seconds
 - **Timeout**: 10 seconds
 - **Retries**: 3
 
 ### Log Configuration:
+
 - **Format**: JSON structured
 - **Rotation**: 10MB max, 5 files
 - **Compression**: Automatic
 
 ### Resource Monitoring:
+
 ```bash
 # Show live statistics
 docker stats cookify_api
@@ -137,6 +151,7 @@ docker exec cookify_api top
 ## 🔄 **Update Process**
 
 ### Deploy New Image:
+
 ```bash
 # 1. Update code
 git pull origin main
@@ -149,6 +164,7 @@ git pull origin main
 ```
 
 ### Change Configuration:
+
 ```bash
 # Edit .env file
 vim .env
@@ -162,6 +178,7 @@ vim .env
 ## 📋 **Environment Variables**
 
 ### Production Settings:
+
 ```env
 DEBUG=false
 ENVIRONMENT=production
@@ -171,6 +188,7 @@ SESSION_HTTPS_ONLY=true
 ```
 
 ### Development Settings:
+
 ```env
 DEBUG=true
 ENVIRONMENT=development

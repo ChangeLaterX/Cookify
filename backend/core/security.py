@@ -1,6 +1,7 @@
 """
 Security utilities and helpers.
 """
+
 import hashlib
 import secrets
 from typing import Optional
@@ -15,24 +16,22 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class ConfigurableHTTPBearer(HTTPBearer):
     """Enhanced HTTP Bearer security with configurable auto_error."""
-    
+
     def __init__(self, auto_error: bool = True, description: Optional[str] = None):
         super().__init__(auto_error=auto_error, description=description)
 
 
 class SecuritySchemes:
     """Centralized security schemes for different use cases."""
-    
+
     # For endpoints that require authentication
     required = ConfigurableHTTPBearer(
-        auto_error=True,
-        description="Bearer token required for authentication"
+        auto_error=True, description="Bearer token required for authentication"
     )
-    
+
     # For endpoints with optional authentication
     optional = ConfigurableHTTPBearer(
-        auto_error=False,
-        description="Bearer token for optional authentication"
+        auto_error=False, description="Bearer token for optional authentication"
     )
 
 
@@ -72,16 +71,16 @@ def get_client_ip(request: Request) -> str:
     forwarded_for = request.headers.get("x-forwarded-for")
     if forwarded_for:
         return forwarded_for.split(",")[0].strip()
-    
+
     # Check for real IP header
     real_ip = request.headers.get("x-real-ip")
     if real_ip:
         return real_ip
-    
+
     # Fall back to direct client IP
     if hasattr(request, "client") and request.client:
         return request.client.host
-    
+
     return "unknown"
 
 

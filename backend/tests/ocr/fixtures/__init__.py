@@ -23,9 +23,8 @@ SAMPLE_OCR_RESPONSES = {
         Total:               $7.72
         """,
         "confidence": 85.5,
-        "items": ["Tomatoes", "Onions", "Garlic"]
+        "items": ["Tomatoes", "Onions", "Garlic"],
     },
-    
     "complex_receipt": {
         "text": """
         SUPER GROCERY STORE
@@ -62,12 +61,18 @@ SAMPLE_OCR_RESPONSES = {
         """,
         "confidence": 92.3,
         "items": [
-            "Organic Tomatoes", "Yellow Onions", "Fresh Garlic", 
-            "Bell Peppers", "Ground Beef", "Chicken Breast",
-            "Whole Milk", "Large Eggs", "Cheddar Cheese", "Whole Wheat Bread"
-        ]
+            "Organic Tomatoes",
+            "Yellow Onions",
+            "Fresh Garlic",
+            "Bell Peppers",
+            "Ground Beef",
+            "Chicken Breast",
+            "Whole Milk",
+            "Large Eggs",
+            "Cheddar Cheese",
+            "Whole Wheat Bread",
+        ],
     },
-    
     "ocr_errors_receipt": {
         "text": """
         FRFSH MARKFT GROCFRY
@@ -80,8 +85,8 @@ SAMPLE_OCR_RESPONSES = {
         Tot:                 $1101
         """,
         "confidence": 58.7,
-        "items": ["Tomatnes", "Onins", "Garlie", "Mitk"]  # OCR errors
-    }
+        "items": ["Tomatnes", "Onins", "Garlie", "Mitk"],  # OCR errors
+    },
 }
 
 # Sample ingredient data for mocking
@@ -89,41 +94,41 @@ SAMPLE_INGREDIENTS = [
     {
         "ingredient_id": "550e8400-e29b-41d4-a716-446655440001",
         "name": "Tomatoes",
-        "description": "Fresh red tomatoes"
+        "description": "Fresh red tomatoes",
     },
     {
-        "ingredient_id": "550e8400-e29b-41d4-a716-446655440002", 
+        "ingredient_id": "550e8400-e29b-41d4-a716-446655440002",
         "name": "Onions",
-        "description": "Yellow cooking onions"
+        "description": "Yellow cooking onions",
     },
     {
         "ingredient_id": "550e8400-e29b-41d4-a716-446655440003",
         "name": "Garlic",
-        "description": "Fresh garlic bulbs"
+        "description": "Fresh garlic bulbs",
     },
     {
         "ingredient_id": "550e8400-e29b-41d4-a716-446655440004",
         "name": "Bell Peppers",
-        "description": "Mixed color bell peppers"
+        "description": "Mixed color bell peppers",
     },
     {
         "ingredient_id": "550e8400-e29b-41d4-a716-446655440005",
         "name": "Ground Beef",
-        "description": "Lean ground beef"
+        "description": "Lean ground beef",
     },
     {
         "ingredient_id": "550e8400-e29b-41d4-a716-446655440006",
         "name": "Chicken Breast",
-        "description": "Boneless chicken breast"
+        "description": "Boneless chicken breast",
     },
     {
         "ingredient_id": "550e8400-e29b-41d4-a716-446655440007",
-        "name": "Milk", 
-        "description": "Whole milk"
+        "name": "Milk",
+        "description": "Whole milk",
     },
     {
         "ingredient_id": "550e8400-e29b-41d4-a716-446655440008",
         "name": "Eggs",
-        "description": "Large fresh eggs"
-    }
+        "description": "Large fresh eggs",
+    },
 ]

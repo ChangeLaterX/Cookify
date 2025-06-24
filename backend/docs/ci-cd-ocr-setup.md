@@ -5,18 +5,20 @@ This setup ensures OCR tests work reliably across different CI/CD environments.
 ## Quick Start
 
 1. **Validate Setup**:
+
    ```bash
    cd backend && ./scripts/validate-ci-setup.sh
    ```
 
 2. **Run Tests Locally**:
+
    ```bash
    # Unit tests (always work)
    ./scripts/run-ci-tests.sh unit
-   
+
    # OCR tests (with fallback)
    ./scripts/run-ci-tests.sh ocr
-   
+
    # All tests
    ./scripts/run-ci-tests.sh all
    ```
@@ -35,12 +37,12 @@ This setup ensures OCR tests work reliably across different CI/CD environments.
 
 ## Test Categories
 
-| Category | Dependencies | Always Runs | Purpose |
-|----------|-------------|-------------|---------|
-| `unit` | None | ✅ | Logic testing with mocks |
-| `integration` | Tesseract | ⚠️ | Real OCR functionality |
-| `ocr_unit` | None | ✅ | OCR logic without real OCR |
-| `ocr_integration` | Tesseract | ⚠️ | Real OCR testing |
+| Category          | Dependencies | Always Runs | Purpose                    |
+| ----------------- | ------------ | ----------- | -------------------------- |
+| `unit`            | None         | ✅          | Logic testing with mocks   |
+| `integration`     | Tesseract    | ⚠️          | Real OCR functionality     |
+| `ocr_unit`        | None         | ✅          | OCR logic without real OCR |
+| `ocr_integration` | Tesseract    | ⚠️          | Real OCR testing           |
 
 ## CI/CD Workflows
 
@@ -49,11 +51,11 @@ This setup ensures OCR tests work reliably across different CI/CD environments.
 
 ## Environment Variables
 
-| Variable | Purpose | CI Default |
-|----------|---------|------------|
-| `OCR_TEST_MOCK_MODE` | Force mocking | `false` if Tesseract available |
-| `OCR_TEST_INTEGRATION` | Enable integration tests | `true` if Tesseract available |
-| `TEST_ENVIRONMENT` | Environment type | `ci` |
+| Variable               | Purpose                  | CI Default                     |
+| ---------------------- | ------------------------ | ------------------------------ |
+| `OCR_TEST_MOCK_MODE`   | Force mocking            | `false` if Tesseract available |
+| `OCR_TEST_INTEGRATION` | Enable integration tests | `true` if Tesseract available  |
+| `TEST_ENVIRONMENT`     | Environment type         | `ci`                           |
 
 ## Documentation
 

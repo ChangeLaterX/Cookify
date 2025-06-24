@@ -12,11 +12,11 @@ tests/auth/
 ├── README.md                # This file
 ├── unit/                    # Unit tests
 │   ├── test_service_initialization.py    # Service setup tests
-│   ├── test_user_registration.py         # Registration tests  
+│   ├── test_user_registration.py         # Registration tests
 │   ├── test_user_authentication.py       # Authentication tests
 │   ├── test_error_handling.py            # Error handling tests
 │   └── test_complete_workflow.py         # End-to-end workflow tests
-├── integration/             # Integration tests  
+├── integration/             # Integration tests
 │   ├── __init__.py
 │   └── test_real_auth.py    # Tests with real Supabase
 ├── fixtures/                # Test data and fixtures
@@ -72,7 +72,7 @@ pytest tests/auth/ --cov=domains.auth --cov-report=html
 Located in `tests/auth/unit/`, these tests use mocks and don't require external dependencies:
 
 - **Service Initialization** (`test_service_initialization.py`): Tests AuthService setup, dependency injection, and configuration
-- **User Registration** (`test_user_registration.py`): Tests user registration logic, validation, and error handling  
+- **User Registration** (`test_user_registration.py`): Tests user registration logic, validation, and error handling
 - **User Authentication** (`test_user_authentication.py`): Tests login, logout, and token management
 - **Error Handling** (`test_error_handling.py`): Tests error scenarios and exception handling
 - **Complete Workflows** (`test_complete_workflow.py`): Tests end-to-end authentication flows
@@ -198,10 +198,10 @@ class TestMyFeature(AuthTestBase):
         with MockContextManager(success_responses=True):
             service = AuthService()
             user_data = TestDataGenerator.generate_user_data()
-            
+
             # Your test logic here
             result = await service.my_method(user_data)
-            
+
             assert result is not None
 ```
 
@@ -271,7 +271,7 @@ python tests/auth/run_tests.py --all --coverage
 When adding new auth functionality:
 
 1. Add unit tests for core logic
-2. Add integration tests for external dependencies  
+2. Add integration tests for external dependencies
 3. Update test data generators if needed
 4. Add error handling tests
 5. Update this README if adding new test categories

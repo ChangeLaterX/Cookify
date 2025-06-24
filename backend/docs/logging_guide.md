@@ -127,7 +127,7 @@ except Exception as e:
 ```python
 # Logging with additional context
 logger.info(
-    "User logged in", 
+    "User logged in",
     context={
         "user_id": "abc123",
         "ip_address": "192.168.1.1"
@@ -136,8 +136,8 @@ logger.info(
 
 # Logging with context and structured data
 logger.info(
-    "Order completed", 
-    context={"user_id": "abc123"}, 
+    "Order completed",
+    context={"user_id": "abc123"},
     data={
         "order_id": "order-123",
         "items_count": 5,

@@ -11,6 +11,7 @@ Cookify is a comprehensive meal planning application with a RESTful API built us
 ## API Domains
 
 ### 🔐 Authentication API
+
 **Base Path:** `/api/auth`
 
 Handles user authentication, registration, password management, and user profiles.
@@ -18,18 +19,21 @@ Handles user authentication, registration, password management, and user profile
 **Documentation:** [Auth API Documentation](./auth-api.md)
 
 **Key Features:**
+
 - User registration and login
 - JWT-based authentication
-- Password reset and email verification  
+- Password reset and email verification
 - User profile management
 - Token refresh and session management
 
 **Quick Links:**
+
 - [Registration](./auth-api.md#user-registration)
 - [Login](./auth-api.md#user-login)
 - [Profile Management](./auth-api.md#get-user-profile)
 
 ### 🥗 Ingredients API
+
 **Base Path:** `/api/ingredients`
 
 Manages ingredient master data including nutritional information and pricing.
@@ -37,12 +41,14 @@ Manages ingredient master data including nutritional information and pricing.
 **Documentation:** [Ingredients API Documentation](./ingredients-api.md)
 
 **Key Features:**
+
 - Ingredient CRUD operations
 - Search and filtering
 - Nutritional data management
 - Pagination support
 
 **Endpoints:**
+
 - `GET /api/ingredients/master` - List all ingredients
 - `GET /api/ingredients/master/{ingredient_id}` - Get specific ingredient
 - `POST /api/ingredients/master` - Create ingredient (auth required)
@@ -50,6 +56,7 @@ Manages ingredient master data including nutritional information and pricing.
 - `DELETE /api/ingredients/master/{id}` - Delete ingredient (admin only)
 
 ### 📸 OCR API
+
 **Base Path:** `/api/ocr`
 
 Optical Character Recognition for processing receipt images and extracting ingredients.
@@ -57,6 +64,7 @@ Optical Character Recognition for processing receipt images and extracting ingre
 **Documentation:** [OCR Accuracy Guide](../backend/docs/ocr-accuracy-guide.md)
 
 **Key Features:**
+
 - Receipt image processing (JPEG, PNG, WEBP, BMP, TIFF)
 - Text extraction and ingredient recognition
 - Price detection and parsing
@@ -64,12 +72,14 @@ Optical Character Recognition for processing receipt images and extracting ingre
 - Rate limiting and security validation
 
 **Endpoints:**
+
 - `POST /api/ocr/extract` - Extract text from receipt image
 - `POST /api/ocr/process` - Full processing with ingredient matching
 - `GET /api/ocr/status/{process_id}` - Check processing status
 - `POST /api/ocr/validate` - Validate image quality before processing
 
 **Accuracy & Limitations:**
+
 - Text detection: 85-95% (high-quality images)
 - Ingredient extraction: 75-85% (with fuzzy matching)
 - Processing time: 2-8 seconds average
@@ -79,11 +89,13 @@ Optical Character Recognition for processing receipt images and extracting ingre
 **See Also:** [OCR Security Implementation](../backend/docs/ocr-security-implementation.md)
 
 ### 📄 Receipt API
+
 **Base Path:** `/api/receipt`
 
 Handles receipt parsing and ingredient extraction (coming soon).
 
 ### 🏥 Health Check API
+
 **Base Path:** `/api/health`
 
 Provides comprehensive health monitoring for all application services.
@@ -91,6 +103,7 @@ Provides comprehensive health monitoring for all application services.
 **Documentation:** [Health API Documentation](./health-api.md)
 
 **Key Features:**
+
 - Comprehensive service health monitoring
 - System resource monitoring (CPU, memory, disk)
 - Real-time metrics and alerting
@@ -98,6 +111,7 @@ Provides comprehensive health monitoring for all application services.
 - Historical health data and trends
 
 **Endpoints:**
+
 - `GET /api/health/` - Detailed health check of all services
 - `GET /api/health/quick` - Fast health check for load balancers
 - `GET /api/health/liveness` - Kubernetes liveness probe
@@ -170,11 +184,13 @@ List endpoints support pagination using query parameters:
 - `offset` - Number of items to skip (default: 0)
 
 Example:
+
 ```
 GET /api/ingredients/master?limit=20&offset=40
 ```
 
 Response includes pagination metadata:
+
 ```json
 {
   "data": {
@@ -203,6 +219,7 @@ curl http://dev.krija.info:8000/health
 ```
 
 Response:
+
 ```json
 {
   "status": "healthy",
@@ -257,9 +274,9 @@ class CookifyAPI {
     const response = await fetch(`${this.baseURL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password }),
     });
-    
+
     const data = await response.json();
     if (data.success) {
       this.token = data.data.access_token;
@@ -277,7 +294,9 @@ class CookifyAPI {
 
   async searchIngredients(query: string, limit = 10) {
     const response = await fetch(
-      `${this.baseURL}/ingredients/search?q=${encodeURIComponent(query)}&limit=${limit}`
+      `${this.baseURL}/ingredients/search?q=${encodeURIComponent(
+        query
+      )}&limit=${limit}`
     );
     return response.json();
   }
@@ -287,8 +306,8 @@ class CookifyAPI {
       ...options,
       headers: {
         ...options.headers,
-        'Authorization': `Bearer ${this.token}`
-      }
+        Authorization: `Bearer ${this.token}`,
+      },
     });
   }
 }
@@ -310,12 +329,12 @@ class CookifyAPI:
             "email": email,
             "password": password
         })
-        
+
         data = response.json()
         if data.get("success"):
             self.token = data["data"]["access_token"]
             return data["data"]
-        
+
         raise Exception(data["detail"]["error"])
 
     def get_ingredients(self, limit: int = 10, offset: int = 0) -> Dict[str, Any]:
@@ -361,14 +380,14 @@ The API includes comprehensive test coverage:
 ```python
 def test_ingredient_creation():
     client = TestClient(app)
-    
+
     # Login first
     login_response = client.post("/api/auth/login", json={
         "email": "test@example.com",
         "password": "password123"
     })
     token = login_response.json()["data"]["access_token"]
-    
+
     # Create ingredient
     response = client.post(
         "/api/ingredients/master",
@@ -382,7 +401,7 @@ def test_ingredient_creation():
             "price_per_100g_cents": 200
         }
     )
-    
+
     assert response.status_code == 201
     data = response.json()
     assert data["success"] is True

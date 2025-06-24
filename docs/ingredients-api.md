@@ -52,14 +52,14 @@ sequenceDiagram
 
 ## Endpoints Overview
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/ingredients/master` | List all ingredients with pagination | ❌ |
-| GET | `/ingredients/master/{id}` | Get specific ingredient by ID | ❌ |
-| POST | `/ingredients/master` | Create new ingredient | ✅ |
-| PUT | `/ingredients/master/{id}` | Update existing ingredient | ✅ |
-| DELETE | `/ingredients/master/{id}` | Delete ingredient (admin-only) | ✅ |
-| GET | `/ingredients/search` | Search ingredients by name | ❌ |
+| Method | Endpoint                   | Description                          | Auth Required |
+| ------ | -------------------------- | ------------------------------------ | ------------- |
+| GET    | `/ingredients/master`      | List all ingredients with pagination | ❌            |
+| GET    | `/ingredients/master/{id}` | Get specific ingredient by ID        | ❌            |
+| POST   | `/ingredients/master`      | Create new ingredient                | ✅            |
+| PUT    | `/ingredients/master/{id}` | Update existing ingredient           | ✅            |
+| DELETE | `/ingredients/master/{id}` | Delete ingredient (admin-only)       | ✅            |
+| GET    | `/ingredients/search`      | Search ingredients by name           | ❌            |
 
 ## Endpoint Documentation
 
@@ -71,14 +71,15 @@ Retrieve all ingredients from the master database with pagination support.
 
 #### Query Parameters
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `limit` | integer | 10 | Maximum number of results (1-100) |
-| `offset` | integer | 0 | Number of results to skip |
+| Parameter | Type    | Default | Description                       |
+| --------- | ------- | ------- | --------------------------------- |
+| `limit`   | integer | 10      | Maximum number of results (1-100) |
+| `offset`  | integer | 0       | Number of results to skip         |
 
 #### Response
 
 **Success (200):**
+
 ```json
 {
   "success": true,
@@ -133,13 +134,14 @@ Retrieve a specific ingredient by its unique ID.
 
 #### Path Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter       | Type | Description                         |
+| --------------- | ---- | ----------------------------------- |
 | `ingredient_id` | UUID | Unique identifier of the ingredient |
 
 #### Response
 
 **Success (200):**
+
 ```json
 {
   "success": true,
@@ -158,6 +160,7 @@ Retrieve a specific ingredient by its unique ID.
 ```
 
 **Error (404 - Not Found):**
+
 ```json
 {
   "detail": {
@@ -212,6 +215,7 @@ Content-Type: application/json
 #### Response
 
 **Success (201):**
+
 ```json
 {
   "success": true,
@@ -230,6 +234,7 @@ Content-Type: application/json
 ```
 
 **Error (409 - Name Exists):**
+
 ```json
 {
   "detail": {
@@ -240,6 +245,7 @@ Content-Type: application/json
 ```
 
 **Error (401 - Unauthorized):**
+
 ```json
 {
   "detail": "Not authenticated"
@@ -278,8 +284,8 @@ Content-Type: application/json
 
 #### Path Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter       | Type | Description                                   |
+| --------------- | ---- | --------------------------------------------- |
 | `ingredient_id` | UUID | Unique identifier of the ingredient to update |
 
 #### Request Body
@@ -300,6 +306,7 @@ All fields are optional. Only provide the fields you want to update:
 #### Response
 
 **Success (200):**
+
 ```json
 {
   "success": true,
@@ -318,6 +325,7 @@ All fields are optional. Only provide the fields you want to update:
 ```
 
 **Error (404 - Not Found):**
+
 ```json
 {
   "detail": {
@@ -328,6 +336,7 @@ All fields are optional. Only provide the fields you want to update:
 ```
 
 **Error (409 - Name Conflict):**
+
 ```json
 {
   "detail": {
@@ -373,13 +382,14 @@ Authorization: Bearer <access_token>
 
 #### Path Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter       | Type | Description                                   |
+| --------------- | ---- | --------------------------------------------- |
 | `ingredient_id` | UUID | Unique identifier of the ingredient to delete |
 
 #### Response
 
 **Success (200):**
+
 ```json
 {
   "message": "Ingredient deleted successfully",
@@ -388,6 +398,7 @@ Authorization: Bearer <access_token>
 ```
 
 **Error (404 - Not Found):**
+
 ```json
 {
   "detail": {
@@ -398,6 +409,7 @@ Authorization: Bearer <access_token>
 ```
 
 **Error (403 - Insufficient Permissions):**
+
 ```json
 {
   "detail": {
@@ -423,15 +435,16 @@ Search ingredients by name using case-insensitive partial matching.
 
 #### Query Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `q` | string | Yes | Search query (1-255 characters) |
-| `limit` | integer | No | Maximum number of results (1-100, default: 10) |
-| `offset` | integer | No | Number of results to skip (default: 0) |
+| Parameter | Type    | Required | Description                                    |
+| --------- | ------- | -------- | ---------------------------------------------- |
+| `q`       | string  | Yes      | Search query (1-255 characters)                |
+| `limit`   | integer | No       | Maximum number of results (1-100, default: 10) |
+| `offset`  | integer | No       | Number of results to skip (default: 0)         |
 
 #### Response
 
 **Success (200):**
+
 ```json
 {
   "success": true,
@@ -477,6 +490,7 @@ Search ingredients by name using case-insensitive partial matching.
 **Error (422 - Validation Error):**
 
 _Validation errors return a special response format where `detail` is an array of validation issues, unlike the common error response format._
+
 ```json
 {
   "detail": [
@@ -484,7 +498,7 @@ _Validation errors return a special response format where `detail` is an array o
       "loc": ["query", "q"],
       "msg": "ensure this value has at least 1 characters",
       "type": "value_error.any_str.min_length",
-      "ctx": {"limit_value": 1}
+      "ctx": { "limit_value": 1 }
     }
   ]
 }
@@ -523,17 +537,17 @@ All endpoints return structured error responses with appropriate HTTP status cod
 
 ### Common Error Codes
 
-| Error Code | Description | HTTP Status |
-|------------|-------------|-------------|
-| `INGREDIENT_NOT_FOUND` | Ingredient with given ID does not exist | 404 |
-| `INGREDIENT_NAME_EXISTS` | Ingredient name already exists | 409 |
-| `DATABASE_ERROR` | General database operation error | 500 |
-| `SEARCH_ERROR` | Search operation failed | 500 |
-| `CREATION_FAILED` | Ingredient creation failed | 500 |
-| `UPDATE_FAILED` | Ingredient update failed | 500 |
-| `VALIDATION_ERROR` | Request validation failed | 422 |
-| `INSUFFICIENT_PERMISSIONS` | Admin access required | 403 |
-| `INTERNAL_ERROR` | Server error | 500 |
+| Error Code                 | Description                             | HTTP Status |
+| -------------------------- | --------------------------------------- | ----------- |
+| `INGREDIENT_NOT_FOUND`     | Ingredient with given ID does not exist | 404         |
+| `INGREDIENT_NAME_EXISTS`   | Ingredient name already exists          | 409         |
+| `DATABASE_ERROR`           | General database operation error        | 500         |
+| `SEARCH_ERROR`             | Search operation failed                 | 500         |
+| `CREATION_FAILED`          | Ingredient creation failed              | 500         |
+| `UPDATE_FAILED`            | Ingredient update failed                | 500         |
+| `VALIDATION_ERROR`         | Request validation failed               | 422         |
+| `INSUFFICIENT_PERMISSIONS` | Admin access required                   | 403         |
+| `INTERNAL_ERROR`           | Server error                            | 500         |
 
 ### HTTP Status Codes
 
@@ -555,12 +569,12 @@ The ingredient master data contains comprehensive nutritional and pricing inform
 
 ```typescript
 interface IngredientMaster {
-  ingredient_id: string;        // UUID
-  name: string;                 // Unique ingredient name
-  calories_per_100g: number;    // Calories per 100 grams
-  proteins_per_100g: number;    // Protein content in grams
-  fat_per_100g: number;         // Fat content in grams
-  carbs_per_100g: number;       // Carbohydrate content in grams
+  ingredient_id: string; // UUID
+  name: string; // Unique ingredient name
+  calories_per_100g: number; // Calories per 100 grams
+  proteins_per_100g: number; // Protein content in grams
+  fat_per_100g: number; // Fat content in grams
+  carbs_per_100g: number; // Carbohydrate content in grams
   price_per_100g_cents: number; // Price in cents per 100 grams
 }
 ```
@@ -612,55 +626,60 @@ class IngredientsAPI {
   }
 
   // Get all ingredients with pagination
-  async getIngredients(limit = 10, offset = 0): Promise<IngredientListResponse> {
+  async getIngredients(
+    limit = 10,
+    offset = 0
+  ): Promise<IngredientListResponse> {
     const response = await fetch(
       `${this.baseURL}/master?limit=${limit}&offset=${offset}`
     );
-    
+
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-    
+
     return response.json();
   }
 
   // Get specific ingredient by ID
   async getIngredient(id: string): Promise<IngredientResponse> {
     const response = await fetch(`${this.baseURL}/master/${id}`);
-    
+
     if (!response.ok) {
       if (response.status === 404) {
         throw new Error('Ingredient not found');
       }
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-    
+
     return response.json();
   }
 
   // Search ingredients by name
   async searchIngredients(
-    query: string, 
-    limit = 10, 
+    query: string,
+    limit = 10,
     offset = 0
   ): Promise<IngredientListResponse> {
     const params = new URLSearchParams({
       q: query,
       limit: limit.toString(),
-      offset: offset.toString()
+      offset: offset.toString(),
     });
-    
+
     const response = await fetch(`${this.baseURL}/search?${params}`);
-    
+
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-    
+
     return response.json();
   }
 
   // Create new ingredient (requires authentication)
-  async createIngredient(ingredient: CreateIngredientData): Promise<IngredientResponse> {
+  async createIngredient(
+    ingredient: CreateIngredientData
+  ): Promise<IngredientResponse> {
     if (!this.token) {
       throw new Error('Authentication required');
     }
@@ -669,11 +688,11 @@ class IngredientsAPI {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.token}`
+        Authorization: `Bearer ${this.token}`,
       },
-      body: JSON.stringify(ingredient)
+      body: JSON.stringify(ingredient),
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       if (response.status === 409) {
@@ -681,13 +700,13 @@ class IngredientsAPI {
       }
       throw new Error(error.detail?.error || 'Failed to create ingredient');
     }
-    
+
     return response.json();
   }
 
   // Update ingredient (requires authentication)
   async updateIngredient(
-    id: string, 
+    id: string,
     updates: Partial<CreateIngredientData>
   ): Promise<IngredientResponse> {
     if (!this.token) {
@@ -698,11 +717,11 @@ class IngredientsAPI {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.token}`
+        Authorization: `Bearer ${this.token}`,
       },
-      body: JSON.stringify(updates)
+      body: JSON.stringify(updates),
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       if (response.status === 404) {
@@ -713,7 +732,7 @@ class IngredientsAPI {
       }
       throw new Error(error.detail?.error || 'Failed to update ingredient');
     }
-    
+
     return response.json();
   }
 
@@ -726,10 +745,10 @@ class IngredientsAPI {
     const response = await fetch(`${this.baseURL}/master/${id}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${this.token}`
-      }
+        Authorization: `Bearer ${this.token}`,
+      },
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       if (response.status === 404) {
@@ -752,7 +771,9 @@ console.log(`Found ${ingredients.data.total} ingredients`);
 
 // Search for specific ingredients
 const searchResults = await ingredientsAPI.searchIngredients('chicken', 5);
-console.log(`Found ${searchResults.data.ingredients.length} chicken ingredients`);
+console.log(
+  `Found ${searchResults.data.ingredients.length} chicken ingredients`
+);
 
 // Create new ingredient (after login)
 ingredientsAPI.setToken(accessToken);
@@ -762,7 +783,7 @@ const newIngredient = await ingredientsAPI.createIngredient({
   proteins_per_100g: 4.4,
   fat_per_100g: 1.9,
   carbs_per_100g: 22,
-  price_per_100g_cents: 450
+  price_per_100g_cents: 450,
 });
 ```
 
@@ -776,7 +797,10 @@ interface UseIngredientsOptions {
   searchQuery?: string;
 }
 
-export function useIngredients({ limit = 10, searchQuery }: UseIngredientsOptions = {}) {
+export function useIngredients({
+  limit = 10,
+  searchQuery,
+}: UseIngredientsOptions = {}) {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -787,20 +811,22 @@ export function useIngredients({ limit = 10, searchQuery }: UseIngredientsOption
       try {
         setLoading(true);
         setError(null);
-        
+
         const api = new IngredientsAPI();
         let result;
-        
+
         if (searchQuery) {
           result = await api.searchIngredients(searchQuery, limit);
         } else {
           result = await api.getIngredients(limit);
         }
-        
+
         setIngredients(result.data.ingredients);
         setTotal(result.data.total);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch ingredients');
+        setError(
+          err instanceof Error ? err.message : 'Failed to fetch ingredients'
+        );
       } finally {
         setLoading(false);
       }
@@ -817,7 +843,7 @@ function IngredientsList() {
   const [searchQuery, setSearchQuery] = useState('');
   const { ingredients, loading, error, total } = useIngredients({
     limit: 20,
-    searchQuery: searchQuery || undefined
+    searchQuery: searchQuery || undefined,
   });
 
   if (loading) return <div>Loading ingredients...</div>;
@@ -831,15 +857,18 @@ function IngredientsList() {
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
       />
-      
+
       <p>Found {total} ingredients</p>
-      
+
       <ul>
-        {ingredients.map(ingredient => (
+        {ingredients.map((ingredient) => (
           <li key={ingredient.ingredient_id}>
             <h3>{ingredient.name}</h3>
             <p>Calories: {ingredient.calories_per_100g} per 100g</p>
-            <p>Price: ${(ingredient.price_per_100g_cents / 100).toFixed(2)} per 100g</p>
+            <p>
+              Price: ${(ingredient.price_per_100g_cents / 100).toFixed(2)} per
+              100g
+            </p>
           </li>
         ))}
       </ul>
@@ -926,10 +955,10 @@ class IngredientsAPI:
             headers=self._get_headers(),
             json=ingredient.__dict__
         )
-        
+
         if response.status_code == 409:
             raise ValueError("Ingredient name already exists")
-        
+
         response.raise_for_status()
         return response.json()
 
@@ -943,12 +972,12 @@ class IngredientsAPI:
             headers=self._get_headers(),
             json=updates
         )
-        
+
         if response.status_code == 404:
             raise ValueError("Ingredient not found")
         if response.status_code == 409:
             raise ValueError("Ingredient name already exists")
-        
+
         response.raise_for_status()
         return response.json()
 
@@ -961,12 +990,12 @@ class IngredientsAPI:
             f"{self.base_url}/master/{ingredient_id}",
             headers=self._get_headers()
         )
-        
+
         if response.status_code == 404:
             raise ValueError("Ingredient not found")
         if response.status_code == 403:
             raise ValueError("Admin access required")
-        
+
         response.raise_for_status()
 
 # Usage examples
@@ -1016,7 +1045,7 @@ class LocalIngredient(models.Model):
     carbs_per_100g = models.FloatField()
     price_per_100g_cents = models.IntegerField()
     last_synced = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         ordering = ['name']
 
@@ -1031,7 +1060,7 @@ class IngredientSyncService:
     def sync_ingredients(self, force_update: bool = False):
         """Sync ingredients from API to local database."""
         cutoff_time = timezone.now() - timedelta(hours=1)
-        
+
         if not force_update and LocalIngredient.objects.filter(
             last_synced__gte=cutoff_time
         ).exists():
@@ -1040,14 +1069,14 @@ class IngredientSyncService:
         # Fetch all ingredients from API
         offset = 0
         limit = 100
-        
+
         while True:
             response = self.api.get_ingredients(limit=limit, offset=offset)
             ingredients = response['data']['ingredients']
-            
+
             if not ingredients:
                 break
-                
+
             for ingredient_data in ingredients:
                 LocalIngredient.objects.update_or_create(
                     api_ingredient_id=ingredient_data['ingredient_id'],
@@ -1060,7 +1089,7 @@ class IngredientSyncService:
                         'price_per_100g_cents': ingredient_data['price_per_100g_cents'],
                     }
                 )
-            
+
             offset += limit
             if len(ingredients) < limit:
                 break
@@ -1074,14 +1103,14 @@ def search_ingredients_local(request):
     """Search local ingredient cache."""
     query = request.GET.get('q', '')
     limit = min(int(request.GET.get('limit', 10)), 100)
-    
+
     if query:
         ingredients = LocalIngredient.objects.filter(
             name__icontains=query
         )[:limit]
     else:
         ingredients = LocalIngredient.objects.all()[:limit]
-    
+
     return Response({
         'ingredients': [
             {
@@ -1193,16 +1222,16 @@ class NutritionCalculator {
       totalFat: 0,
       totalCarbs: 0,
       totalCost: 0,
-      ingredients: []
+      ingredients: [],
     };
 
     for (const item of recipe.ingredients) {
       const ingredient = await this.api.getIngredient(item.ingredientId);
       const data = ingredient.data;
-      
+
       // Calculate nutrition for the specific amount
       const multiplier = item.amount / 100; // amount in grams / 100g
-      
+
       const itemNutrition = {
         name: data.name,
         amount: item.amount,
@@ -1210,7 +1239,7 @@ class NutritionCalculator {
         proteins: data.proteins_per_100g * multiplier,
         fat: data.fat_per_100g * multiplier,
         carbs: data.carbs_per_100g * multiplier,
-        cost: (data.price_per_100g_cents * multiplier) / 100
+        cost: (data.price_per_100g_cents * multiplier) / 100,
       };
 
       nutrition.totalCalories += itemNutrition.calories;
@@ -1235,9 +1264,14 @@ Carbohydrates: ${nutrition.totalCarbs.toFixed(1)}g
 Estimated Cost: $${nutrition.totalCost.toFixed(2)}
 
 Per Ingredient:
-${nutrition.ingredients.map(ing => 
-  `- ${ing.name} (${ing.amount}g): ${Math.round(ing.calories)} cal, $${ing.cost.toFixed(2)}`
-).join('\n')}
+${nutrition.ingredients
+  .map(
+    (ing) =>
+      `- ${ing.name} (${ing.amount}g): ${Math.round(
+        ing.calories
+      )} cal, $${ing.cost.toFixed(2)}`
+  )
+  .join('\n')}
     `.trim();
   }
 }
@@ -1246,12 +1280,12 @@ ${nutrition.ingredients.map(ing =>
 const calculator = new NutritionCalculator(new IngredientsAPI());
 
 const recipe = {
-  name: "Chicken and Rice Bowl",
+  name: 'Chicken and Rice Bowl',
   ingredients: [
-    { ingredientId: "550e8400-e29b-41d4-a716-446655440000", amount: 150 }, // Chicken Breast
-    { ingredientId: "550e8400-e29b-41d4-a716-446655440001", amount: 100 }, // Brown Rice
-    { ingredientId: "550e8400-e29b-41d4-a716-446655440005", amount: 50 }   // Broccoli
-  ]
+    { ingredientId: '550e8400-e29b-41d4-a716-446655440000', amount: 150 }, // Chicken Breast
+    { ingredientId: '550e8400-e29b-41d4-a716-446655440001', amount: 100 }, // Brown Rice
+    { ingredientId: '550e8400-e29b-41d4-a716-446655440005', amount: 50 }, // Broccoli
+  ],
 };
 
 const nutrition = await calculator.calculateRecipeNutrition(recipe);
@@ -1273,7 +1307,7 @@ class CachedIngredientsAPI extends IngredientsAPI {
   async getIngredient(id) {
     const cacheKey = `ingredient_${id}`;
     const cached = this.cache.get(cacheKey);
-    
+
     if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
       return cached.data;
     }
@@ -1281,7 +1315,7 @@ class CachedIngredientsAPI extends IngredientsAPI {
     const data = await super.getIngredient(id);
     this.cache.set(cacheKey, {
       data,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     return data;
@@ -1305,10 +1339,10 @@ class RobustIngredientsAPI extends IngredientsAPI {
         if (attempt === maxRetries) {
           throw error;
         }
-        
+
         // Exponential backoff
         const delay = Math.pow(2, attempt - 1) * 1000;
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
   }
@@ -1324,20 +1358,22 @@ class RobustIngredientsAPI extends IngredientsAPI {
 ```javascript
 class BatchIngredientsAPI extends IngredientsAPI {
   async getMultipleIngredients(ids) {
-    const promises = ids.map(id => this.getIngredient(id).catch(error => ({ error, id })));
+    const promises = ids.map((id) =>
+      this.getIngredient(id).catch((error) => ({ error, id }))
+    );
     const results = await Promise.all(promises);
-    
+
     return {
-      successful: results.filter(r => !r.error),
-      failed: results.filter(r => r.error)
+      successful: results.filter((r) => !r.error),
+      failed: results.filter((r) => r.error),
     };
   }
 
   async searchMultipleTerms(queries) {
-    const promises = queries.map(query => 
-      this.searchIngredients(query).catch(error => ({ error, query }))
+    const promises = queries.map((query) =>
+      this.searchIngredients(query).catch((error) => ({ error, query }))
     );
-    
+
     return Promise.all(promises);
   }
 }

@@ -24,6 +24,7 @@ from main import app
 # Core Application Fixtures
 # ============================================================================
 
+
 @pytest.fixture(scope="session")
 def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
     """Create an instance of the default event loop for the test session."""
@@ -43,7 +44,7 @@ def test_client() -> TestClient:
 async def async_test_client():
     """Create an async test client."""
     from httpx import AsyncClient
-    
+
     async with AsyncClient(app=app, base_url="http://test") as client:
         yield client
 
@@ -51,6 +52,7 @@ async def async_test_client():
 # ============================================================================
 # Environment and Configuration Fixtures
 # ============================================================================
+
 
 @pytest.fixture
 def mock_environment_variables():
@@ -64,7 +66,7 @@ def mock_environment_variables():
         "DEBUG": "true",
         "RATE_LIMITING_ENABLED": "false",
     }
-    
+
     with patch.dict(os.environ, test_env):
         yield test_env
 
@@ -73,11 +75,12 @@ def mock_environment_variables():
 # Database and External Service Mocks
 # ============================================================================
 
+
 @pytest.fixture
 def mock_supabase_client():
     """Create a mock Supabase client for testing."""
     mock_client = Mock(spec=Client)
-    
+
     # Mock auth methods
     mock_client.auth = Mock()
     mock_client.auth.sign_up = Mock()
@@ -88,7 +91,7 @@ def mock_supabase_client():
     mock_client.auth.reset_password_email = Mock()
     mock_client.auth.update_user = Mock()
     mock_client.auth.resend = Mock()
-    
+
     # Mock table methods
     mock_client.table = Mock()
     mock_table = Mock()
@@ -102,7 +105,7 @@ def mock_supabase_client():
     mock_table.order = Mock()
     mock_table.execute = Mock()
     mock_client.table.return_value = mock_table
-    
+
     return mock_client
 
 
@@ -118,6 +121,7 @@ def mock_database_session():
 # ============================================================================
 # Utility Fixtures
 # ============================================================================
+
 
 @pytest.fixture
 def sample_uuid():
@@ -146,9 +150,13 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "integration: mark test as an integration test")
     config.addinivalue_line("markers", "unit: mark test as a unit test")
     config.addinivalue_line("markers", "auth: mark test as auth domain related")
-    config.addinivalue_line("markers", "ingredients: mark test as ingredients domain related")
+    config.addinivalue_line(
+        "markers", "ingredients: mark test as ingredients domain related"
+    )
     config.addinivalue_line("markers", "ocr: mark test as ocr domain related")
-    config.addinivalue_line("markers", "email_verification: mark test as email verification related")
+    config.addinivalue_line(
+        "markers", "email_verification: mark test as email verification related"
+    )
     config.addinivalue_line("markers", "security: mark test as security related")
     config.addinivalue_line("markers", "slow: mark test as slow running")
 
@@ -157,10 +165,13 @@ def pytest_configure(config):
 # Common Fixtures for Cross-Domain Testing
 # ============================================================================
 
+
 @pytest.fixture
 def mock_password_validation():
     """Mock password strength validation."""
-    with patch("shared.utils.password_security.validate_password_strength") as mock_validate:
+    with patch(
+        "shared.utils.password_security.validate_password_strength"
+    ) as mock_validate:
         mock_validate.return_value = (True, [])
         yield mock_validate
 

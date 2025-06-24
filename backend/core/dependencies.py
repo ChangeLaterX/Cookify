@@ -1,6 +1,7 @@
 """
 Application-wide dependencies.
 """
+
 from typing import Optional
 from fastapi import Depends
 from supabase._sync.client import SyncClient

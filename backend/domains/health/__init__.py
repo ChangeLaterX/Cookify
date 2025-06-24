@@ -11,7 +11,7 @@ from .metrics import metrics_collector, get_metrics_collector, HealthMetricsColl
 
 __all__ = [
     "health_service",
-    "HealthCheckService", 
+    "HealthCheckService",
     "ServiceStatus",
     "HealthStatus",
     "HealthResponse",

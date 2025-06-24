@@ -1,6 +1,7 @@
 """
 Date and time utility functions.
 """
+
 from datetime import datetime, date, timedelta
 from typing import Optional
 import pytz
@@ -22,7 +23,7 @@ def get_week_start_date(target_date: Optional[date] = None) -> date:
     """Get the start date of the week (Monday) for the given date."""
     if target_date is None:
         target_date = get_current_date()
-    
+
     days_since_monday = target_date.weekday()
     week_start = target_date - timedelta(days=days_since_monday)
     return week_start

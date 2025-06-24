@@ -30,17 +30,19 @@ tests/ingredients/
 ## 🚀 Quick Start
 
 ### Run All Tests
+
 ```bash
 cd backend/tests/ingredients
 python run_tests.py
 ```
 
 ### Run Specific Test Types
+
 ```bash
 # Unit tests only
 python run_tests.py --unit
 
-# Integration tests only  
+# Integration tests only
 python run_tests.py --integration
 
 # Specific test file
@@ -51,6 +53,7 @@ python run_tests.py --performance
 ```
 
 ### Generate Test Reports
+
 ```bash
 # Generate comprehensive report with coverage
 python run_tests.py --report
@@ -67,30 +70,35 @@ python run_tests.py --list
 ### Unit Tests
 
 **test_ingredient_operations.py**
+
 - CRUD operations (Create, Read, Update, Delete)
 - Service method testing with mocks
 - Data transformation validation
 - Business logic verification
 
 **test_search_functionality.py**
+
 - Text search capabilities
 - Filtering and sorting
 - Pagination handling
 - Case sensitivity and partial matches
 
 **test_data_validation.py**
+
 - Pydantic schema validation
 - Field constraints and types
 - Required field validation
 - Edge case handling
 
 **test_error_handling.py**
+
 - Database connection errors
 - Network timeout scenarios
 - Invalid input handling
 - Service layer error propagation
 
 **test_complete_workflow.py**
+
 - End-to-end user workflows
 - Multi-step operations
 - State management
@@ -99,6 +107,7 @@ python run_tests.py --list
 ### Integration Tests
 
 **test_ingredients_service.py**
+
 - Real Supabase database interactions
 - Service integration testing
 - Concurrent operation handling
@@ -110,6 +119,7 @@ python run_tests.py --list
 ### Mock System (`utils/mocks.py`)
 
 **IngredientsMockFactory**
+
 ```python
 # Create mock ingredients
 mock_ingredient = IngredientsMockFactory.create_ingredient()
@@ -122,6 +132,7 @@ mock_db = IngredientsMockFactory.create_supabase_mock()
 ```
 
 **MockContextManager**
+
 ```python
 # Automated mock setup and teardown
 async with MockContextManager() as mock_ctx:
@@ -132,6 +143,7 @@ async with MockContextManager() as mock_ctx:
 ### Test Data Generation (`utils/test_data.py`)
 
 **TestDataGenerator**
+
 ```python
 # Generate realistic ingredient data
 ingredient_data = TestDataGenerator.generate_ingredient_create()
@@ -147,6 +159,7 @@ high_protein = TestDataGenerator.generate_ingredient_create(
 ```
 
 **TestScenarios**
+
 ```python
 # Pre-defined test scenarios
 scenarios = TestScenarios.create_workflow_scenarios()
@@ -157,12 +170,14 @@ performance_tests = TestScenarios.performance_scenarios()
 ### Sample Data (`fixtures/sample_data.py`)
 
 **Realistic Ingredient Database**
+
 - 20+ realistic ingredients across categories
 - Accurate nutritional information
 - Real-world pricing data
 - Category-based organization
 
 **Test Scenarios**
+
 - High protein ingredients
 - Low calorie options
 - Budget-friendly choices
@@ -188,12 +203,14 @@ SUPABASE_KEY=your_test_supabase_key
 ### Test Configuration (`config.py`)
 
 **IngredientsTestConfig**
+
 - Centralized test settings
 - Environment-specific configurations
 - Feature flag management
 - Database connection settings
 
 **IngredientsTestBase**
+
 - Abstract base class for all tests
 - Common setup and teardown
 - Shared assertion methods
@@ -202,6 +219,7 @@ SUPABASE_KEY=your_test_supabase_key
 ## 📊 Coverage and Reporting
 
 ### Coverage Reports
+
 The test suite generates comprehensive coverage reports:
 
 ```bash
@@ -216,6 +234,7 @@ python run_tests.py --unit --verbose
 ```
 
 ### Test Reports
+
 ```bash
 # JUnit XML (for CI/CD)
 test-results/ingredients-results.xml
@@ -265,17 +284,20 @@ async def test_bulk_operations_performance():
 ## 🐛 Debugging Tests
 
 ### Verbose Output
+
 ```bash
 python run_tests.py --verbose
 ```
 
 ### Specific Test Debugging
+
 ```bash
 # Run single test with full output
 python run_tests.py --test unit/test_ingredient_operations.py::TestIngredientOperations::test_create_ingredient -v
 ```
 
 ### Mock Debugging
+
 ```python
 # Enable mock call tracking
 mock_service = IngredientsMockFactory.create_service_mock()
@@ -285,12 +307,13 @@ mock_service.create_ingredient.assert_called_once_with(expected_data)
 ## 🔄 CI/CD Integration
 
 ### GitHub Actions Example
+
 ```yaml
 - name: Run Ingredients Tests
   run: |
     cd backend/tests/ingredients
     python run_tests.py --report
-    
+
 - name: Upload Coverage
   uses: codecov/codecov-action@v4
   with:
@@ -298,6 +321,7 @@ mock_service.create_ingredient.assert_called_once_with(expected_data)
 ```
 
 ### Test Quality Gates
+
 - Minimum 90% code coverage
 - All unit tests must pass
 - Integration tests must pass (if enabled)

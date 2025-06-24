@@ -6,15 +6,15 @@ The Cookify Health Check API provides comprehensive health monitoring for all ap
 
 ## Endpoints Overview
 
-| Method | Endpoint | Description | Use Case |
-|--------|----------|-------------|----------|
-| GET | `/api/health/` | Comprehensive health check | Manual monitoring, dashboards |
-| GET | `/api/health/quick` | Fast basic health check | Load balancer health checks |
-| GET | `/api/health/liveness` | Kubernetes liveness probe | Container orchestration |
-| GET | `/api/health/readiness` | Kubernetes readiness probe | Container orchestration |
-| GET | `/api/health/metrics` | Health metrics overview | Monitoring systems |
-| GET | `/api/health/alerts` | Recent health alerts | Alert management |
-| GET | `/api/health/service/{name}/history` | Service health history | Debugging, analysis |
+| Method | Endpoint                             | Description                | Use Case                      |
+| ------ | ------------------------------------ | -------------------------- | ----------------------------- |
+| GET    | `/api/health/`                       | Comprehensive health check | Manual monitoring, dashboards |
+| GET    | `/api/health/quick`                  | Fast basic health check    | Load balancer health checks   |
+| GET    | `/api/health/liveness`               | Kubernetes liveness probe  | Container orchestration       |
+| GET    | `/api/health/readiness`              | Kubernetes readiness probe | Container orchestration       |
+| GET    | `/api/health/metrics`                | Health metrics overview    | Monitoring systems            |
+| GET    | `/api/health/alerts`                 | Recent health alerts       | Alert management              |
+| GET    | `/api/health/service/{name}/history` | Service health history     | Debugging, analysis           |
 
 ## Endpoint Details
 
@@ -120,6 +120,7 @@ Kubernetes/Docker readiness probe - checks if the application is ready to serve 
 #### Response
 
 **Success (200):**
+
 ```json
 {
   "status": "ready",
@@ -129,6 +130,7 @@ Kubernetes/Docker readiness probe - checks if the application is ready to serve 
 ```
 
 **Not Ready (503):**
+
 ```json
 {
   "detail": {
@@ -290,14 +292,17 @@ Health check history for a specific service.
 The system health check monitors:
 
 ### CPU Usage
+
 - **Warning**: >80% usage
 - **Critical**: >95% usage
 
 ### Memory Usage
+
 - **Warning**: >80% usage
 - **Critical**: >95% usage
 
 ### Disk Usage
+
 - **Warning**: >85% usage
 - **Critical**: >95% usage
 
@@ -310,20 +315,20 @@ Use the liveness and readiness probes in your deployment:
 ```yaml
 spec:
   containers:
-  - name: cookify-backend
-    image: cookify:latest
-    livenessProbe:
-      httpGet:
-        path: /api/health/liveness
-        port: 8000
-      initialDelaySeconds: 30
-      periodSeconds: 10
-    readinessProbe:
-      httpGet:
-        path: /api/health/readiness
-        port: 8000
-      initialDelaySeconds: 5
-      periodSeconds: 5
+    - name: cookify-backend
+      image: cookify:latest
+      livenessProbe:
+        httpGet:
+          path: /api/health/liveness
+          port: 8000
+        initialDelaySeconds: 30
+        periodSeconds: 10
+      readinessProbe:
+        httpGet:
+          path: /api/health/readiness
+          port: 8000
+        initialDelaySeconds: 5
+        periodSeconds: 5
 ```
 
 ### Load Balancer Health Checks
@@ -353,6 +358,7 @@ Integration examples for popular monitoring systems:
 #### Grafana Dashboard
 
 Query examples:
+
 - Service uptime: `cookify_service_uptime_percentage`
 - Response times: `cookify_service_avg_response_time`
 - Alert count: `cookify_alerts_total`
@@ -409,17 +415,20 @@ fi
 ## Best Practices
 
 ### For Development
+
 - Use `/api/health/` for debugging individual services
 - Monitor `/api/health/alerts` during testing
 - Check service history after making changes
 
 ### For Production
+
 - Use `/api/health/readiness` for load balancer health checks
 - Monitor `/api/health/metrics` for system overview
 - Set up alerting based on `/api/health/alerts`
 - Use `/api/health/liveness` for container orchestration
 
 ### Alert Thresholds
+
 - Response time warnings at 1000ms
 - Critical alerts after 3 consecutive failures
 - System resource warnings at 80% usage
@@ -429,11 +438,13 @@ fi
 ### Common Issues
 
 1. **Service showing as unhealthy**
+
    - Check service-specific logs
    - Verify external dependencies (database, APIs)
    - Review service history for patterns
 
 2. **High response times**
+
    - Check system resource usage
    - Review database performance
    - Monitor network connectivity

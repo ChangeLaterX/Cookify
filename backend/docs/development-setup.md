@@ -3,12 +3,14 @@
 ## 🚀 **Quick Start for Development (2-Person Team)**
 
 ### **1. Create Environment File:**
+
 ```bash
 # Create .env.development file
 cp .env.example .env.development
 ```
 
 ### **2. Start Development Container:**
+
 ```bash
 # With Live-Reload and Debug Mode
 docker-compose -f docker-compose.dev.yml up -d
@@ -18,6 +20,7 @@ docker-compose -f docker-compose.dev.yml up
 ```
 
 ### **3. Development URLs:**
+
 - **API**: http://localhost:8000
 - **API Docs**: http://localhost:8000/docs
 - **Health Check**: http://localhost:8000/api/health
@@ -27,26 +30,33 @@ docker-compose -f docker-compose.dev.yml up
 ## ⚙️ **Development-Specific Features:**
 
 ### **Relaxed Limits for Development:**
+
 - **OCR Requests**: 20 instead of 5 per time window
 - **File Size**: 10MB instead of 5MB
 - **Processing Timeout**: Longer timeouts
 - **CORS**: All local ports allowed
 
 ### **Auto-Reload Enabled:**
+
 ```yaml
 command: [
-  "uvicorn", "main:app",
-  "--host", "0.0.0.0",
-  "--port", "8000", 
-  "--reload",        # 🔄 Auto-reload on code changes
-  "--log-level", "debug"
-]
+    'uvicorn',
+    'main:app',
+    '--host',
+    '0.0.0.0',
+    '--port',
+    '8000',
+    '--reload', # 🔄 Auto-reload on code changes
+    '--log-level',
+    'debug',
+  ]
 ```
 
 ### **Source Code Live-Mounting:**
+
 ```yaml
 volumes:
-  - .:/backend:rw          # 📁 Live code changes
+  - .:/backend:rw # 📁 Live code changes
   - ./logs:/backend/logs:rw # 📋 Live logs
   - ./data:/backend/data:ro # 🧪 Test data
 ```
@@ -56,6 +66,7 @@ volumes:
 ## 🛠️ **Practical Development Commands:**
 
 ### **Container Management:**
+
 ```bash
 # Start
 docker-compose -f docker-compose.dev.yml up -d
@@ -71,6 +82,7 @@ docker exec -it cookify_api_dev bash
 ```
 
 ### **Code Testing:**
+
 ```bash
 # Run security tests
 ./scripts/test-ocr-security.sh
@@ -81,6 +93,7 @@ curl -X POST http://localhost:8000/api/ocr/extract-text \
 ```
 
 ### **Development Debugging:**
+
 ```bash
 # Show all container processes
 docker exec cookify_api_dev ps aux
@@ -129,6 +142,7 @@ SESSION_SECRET_KEY=dev_session_secret_minimum_32_chars
 ## 🔄 **Team Development Workflow:**
 
 ### **Partner 1 - Backend Focus:**
+
 ```bash
 # Develop backend
 docker-compose -f docker-compose.dev.yml up -d
@@ -137,6 +151,7 @@ docker-compose -f docker-compose.dev.yml up -d
 ```
 
 ### **Partner 2 - Frontend/Integration:**
+
 ```bash
 # Use same containers
 docker-compose -f docker-compose.dev.yml up -d
@@ -145,6 +160,7 @@ docker-compose -f docker-compose.dev.yml up -d
 ```
 
 ### **Debug Together:**
+
 ```bash
 # Both can follow logs live
 docker-compose -f docker-compose.dev.yml logs -f
@@ -166,6 +182,7 @@ docker exec -it cookify_api_dev bash
 ## 💡 **Pro Tips for 2-Person Team:**
 
 ### **1. Shared Development Database:**
+
 ```yaml
 # Optional: Add shared dev DB
 postgres-dev:
@@ -175,10 +192,11 @@ postgres-dev:
     - POSTGRES_USER=cookify
     - POSTGRES_PASSWORD=dev_password
   ports:
-    - "5432:5432"
+    - '5432:5432'
 ```
 
 ### **2. Live Code Sync:**
+
 ```bash
 # Git-based sync
 git pull origin develop    # Get changes from partner
@@ -186,11 +204,12 @@ git pull origin develop    # Get changes from partner
 ```
 
 ### **3. Parallel Development:**
+
 ```bash
 # Partner 1: Backend APIs
 vim domains/ocr/routes.py
 
-# Partner 2: Tests & Integration  
+# Partner 2: Tests & Integration
 vim tests/ocr/test_security.py
 
 # Both: Live-reload works automatically

@@ -35,6 +35,7 @@ tests/ocr/
 ## 🎯 Key Features
 
 ### ✅ Comprehensive Coverage
+
 - **Service Initialization**: Dependency management and configuration
 - **Text Extraction**: OCR processing with various image types
 - **Receipt Processing**: Item extraction and parsing
@@ -44,12 +45,14 @@ tests/ocr/
 - **Performance**: Benchmarking and scalability testing
 
 ### 🔧 Modular Design
+
 - **Separation of Concerns**: Each test module focuses on specific functionality
 - **Reusable Components**: Shared utilities, mocks, and test data generators
 - **Clean Dependencies**: Clear separation between unit and integration tests
 - **Easy Maintenance**: Well-organized structure for adding new tests
 
 ### 🚀 Advanced Features
+
 - **Smart Mocking**: Comprehensive mock framework that handles OCR dependencies
 - **Test Data Generation**: Realistic test data with OCR error patterns
 - **Performance Benchmarking**: Latency, throughput, and memory usage tests
@@ -59,6 +62,7 @@ tests/ocr/
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 ```bash
 # Required for all tests
 pip install pytest pytest-asyncio pytest-cov
@@ -74,6 +78,7 @@ pip install pytesseract Pillow
 ### Running Tests
 
 #### Using the Test Runner (Recommended)
+
 ```bash
 # Run all unit tests
 python tests/ocr/run_tests.py --unit
@@ -92,6 +97,7 @@ python tests/ocr/run_tests.py --report
 ```
 
 #### Using pytest Directly
+
 ```bash
 # Unit tests only (with mocks)
 pytest tests/ocr/unit/ -v
@@ -107,6 +113,7 @@ pytest tests/ocr/ --cov=domains.ocr.services --cov-report=html
 ```
 
 #### Running Specific Tests
+
 ```bash
 # Specific test module
 python tests/ocr/run_tests.py --specific unit/test_text_extraction.py
@@ -118,6 +125,7 @@ pytest tests/ocr/unit/test_text_extraction.py::TestOCRTextExtraction::test_extra
 ## 🧪 Test Categories
 
 ### Unit Tests (`unit/`)
+
 Fast, isolated tests with mocked dependencies. Always run regardless of system setup.
 
 - **test_service_initialization.py**: OCR service setup and configuration
@@ -129,6 +137,7 @@ Fast, isolated tests with mocked dependencies. Always run regardless of system s
 - **test_error_handling.py**: Error conditions and edge cases
 
 ### Integration Tests (`integration/`)
+
 Tests with real OCR dependencies. Require tesseract installation.
 
 - **test_real_ocr.py**: Real OCR processing with sample images
@@ -137,6 +146,7 @@ Tests with real OCR dependencies. Require tesseract installation.
 ## 🛠️ Configuration
 
 ### Environment Variables
+
 ```bash
 # Test mode configuration
 export OCR_TEST_MOCK_MODE=true        # Use mocks (default)
@@ -148,6 +158,7 @@ export OCR_TEST_MOCK_MODE=false       # Use real dependencies
 ```
 
 ### Test Configuration
+
 The `OCRTestConfig` class in `config.py` manages test settings:
 
 ```python
@@ -161,6 +172,7 @@ print(f"Should run integration: {config.should_run_integration_tests()}")
 ## 🔧 Utilities and Mocks
 
 ### Mock Framework (`utils/mocks.py`)
+
 Comprehensive mocking system for OCR dependencies:
 
 ```python
@@ -179,6 +191,7 @@ mock_response = OCRMockFactory.create_ocr_text_response(
 ```
 
 ### Test Data Generation (`utils/test_data.py`)
+
 Realistic test data with OCR error patterns:
 
 ```python
@@ -199,6 +212,7 @@ ingredients = TestDataGenerator.generate_mock_ingredient_search_results("tomatoe
 The test suite provides comprehensive coverage across multiple dimensions:
 
 ### Functional Coverage
+
 - ✅ OCR text extraction (multiple algorithms and configurations)
 - ✅ Image preprocessing (contrast, sharpening, noise reduction)
 - ✅ Receipt item identification (food vs non-food filtering)
@@ -207,6 +221,7 @@ The test suite provides comprehensive coverage across multiple dimensions:
 - ✅ Error handling (graceful degradation and recovery)
 
 ### Error Scenarios
+
 - ✅ Missing dependencies (tesseract, PIL, pytesseract)
 - ✅ Corrupted image data
 - ✅ OCR processing failures
@@ -214,6 +229,7 @@ The test suite provides comprehensive coverage across multiple dimensions:
 - ✅ Memory and performance edge cases
 
 ### OCR Quality Variations
+
 - ✅ High-quality clear images
 - ✅ Blurred or low-quality images
 - ✅ Rotated or skewed images
@@ -246,10 +262,10 @@ class TestMyOCRFeature(OCRTestBase):
         with MockContextManager() as mock_ctx:
             # Use test data generator
             test_data = TestDataGenerator.generate_sample_image_bytes()
-            
+
             # Your test logic here
             result = await my_ocr_function(test_data)
-            
+
             # Assertions
             assert result is not None
             assert result.confidence > 0
@@ -262,11 +278,11 @@ class TestMyOCRFeature(OCRTestBase):
 async def test_performance_benchmark(self):
     """Test performance with timing assertions."""
     import time
-    
+
     start_time = time.time()
     result = await ocr_function(large_image_data)
     processing_time = (time.time() - start_time) * 1000
-    
+
     # Performance assertions
     assert processing_time < 5000  # Less than 5 seconds
     assert result.processing_time_ms < 10000
@@ -277,6 +293,7 @@ async def test_performance_benchmark(self):
 ### Common Issues
 
 #### "OCR dependencies not available"
+
 ```bash
 # Install tesseract
 sudo apt-get install tesseract-ocr  # Ubuntu/Debian
@@ -287,6 +304,7 @@ pip install pytesseract Pillow
 ```
 
 #### Tests hanging or timing out
+
 ```bash
 # Run with shorter timeout
 pytest tests/ocr/ --timeout=30
@@ -296,6 +314,7 @@ pip list | grep -E "(PIL|pytesseract|pytest)"
 ```
 
 #### Integration tests failing
+
 ```bash
 # Verify tesseract installation
 tesseract --version
@@ -308,6 +327,7 @@ python tests/ocr/run_tests.py --integration --verbose
 ```
 
 ### Debug Mode
+
 ```bash
 # Run tests with debug output
 pytest tests/ocr/ -v -s --log-cli-level=DEBUG
@@ -319,17 +339,21 @@ pytest tests/ocr/unit/test_text_extraction.py::test_specific_function -v -s
 ## 📈 Performance Expectations
 
 ### Unit Tests
+
 - **Execution Time**: < 30 seconds for full unit test suite
 - **Individual Tests**: < 1 second per test
 - **Memory Usage**: < 100MB peak
 
 ### Integration Tests
+
 - **OCR Processing**: < 10 seconds per image
 - **End-to-End Workflow**: < 15 seconds per receipt
 - **Memory Usage**: < 500MB peak
 
 ### Performance Benchmarks
+
 Run performance tests to establish baselines:
+
 ```bash
 python tests/ocr/run_tests.py --performance
 ```
@@ -339,6 +363,7 @@ python tests/ocr/run_tests.py --performance
 The new modular architecture replaces the monolithic `test_ocr.py`. Key improvements:
 
 ### Before (Monolithic)
+
 - Single 600+ line file
 - All tests in one class
 - Mixed unit and integration tests
@@ -346,6 +371,7 @@ The new modular architecture replaces the monolithic `test_ocr.py`. Key improvem
 - Difficult to maintain
 
 ### After (Modular)
+
 - Organized into focused modules
 - Separated unit and integration tests
 - Comprehensive mocking framework
@@ -353,6 +379,7 @@ The new modular architecture replaces the monolithic `test_ocr.py`. Key improvem
 - Easy to extend and maintain
 
 ### Migration Steps
+
 1. New tests use the modular structure automatically
 2. Legacy `test_ocr.py` remains for compatibility
 3. Gradually migrate specific test cases to new modules
@@ -361,19 +388,23 @@ The new modular architecture replaces the monolithic `test_ocr.py`. Key improvem
 ## 📚 API Reference
 
 ### Configuration Classes
+
 - `OCRTestConfig`: Test configuration management
 - `OCRTestBase`: Base class for test classes
 
 ### Mock Framework
+
 - `MockContextManager`: Automatic mock setup/teardown
 - `OCRMockFactory`: Factory for creating mock objects
 - `with_mocked_ocr`: Decorator for mocked OCR tests
 
 ### Test Data
+
 - `TestDataGenerator`: Generate realistic test data
 - Sample fixtures in `fixtures/` directory
 
 ### Test Runner
+
 - `run_tests.py`: Comprehensive test execution script
 - Support for unit, integration, performance, and coverage testing
 

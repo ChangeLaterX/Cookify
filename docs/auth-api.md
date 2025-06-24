@@ -32,7 +32,7 @@ sequenceDiagram
     Supabase-->>API: Return tokens
     API-->>Client: Return access & refresh tokens
     Client->>Client: Store tokens
-    
+
     Note over Client: Subsequent requests
     Client->>API: Request with Bearer token
     API->>API: Validate JWT
@@ -41,24 +41,24 @@ sequenceDiagram
 
 ## Endpoints Overview
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/auth/register` | Register new user | ❌ |
-| POST | `/auth/login` | User login | ❌ |
-| POST | `/auth/refresh` | Refresh access token | ❌ |
-| POST | `/auth/logout` | User logout | ✅ |
-| GET | `/auth/me` | Get current user info | ✅ |
-| GET | `/auth/profile` | Get user profile | ✅ |
-| PUT | `/auth/profile` | Update user profile | ✅ |
-| POST | `/auth/forgot-password` | Request password reset | ❌ |
-| POST | `/auth/reset-password` | Reset password with token | ❌ |
-| POST | `/auth/verify-email` | Verify email address | ❌ |
-| POST | `/auth/resend-verification` | Resend verification email | ❌ |
-| POST | `/auth/change-password` | Change password (authenticated) | ✅ |
-| POST | `/auth/password-strength` | Check password strength | ❌ |
-| GET | `/auth/health` | Health check | ❌ |
-| GET | `/auth/user` | Get optional user info | ❌ |
-| POST | `/auth/dev-login` | Development login (dev only) | ❌ |
+| Method | Endpoint                    | Description                     | Auth Required |
+| ------ | --------------------------- | ------------------------------- | ------------- |
+| POST   | `/auth/register`            | Register new user               | ❌            |
+| POST   | `/auth/login`               | User login                      | ❌            |
+| POST   | `/auth/refresh`             | Refresh access token            | ❌            |
+| POST   | `/auth/logout`              | User logout                     | ✅            |
+| GET    | `/auth/me`                  | Get current user info           | ✅            |
+| GET    | `/auth/profile`             | Get user profile                | ✅            |
+| PUT    | `/auth/profile`             | Update user profile             | ✅            |
+| POST   | `/auth/forgot-password`     | Request password reset          | ❌            |
+| POST   | `/auth/reset-password`      | Reset password with token       | ❌            |
+| POST   | `/auth/verify-email`        | Verify email address            | ❌            |
+| POST   | `/auth/resend-verification` | Resend verification email       | ❌            |
+| POST   | `/auth/change-password`     | Change password (authenticated) | ✅            |
+| POST   | `/auth/password-strength`   | Check password strength         | ❌            |
+| GET    | `/auth/health`              | Health check                    | ❌            |
+| GET    | `/auth/user`                | Get optional user info          | ❌            |
+| POST   | `/auth/dev-login`           | Development login (dev only)    | ❌            |
 
 ## Endpoint Documentation
 
@@ -81,6 +81,7 @@ Register a new user account with email and password.
 #### Response
 
 **Success (201):**
+
 ```json
 {
   "success": true,
@@ -104,6 +105,7 @@ Register a new user account with email and password.
 ```
 
 **Error (409 - Email exists):**
+
 ```json
 {
   "detail": {
@@ -137,6 +139,7 @@ Authenticate user with email and password.
 #### Response
 
 **Success (200):**
+
 ```json
 {
   "success": true,
@@ -160,6 +163,7 @@ Authenticate user with email and password.
 ```
 
 **Error (401 - Invalid credentials):**
+
 ```json
 {
   "detail": {
@@ -186,6 +190,7 @@ Refresh access token using a valid refresh token.
 #### Response
 
 **Success (200):**
+
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIs...",
@@ -218,6 +223,7 @@ Authorization: Bearer <access_token>
 #### Response
 
 **Success (200):**
+
 ```json
 {
   "message": "Logged out successfully",
@@ -240,6 +246,7 @@ Authorization: Bearer <access_token>
 #### Response
 
 **Success (200):**
+
 ```json
 {
   "user": {
@@ -282,6 +289,7 @@ Authorization: Bearer <access_token>
 #### Response
 
 **Success (200):**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -339,6 +347,7 @@ Authorization: Bearer <access_token>
 #### Response
 
 **Success (200):**
+
 ```json
 {
   "success": true,
@@ -385,6 +394,7 @@ Request a password reset email.
 #### Response
 
 **Success (200):**
+
 ```json
 {
   "message": "Password reset email sent",
@@ -410,6 +420,7 @@ Reset password using a reset token from email.
 #### Response
 
 **Success (200):**
+
 ```json
 {
   "message": "Password reset successfully",
@@ -434,6 +445,7 @@ Verify email address using verification token.
 #### Response
 
 **Success (200):**
+
 ```json
 {
   "message": "Email verified successfully",
@@ -458,6 +470,7 @@ Resend email verification.
 #### Response
 
 **Success (200):**
+
 ```json
 {
   "message": "Verification email sent",
@@ -489,6 +502,7 @@ Authorization: Bearer <access_token>
 #### Response
 
 **Success (200):**
+
 ```json
 {
   "message": "Password changed successfully",
@@ -513,6 +527,7 @@ Check password strength and get requirements.
 #### Response
 
 **Success (200):**
+
 ```json
 {
   "is_strong": true,
@@ -552,6 +567,7 @@ Check authentication service health.
 #### Response
 
 **Success (200):**
+
 ```json
 {
   "message": "Authentication service is healthy",
@@ -574,6 +590,7 @@ Authorization: Bearer <access_token>
 #### Response
 
 **Success (200) - Authenticated:**
+
 ```json
 {
   "user": {
@@ -590,6 +607,7 @@ Authorization: Bearer <access_token>
 ```
 
 **Success (200) - Not Authenticated:**
+
 ```json
 {
   "user": null,
@@ -606,6 +624,7 @@ Development-only login endpoint (only available in development mode).
 #### Response
 
 **Success (200):**
+
 ```json
 {
   "success": true,
@@ -645,18 +664,18 @@ All endpoints return structured error responses with appropriate HTTP status cod
 
 ### Common Error Codes
 
-| Error Code | Description | HTTP Status |
-|------------|-------------|-------------|
-| `EMAIL_EXISTS` | Email already registered | 409 |
-| `INVALID_CREDENTIALS` | Invalid email or password | 401 |
-| `USER_NOT_FOUND` | User account not found | 404 |
-| `TOKEN_EXPIRED` | Access token has expired | 401 |
-| `TOKEN_INVALID` | Invalid or malformed token | 401 |
-| `EMAIL_NOT_VERIFIED` | Email address not verified | 403 |
-| `WEAK_PASSWORD` | Password doesn't meet requirements | 400 |
-| `RATE_LIMIT_EXCEEDED` | Too many requests | 429 |
-| `INTERNAL_ERROR` | Server error | 500 |
-| `VALIDATION_ERROR` | Request validation failed | 422 |
+| Error Code            | Description                        | HTTP Status |
+| --------------------- | ---------------------------------- | ----------- |
+| `EMAIL_EXISTS`        | Email already registered           | 409         |
+| `INVALID_CREDENTIALS` | Invalid email or password          | 401         |
+| `USER_NOT_FOUND`      | User account not found             | 404         |
+| `TOKEN_EXPIRED`       | Access token has expired           | 401         |
+| `TOKEN_INVALID`       | Invalid or malformed token         | 401         |
+| `EMAIL_NOT_VERIFIED`  | Email address not verified         | 403         |
+| `WEAK_PASSWORD`       | Password doesn't meet requirements | 400         |
+| `RATE_LIMIT_EXCEEDED` | Too many requests                  | 429         |
+| `INTERNAL_ERROR`      | Server error                       | 500         |
+| `VALIDATION_ERROR`    | Request validation failed          | 422         |
 
 ### HTTP Status Codes
 
@@ -699,6 +718,7 @@ Authentication endpoints are rate-limited to prevent abuse:
 ### CORS Configuration
 
 The API supports CORS for the following origins:
+
 - `http://localhost:3000` (Web app)
 - `http://dev.krija.info:8000` (Development)
 - `http://localhost:19000` (Mobile development)
@@ -709,6 +729,7 @@ The API supports CORS for the following origins:
 ### JavaScript/TypeScript
 
 #### Registration
+
 ```typescript
 const response = await fetch('/api/auth/register', {
   method: 'POST',
@@ -718,8 +739,8 @@ const response = await fetch('/api/auth/register', {
   body: JSON.stringify({
     email: 'user@example.com',
     password: 'SecurePassword123!',
-    username: 'johndoe'
-  })
+    username: 'johndoe',
+  }),
 });
 
 const data = await response.json();
@@ -730,6 +751,7 @@ if (data.success) {
 ```
 
 #### Login
+
 ```typescript
 const response = await fetch('/api/auth/login', {
   method: 'POST',
@@ -738,8 +760,8 @@ const response = await fetch('/api/auth/login', {
   },
   body: JSON.stringify({
     email: 'user@example.com',
-    password: 'SecurePassword123!'
-  })
+    password: 'SecurePassword123!',
+  }),
 });
 
 const data = await response.json();
@@ -750,18 +772,20 @@ if (data.success) {
 ```
 
 #### Authenticated Request
+
 ```typescript
 const token = localStorage.getItem('access_token');
 const response = await fetch('/api/auth/me', {
   headers: {
-    'Authorization': `Bearer ${token}`
-  }
+    Authorization: `Bearer ${token}`,
+  },
 });
 
 const userData = await response.json();
 ```
 
 #### Token Refresh
+
 ```typescript
 const refreshToken = localStorage.getItem('refresh_token');
 const response = await fetch('/api/auth/refresh', {
@@ -770,8 +794,8 @@ const response = await fetch('/api/auth/refresh', {
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({
-    refresh_token: refreshToken
-  })
+    refresh_token: refreshToken,
+  }),
 });
 
 const data = await response.json();
@@ -784,6 +808,7 @@ if (response.ok) {
 ### Python
 
 #### Registration
+
 ```python
 import requests
 
@@ -800,6 +825,7 @@ if data['success']:
 ```
 
 #### Authenticated Request
+
 ```python
 headers = {'Authorization': f'Bearer {access_token}'}
 response = requests.get('http://dev.krija.info:8000/api/auth/me', headers=headers)
@@ -809,6 +835,7 @@ user_data = response.json()
 ### cURL
 
 #### Login
+
 ```bash
 curl -X POST "http://dev.krija.info:8000/api/auth/login" \
   -H "Content-Type: application/json" \
@@ -819,12 +846,14 @@ curl -X POST "http://dev.krija.info:8000/api/auth/login" \
 ```
 
 #### Get Current User
+
 ```bash
 curl -X GET "http://dev.krija.info:8000/api/auth/me" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 #### Update Profile
+
 ```bash
 curl -X PUT "http://dev.krija.info:8000/api/auth/profile" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
@@ -843,7 +872,11 @@ curl -X PUT "http://dev.krija.info:8000/api/auth/profile" \
 interface AuthContext {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (email: string, password: string, username?: string) => Promise<boolean>;
+  register: (
+    email: string,
+    password: string,
+    username?: string
+  ) => Promise<boolean>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<boolean>;
   isAuthenticated: boolean;
@@ -857,7 +890,7 @@ interface AuthContext {
 async function handleApiRequest(request: () => Promise<Response>) {
   try {
     const response = await request();
-    
+
     if (response.status === 401) {
       // Try to refresh token
       const refreshed = await refreshToken();
@@ -870,12 +903,12 @@ async function handleApiRequest(request: () => Promise<Response>) {
         return;
       }
     }
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.detail.error);
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('API request failed:', error);
@@ -889,19 +922,23 @@ async function handleApiRequest(request: () => Promise<Response>) {
 ### Common Issues
 
 1. **401 Unauthorized**
+
    - Check if access token is included in Authorization header
    - Verify token format: `Bearer <token>`
    - Try refreshing the token
 
 2. **Token Expired**
+
    - Use refresh token to get new access token
    - Implement automatic token refresh in your client
 
 3. **Email Not Verified**
+
    - Check email for verification link
    - Use `/auth/resend-verification` to resend email
 
 4. **Rate Limiting**
+
    - Wait before retrying
    - Implement exponential backoff
    - Check if you're making too many requests

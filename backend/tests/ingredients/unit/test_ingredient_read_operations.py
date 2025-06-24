@@ -7,7 +7,11 @@ This module tests ingredient retrieval and read-only operations using the real d
 import pytest
 from uuid import UUID
 
-from domains.ingredients.services import get_ingredient_by_id, get_all_ingredients, IngredientError
+from domains.ingredients.services import (
+    get_ingredient_by_id,
+    get_all_ingredients,
+    IngredientError,
+)
 from domains.ingredients.schemas import IngredientMasterResponse, IngredientListResponse
 from tests.ingredients.config import IngredientsTestBase
 
@@ -27,11 +31,11 @@ class TestIngredientReadOperations(IngredientsTestBase):
         all_ingredients = await get_all_ingredients(limit=1, offset=0)
         if not all_ingredients.ingredients:
             pytest.skip("No ingredients in database to test with")
-        
+
         ingredient_id = all_ingredients.ingredients[0].ingredient_id
-        
+
         result = await get_ingredient_by_id(ingredient_id)
-        
+
         assert isinstance(result, IngredientMasterResponse)
         assert result.ingredient_id == ingredient_id
         assert isinstance(result.name, str)
@@ -45,7 +49,7 @@ class TestIngredientReadOperations(IngredientsTestBase):
     async def test_get_ingredient_by_id_not_found(self):
         """Test retrieval of non-existent ingredient."""
         non_existent_id = UUID("00000000-0000-0000-0000-000000000000")
-        
+
         with pytest.raises(IngredientError):
             await get_ingredient_by_id(non_existent_id)
 
@@ -53,26 +57,26 @@ class TestIngredientReadOperations(IngredientsTestBase):
     async def test_get_all_ingredients_success(self):
         """Test successful listing of ingredients."""
         result = await get_all_ingredients(limit=10, offset=0)
-        
+
         assert isinstance(result, IngredientListResponse)
         assert isinstance(result.ingredients, list)
         # Database may be empty, so we don't assert length > 0
-        
+
         # Check first ingredient structure if any exist
         if result.ingredients:
             ingredient = result.ingredients[0]
-            assert hasattr(ingredient, 'ingredient_id')
-            assert hasattr(ingredient, 'name')
-            assert hasattr(ingredient, 'calories_per_100g')
-            assert hasattr(ingredient, 'proteins_per_100g')
-            assert hasattr(ingredient, 'fat_per_100g')
-            assert hasattr(ingredient, 'carbs_per_100g')
+            assert hasattr(ingredient, "ingredient_id")
+            assert hasattr(ingredient, "name")
+            assert hasattr(ingredient, "calories_per_100g")
+            assert hasattr(ingredient, "proteins_per_100g")
+            assert hasattr(ingredient, "fat_per_100g")
+            assert hasattr(ingredient, "carbs_per_100g")
 
     @pytest.mark.asyncio
     async def test_get_all_ingredients_with_limit(self):
         """Test listing ingredients with specific limit."""
         result = await get_all_ingredients(limit=3, offset=0)
-        
+
         assert isinstance(result, IngredientListResponse)
         assert len(result.ingredients) <= 3
 
@@ -80,7 +84,7 @@ class TestIngredientReadOperations(IngredientsTestBase):
     async def test_get_all_ingredients_with_offset(self):
         """Test listing ingredients with offset."""
         result = await get_all_ingredients(limit=5, offset=2)
-        
+
         assert isinstance(result, IngredientListResponse)
         # Should return up to 5 ingredients, starting from position 2
 
@@ -89,13 +93,13 @@ class TestIngredientReadOperations(IngredientsTestBase):
         """Test ingredient listing pagination."""
         # First page
         page1 = await get_all_ingredients(limit=2, offset=0)
-        
+
         # Second page
         page2 = await get_all_ingredients(limit=2, offset=2)
-        
+
         assert isinstance(page1, IngredientListResponse)
         assert isinstance(page2, IngredientListResponse)
-        
+
         # Pages should have different ingredients (if enough ingredients exist)
         if len(page1.ingredients) == 2 and len(page2.ingredients) > 0:
             page1_ids = {ing.ingredient_id for ing in page1.ingredients}
@@ -109,7 +113,7 @@ class TestIngredientReadOperations(IngredientsTestBase):
         result = await get_all_ingredients(limit=0, offset=0)
         assert isinstance(result, IngredientListResponse)
         assert len(result.ingredients) == 0
-        
+
         # Test very large limit (should be handled gracefully)
         result = await get_all_ingredients(limit=1000, offset=0)
         assert isinstance(result, IngredientListResponse)
@@ -120,7 +124,7 @@ class TestIngredientReadOperations(IngredientsTestBase):
         # Test negative offset (should be handled gracefully by API)
         result = await get_all_ingredients(limit=10, offset=-1)
         assert isinstance(result, IngredientListResponse)
-        
+
         # Test very large offset (should return empty results)
         result = await get_all_ingredients(limit=10, offset=10000)
         assert isinstance(result, IngredientListResponse)
@@ -132,10 +136,10 @@ class TestIngredientReadOperations(IngredientsTestBase):
         all_ingredients = await get_all_ingredients(limit=1, offset=0)
         if not all_ingredients.ingredients:
             pytest.skip("No ingredients in database to test with")
-            
+
         ingredient_id = all_ingredients.ingredients[0].ingredient_id
         result = await get_ingredient_by_id(ingredient_id)
-        
+
         assert isinstance(result.ingredient_id, UUID)
         assert isinstance(result.name, str)
         assert isinstance(result.calories_per_100g, (int, float))
@@ -150,10 +154,10 @@ class TestIngredientReadOperations(IngredientsTestBase):
         all_ingredients = await get_all_ingredients(limit=1, offset=0)
         if not all_ingredients.ingredients:
             pytest.skip("No ingredients in database to test with")
-            
+
         ingredient_id = all_ingredients.ingredients[0].ingredient_id
         result = await get_ingredient_by_id(ingredient_id)
-        
+
         # Check realistic nutritional ranges
         assert 0 <= result.calories_per_100g <= 1000
         assert 0 <= result.proteins_per_100g <= 100
@@ -167,7 +171,7 @@ class TestIngredientReadOperations(IngredientsTestBase):
         all_ingredients = await get_all_ingredients(limit=3, offset=0)
         if len(all_ingredients.ingredients) < 2:
             pytest.skip("Need at least 2 ingredients in database to test with")
-        
+
         # Test retrieving each ingredient individually
         for ingredient in all_ingredients.ingredients[:2]:  # Test first 2
             result = await get_ingredient_by_id(ingredient.ingredient_id)
@@ -178,7 +182,7 @@ class TestIngredientReadOperations(IngredientsTestBase):
     async def test_ingredient_names_are_realistic(self):
         """Test that retrieved ingredients have realistic names."""
         result = await get_all_ingredients(limit=10, offset=0)
-        
+
         for ingredient in result.ingredients:
             # Names should be non-empty strings
             assert isinstance(ingredient.name, str)
@@ -193,13 +197,13 @@ class TestIngredientReadOperations(IngredientsTestBase):
         all_ingredients = await get_all_ingredients(limit=1, offset=0)
         if not all_ingredients.ingredients:
             pytest.skip("No ingredients in database to test with")
-            
+
         ingredient_id = all_ingredients.ingredients[0].ingredient_id
-        
+
         # Retrieve the same ingredient multiple times
         result1 = await get_ingredient_by_id(ingredient_id)
         result2 = await get_ingredient_by_id(ingredient_id)
-        
+
         # Data should be consistent
         assert result1.name == result2.name
         assert result1.calories_per_100g == result2.calories_per_100g

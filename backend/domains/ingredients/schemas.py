@@ -73,10 +73,10 @@ class IngredientSearch(BaseModel):
 
     q: str = Field(..., min_length=1, max_length=255, description="Search query")
     limit: Optional[int] = Field(
-        default=settings.INGREDIENTS_SEARCH_DEFAULT_LIMIT, 
-        ge=1, 
-        le=settings.INGREDIENTS_SEARCH_MAX_LIMIT, 
-        description="Maximum number of results"
+        default=settings.INGREDIENTS_SEARCH_DEFAULT_LIMIT,
+        ge=1,
+        le=settings.INGREDIENTS_SEARCH_MAX_LIMIT,
+        description="Maximum number of results",
     )
     offset: Optional[int] = Field(0, ge=0, description="Number of results to skip")
 

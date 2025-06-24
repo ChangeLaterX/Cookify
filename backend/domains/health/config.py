@@ -42,7 +42,7 @@ def get_resource_status(usage_percent: float, resource_type: str) -> str:
     else:
         warning_threshold = 80.0
         critical_threshold = 95.0
-    
+
     if usage_percent >= critical_threshold:
         return "critical"
     elif usage_percent >= warning_threshold:

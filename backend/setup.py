@@ -1,6 +1,7 @@
 """
 Setup file for Cookify Backend API.
 """
+
 from setuptools import setup, find_packages
 
 setup(

@@ -2,7 +2,7 @@
 
 This directory contains comprehensive documentation for Cookify.
 
-```bash
+````bash
 # Health check
 curl http://dev.krija.info:8000/api/health/quick
 
@@ -41,7 +41,7 @@ This directory contains comprehensive documentation for the Cookify meal plannin
 cd backend
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
-```
+````
 
 ### 2. Access Interactive Documentation
 
@@ -107,8 +107,8 @@ const registerResponse = await fetch('/api/auth/register', {
   body: JSON.stringify({
     email: 'user@example.com',
     password: 'SecurePassword123!',
-    username: 'foodlover'
-  })
+    username: 'foodlover',
+  }),
 });
 
 const { data } = await registerResponse.json();
@@ -121,8 +121,8 @@ const loginResponse = await fetch('/api/auth/login', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     email: 'user@example.com',
-    password: 'SecurePassword123!'
-  })
+    password: 'SecurePassword123!',
+  }),
 });
 ```
 
@@ -130,11 +130,15 @@ const loginResponse = await fetch('/api/auth/login', {
 
 ```javascript
 // Get all ingredients with pagination
-const ingredientsResponse = await fetch('/api/ingredients/master?limit=20&offset=0');
+const ingredientsResponse = await fetch(
+  '/api/ingredients/master?limit=20&offset=0'
+);
 const ingredients = await ingredientsResponse.json();
 
 // Search for specific ingredients
-const searchResponse = await fetch('/api/ingredients/search?q=chicken&limit=10');
+const searchResponse = await fetch(
+  '/api/ingredients/search?q=chicken&limit=10'
+);
 const searchResults = await searchResponse.json();
 
 // Create new ingredient (requires authentication)
@@ -143,7 +147,7 @@ const createResponse = await fetch('/api/ingredients/master', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
+    Authorization: `Bearer ${token}`,
   },
   body: JSON.stringify({
     name: 'Organic Chicken Breast',
@@ -151,8 +155,8 @@ const createResponse = await fetch('/api/ingredients/master', {
     proteins_per_100g: 31,
     fat_per_100g: 3.6,
     carbs_per_100g: 0,
-    price_per_100g_cents: 899
-  })
+    price_per_100g_cents: 899,
+  }),
 });
 ```
 
@@ -162,7 +166,7 @@ const createResponse = await fetch('/api/ingredients/master', {
 // Get current user profile
 const token = localStorage.getItem('access_token');
 const profileResponse = await fetch('/api/auth/me', {
-  headers: { 'Authorization': `Bearer ${token}` }
+  headers: { Authorization: `Bearer ${token}` },
 });
 const userProfile = await profileResponse.json();
 
@@ -171,16 +175,16 @@ const updateResponse = await fetch('/api/auth/profile', {
   method: 'PUT',
   headers: {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
+    Authorization: `Bearer ${token}`,
   },
   body: JSON.stringify({
     display_name: 'Chef John',
     bio: 'Passionate home cook',
     preferences: {
       dietary_restrictions: ['vegetarian'],
-      favorite_cuisines: ['italian', 'thai']
-    }
-  })
+      favorite_cuisines: ['italian', 'thai'],
+    },
+  }),
 });
 ```
 
@@ -190,7 +194,7 @@ const updateResponse = await fetch('/api/auth/profile', {
 async function makeAPIRequest(url, options = {}) {
   try {
     const response = await fetch(url, options);
-    
+
     if (response.status === 401) {
       // Token expired, try to refresh
       const refreshed = await refreshToken();
@@ -200,8 +204,8 @@ async function makeAPIRequest(url, options = {}) {
           ...options,
           headers: {
             ...options.headers,
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-          }
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          },
         });
       } else {
         // Redirect to login
@@ -209,12 +213,12 @@ async function makeAPIRequest(url, options = {}) {
         return;
       }
     }
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.detail.error || 'API request failed');
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('API Error:', error);
@@ -228,9 +232,9 @@ async function refreshToken() {
     const response = await fetch('/api/auth/refresh', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh_token: refreshToken })
+      body: JSON.stringify({ refresh_token: refreshToken }),
     });
-    
+
     if (response.ok) {
       const data = await response.json();
       localStorage.setItem('access_token', data.access_token);
@@ -240,7 +244,7 @@ async function refreshToken() {
   } catch (error) {
     console.error('Token refresh failed:', error);
   }
-  
+
   return false;
 }
 ```
@@ -353,15 +357,18 @@ When implementing new features, ensure:
 ### Common Issues
 
 1. **CORS Errors**
+
    - Ensure frontend origin is in CORS allowed origins
    - Check preflight requests are handled correctly
 
 2. **Authentication Failures**
+
    - Verify token format: `Bearer <token>`
    - Check token expiration and refresh if needed
    - Ensure Supabase configuration is correct
 
 3. **Database Errors**
+
    - Check Supabase connection settings
    - Verify database schema matches models
    - Check environment variables
