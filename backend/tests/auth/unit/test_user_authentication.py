@@ -11,8 +11,7 @@ import pytest
 from domains.auth.schemas import TokenResponse, UserLogin
 from domains.auth.services import AuthenticationError, AuthService
 from tests.auth.config import AuthTestBase
-from tests.auth.utils.mocks import (AuthMockFactory, MockContextManager,
-                                    with_mocked_auth)
+from tests.auth.utils.mocks import AuthMockFactory, MockContextManager, with_mocked_auth
 from tests.auth.utils.test_data import TestDataGenerator, TestScenarios
 
 

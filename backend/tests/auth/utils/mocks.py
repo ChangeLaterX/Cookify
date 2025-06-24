@@ -9,8 +9,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 from unittest.mock import MagicMock, Mock, patch
 
-from domains.auth.schemas import (TokenResponse, UserCreate, UserLogin,
-                                  UserResponse)
+from domains.auth.schemas import TokenResponse, UserCreate, UserLogin, UserResponse
 
 
 class AuthMockFactory:

@@ -9,10 +9,12 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from unittest.mock import MagicMock, Mock, patch
 
-from domains.ingredients.schemas import (IngredientListResponse,
-                                         IngredientMasterCreate,
-                                         IngredientMasterResponse,
-                                         IngredientMasterUpdate)
+from domains.ingredients.schemas import (
+    IngredientListResponse,
+    IngredientMasterCreate,
+    IngredientMasterResponse,
+    IngredientMasterUpdate,
+)
 
 
 class IngredientsMockFactory:

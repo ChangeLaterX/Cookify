@@ -13,8 +13,12 @@ from shared.database.supabase import get_supabase_client
 from supabase import Client
 
 from .models import IngredientMaster
-from .schemas import (IngredientListResponse, IngredientMasterCreate,
-                      IngredientMasterResponse, IngredientMasterUpdate)
+from .schemas import (
+    IngredientListResponse,
+    IngredientMasterCreate,
+    IngredientMasterResponse,
+    IngredientMasterUpdate,
+)
 
 logger = logging.getLogger(__name__)
 

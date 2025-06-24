@@ -26,10 +26,20 @@ except ImportError:
 from core.config import settings
 from shared.database.supabase import get_supabase_client
 
-from .schemas import (AuthUser, EmailVerification, PasswordChange,
-                      PasswordReset, PasswordResetConfirm, ResendVerification,
-                      TokenResponse, UserCreate, UserLogin,
-                      UserProfileResponse, UserProfileUpdate, UserResponse)
+from .schemas import (
+    AuthUser,
+    EmailVerification,
+    PasswordChange,
+    PasswordReset,
+    PasswordResetConfirm,
+    ResendVerification,
+    TokenResponse,
+    UserCreate,
+    UserLogin,
+    UserProfileResponse,
+    UserProfileUpdate,
+    UserResponse,
+)
 
 logger = logging.getLogger(__name__)
 

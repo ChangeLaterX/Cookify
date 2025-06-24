@@ -7,10 +7,12 @@ This module tests ingredient retrieval and read-only operations using the real d
 from uuid import UUID
 
 import pytest
-from domains.ingredients.schemas import (IngredientListResponse,
-                                         IngredientMasterResponse)
-from domains.ingredients.services import (IngredientError, get_all_ingredients,
-                                          get_ingredient_by_id)
+from domains.ingredients.schemas import IngredientListResponse, IngredientMasterResponse
+from domains.ingredients.services import (
+    IngredientError,
+    get_all_ingredients,
+    get_ingredient_by_id,
+)
 from tests.ingredients.config import IngredientsTestBase
 
 

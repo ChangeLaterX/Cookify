@@ -10,8 +10,12 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, status
 from fastapi.responses import JSONResponse
 
 from .schemas import IngredientCacheUpdateResponse
-from .services import (UpdateError, force_refresh_all_caches,
-                       get_ingredient_cache_status, update_ingredient_cache)
+from .services import (
+    UpdateError,
+    force_refresh_all_caches,
+    get_ingredient_cache_status,
+    update_ingredient_cache,
+)
 
 logger = get_logger(__name__)
 

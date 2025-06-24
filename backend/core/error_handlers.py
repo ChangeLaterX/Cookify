@@ -17,8 +17,13 @@ def get_request_id(request: Request) -> str:
     return getattr(request.state, "request_id", "unknown")
 
 
-from core.exceptions import (AuthenticationError, AuthorizationError,
-                             DatabaseError, RateLimitError, ValidationError)
+from core.exceptions import (
+    AuthenticationError,
+    AuthorizationError,
+    DatabaseError,
+    RateLimitError,
+    ValidationError,
+)
 
 logger = logging.getLogger(__name__)
 

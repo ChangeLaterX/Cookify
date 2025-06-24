@@ -7,9 +7,11 @@ This module tests ingredient data validation and schema validation using Smart M
 from uuid import uuid4
 
 import pytest
-from domains.ingredients.schemas import (IngredientMasterCreate,
-                                         IngredientMasterResponse,
-                                         IngredientMasterUpdate)
+from domains.ingredients.schemas import (
+    IngredientMasterCreate,
+    IngredientMasterResponse,
+    IngredientMasterUpdate,
+)
 from domains.ingredients.services import IngredientError
 from pydantic import ValidationError
 from tests.ingredients.config import IngredientsTestBase

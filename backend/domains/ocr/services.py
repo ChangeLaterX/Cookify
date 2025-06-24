@@ -64,8 +64,12 @@ except ImportError:
     search_ingredients = None  # type: ignore
     INGREDIENT_SEARCH_AVAILABLE = False
 
-from .schemas import (OCRItemSuggestion, OCRProcessedResponse, OCRTextResponse,
-                      ReceiptItem)
+from .schemas import (
+    OCRItemSuggestion,
+    OCRProcessedResponse,
+    OCRTextResponse,
+    ReceiptItem,
+)
 
 logger = get_logger(__name__)
 

@@ -14,8 +14,10 @@ from typing import Any, Dict, List, Optional
 # Smart test data generator removed - using basic test data generation
 
 try:
-    from domains.ingredients.schemas import (IngredientMasterCreate,
-                                             IngredientMasterUpdate)
+    from domains.ingredients.schemas import (
+        IngredientMasterCreate,
+        IngredientMasterUpdate,
+    )
 except ImportError:
     # Mock schemas for standalone testing
     class IngredientMasterCreate:
