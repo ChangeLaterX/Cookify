@@ -16,6 +16,7 @@ from domains.auth.routes import router as auth_router
 from domains.health.routes import router as health_router
 from domains.ingredients.routes import router as ingredients_router
 from domains.ocr.routes import router as receipt_router
+from domains.pantry_items.routes import router as pantry_items_router
 from domains.update.routes import router as update_router
 
 # Middleware imports
@@ -81,6 +82,7 @@ def create_application() -> FastAPI:
     # Include routers
     application.include_router(auth_router, prefix="/api")
     application.include_router(ingredients_router, prefix="/api")
+    application.include_router(pantry_items_router, prefix="/api")
     application.include_router(receipt_router, prefix="/api")
     application.include_router(health_router, prefix="/api")
     application.include_router(update_router, prefix="/api")
