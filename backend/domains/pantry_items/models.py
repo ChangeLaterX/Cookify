@@ -45,6 +45,14 @@ class PantryItem(Base):
     category = Column(Text, nullable=True)
     expiry_date = Column(Date, nullable=True)
     
+    # Foreign key to ingredient_master
+    ingredient_id = Column(
+        UUID(as_uuid=True), 
+        ForeignKey("ingredient_master.ingredient_id"), 
+        nullable=False,
+        index=True
+    )
+    
     # Timestamps
     added_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
@@ -62,4 +70,5 @@ class PantryItem(Base):
             "category": self.category,
             "expiry_date": self.expiry_date.isoformat() if self.expiry_date else None,
             "added_at": self.added_at.isoformat(),
+            "ingredient_id": self.ingredient_id,
         }

@@ -79,6 +79,7 @@ async def list_user_pantry_items(
                 category=item.category,
                 expiry_date=item.expiry_date,
                 added_at=item.added_at,
+                ingredient_id=item.ingredient_id,
             )
             for item in items
         ]
@@ -144,6 +145,7 @@ async def get_pantry_item(
             category=item.category,
             expiry_date=item.expiry_date,
             added_at=item.added_at,
+            ingredient_id=item.ingredient_id,
         )
 
         return PantryItemApiResponse(
@@ -203,6 +205,7 @@ async def create_new_pantry_item(
             category=item.category,
             expiry_date=item.expiry_date,
             added_at=item.added_at,
+            ingredient_id=item.ingredient_id,
         )
 
         return PantryItemApiResponse(
@@ -264,6 +267,7 @@ async def update_existing_pantry_item(
             category=item.category,
             expiry_date=item.expiry_date,
             added_at=item.added_at,
+            ingredient_id=item.ingredient_id,
         )
 
         return PantryItemApiResponse(

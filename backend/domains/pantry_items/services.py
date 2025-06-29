@@ -27,6 +27,7 @@ class PantryItemData:
         category: Optional[str],
         expiry_date: Optional[date],
         added_at: datetime,
+        ingredient_id: UUID,
     ):
         self.id = item_id
         self.user_id = user_id
@@ -36,6 +37,7 @@ class PantryItemData:
         self.category = category
         self.expiry_date = expiry_date
         self.added_at = added_at
+        self.ingredient_id = ingredient_id
 
 logger = get_logger(__name__)
 
@@ -166,7 +168,7 @@ async def create_pantry_item(
     supabase: SyncClient,
 ) -> PantryItemData:
     """
-    Create a new pantry item for a user.
+    Create a new pantry item for a user or update quantity if item already exists.
     
     Args:
         user_id: ID of the user
@@ -174,35 +176,72 @@ async def create_pantry_item(
         supabase: Supabase client
         
     Returns:
-        Created PantryItemData object
+        Created or updated PantryItemData object
     """
     try:
-        logger.info(f"Creating pantry item '{item_data.name}' for user {user_id}")
+        logger.info(f"Creating/updating pantry item '{item_data.name}' for user {user_id}")
         
-        # Prepare data for insertion
-        insert_data = {
-            "user_id": str(user_id),
-            "name": item_data.name,
-            "quantity": item_data.quantity,
-            "unit": item_data.unit,
-            "category": item_data.category,
-            "expiry_date": item_data.expiry_date.isoformat() if item_data.expiry_date else None,
-            "added_at": datetime.utcnow().isoformat(),
-        }
+        # Check if item already exists with same ingredient_id, unit and user_id
+        existing_response = supabase.table("pantry_items").select("*").eq("user_id", str(user_id)).eq("ingredient_id", str(item_data.ingredient_id)).eq("unit", item_data.unit).execute()
         
-        response = supabase.table("pantry_items").insert(insert_data).execute()
+        if existing_response.data:
+            # Item exists - update quantity
+            existing_item = existing_response.data[0]
+            existing_quantity = float(existing_item["quantity"])
+            new_quantity = existing_quantity + item_data.quantity
+            
+            logger.info(f"Item already exists - updating quantity from {existing_quantity} to {new_quantity} {item_data.unit}")
+            
+            update_data = {
+                "quantity": new_quantity,
+                "added_at": datetime.utcnow().isoformat(),  # Update timestamp
+            }
+            
+            # Optionally update category and expiry_date if provided
+            if item_data.category:
+                update_data["category"] = item_data.category
+            if item_data.expiry_date:
+                update_data["expiry_date"] = item_data.expiry_date.isoformat()
+            
+            response = supabase.table("pantry_items").update(update_data).eq("id", existing_item["id"]).execute()
+            
+            if not response.data:
+                logger.error(f"Failed to update existing pantry item for user {user_id}")
+                raise PantryItemError("Failed to update existing pantry item")
+            
+            item = _dict_to_pantry_item_data(response.data[0])
+            logger.info(f"Updated existing pantry item {item.id} - new quantity: {new_quantity} {item_data.unit}")
+            return item
         
-        if not response.data:
-            logger.error(f"Failed to create pantry item for user {user_id}")
-            raise PantryItemError("Failed to create pantry item")
-        
-        item = _dict_to_pantry_item_data(response.data[0])
-        logger.info(f"Created pantry item {item.id} for user {user_id}")
-        return item
+        else:
+            # Item doesn't exist - create new
+            logger.info(f"Item doesn't exist - creating new pantry item")
+            
+            # Prepare data for insertion
+            insert_data = {
+                "user_id": str(user_id),
+                "name": item_data.name,
+                "quantity": item_data.quantity,
+                "unit": item_data.unit,
+                "category": item_data.category,
+                "expiry_date": item_data.expiry_date.isoformat() if item_data.expiry_date else None,
+                "added_at": datetime.utcnow().isoformat(),
+                "ingredient_id": str(item_data.ingredient_id),
+            }
+            
+            response = supabase.table("pantry_items").insert(insert_data).execute()
+            
+            if not response.data:
+                logger.error(f"Failed to create pantry item for user {user_id}")
+                raise PantryItemError("Failed to create pantry item")
+            
+            item = _dict_to_pantry_item_data(response.data[0])
+            logger.info(f"Created new pantry item {item.id} with quantity: {item_data.quantity} {item_data.unit}")
+            return item
         
     except Exception as e:
-        logger.error(f"Error creating pantry item for user {user_id}: {str(e)}")
-        raise PantryItemError(f"Failed to create pantry item: {str(e)}")
+        logger.error(f"Error creating/updating pantry item for user {user_id}: {str(e)}")
+        raise PantryItemError(f"Failed to create/update pantry item: {str(e)}")
 
 
 async def update_pantry_item(
@@ -241,6 +280,8 @@ async def update_pantry_item(
             update_data["category"] = item_data.category
         if item_data.expiry_date is not None:
             update_data["expiry_date"] = item_data.expiry_date.isoformat()
+        if item_data.ingredient_id is not None:
+            update_data["ingredient_id"] = str(item_data.ingredient_id)
         
         if not update_data:
             logger.warning(f"No update data provided for pantry item {item_id}")
@@ -326,4 +367,5 @@ def _dict_to_pantry_item_data(data: dict) -> PantryItemData:
         category=data["category"],
         expiry_date=expiry_date,
         added_at=added_at,
+        ingredient_id=UUID(data["ingredient_id"]) if isinstance(data["ingredient_id"], str) else data["ingredient_id"],
     )

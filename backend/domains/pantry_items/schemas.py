@@ -18,6 +18,7 @@ class PantryItemBase(BaseModel):
     unit: str = Field(..., description="Unit of measurement", min_length=1, max_length=50)
     category: Optional[str] = Field(None, description="Category of the item", max_length=100)
     expiry_date: Optional[date] = Field(None, description="Expiry date of the item")
+    ingredient_id: UUID = Field(..., description="ID of the ingredient from master table")
 
     @field_validator("quantity")
     @classmethod
@@ -47,6 +48,7 @@ class PantryItemUpdate(BaseModel):
     unit: Optional[str] = Field(None, description="Unit of measurement", min_length=1, max_length=50)
     category: Optional[str] = Field(None, description="Category of the item", max_length=100)
     expiry_date: Optional[date] = Field(None, description="Expiry date of the item")
+    ingredient_id: Optional[UUID] = Field(None, description="ID of the ingredient from master table")
 
     @field_validator("quantity")
     @classmethod
