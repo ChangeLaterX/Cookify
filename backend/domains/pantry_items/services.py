@@ -3,8 +3,8 @@ Business Logic for Pantry Items Domain.
 Handles all pantry item operations and database interactions.
 """
 
-from datetime import date, datetime
-from typing import List, Optional
+from datetime import date, datetime, timedelta
+from typing import List, Optional, Dict, Tuple
 from uuid import UUID
 
 from supabase._sync.client import SyncClient
@@ -340,6 +340,396 @@ async def delete_pantry_item(
     except Exception as e:
         logger.error(f"Error deleting pantry item {item_id}: {str(e)}")
         raise PantryItemError(f"Failed to delete pantry item: {str(e)}")
+
+
+# Bulk Operations
+async def bulk_create_pantry_items(
+    user_id: UUID,
+    items_data: List[PantryItemCreate],
+    supabase: SyncClient,
+) -> Tuple[List[PantryItemData], List[Dict]]:
+    """
+    Create multiple pantry items in bulk.
+    
+    Args:
+        user_id: ID of the user
+        items_data: List of pantry item creation data
+        supabase: Supabase client
+        
+    Returns:
+        Tuple of (successful_items, failed_items)
+    """
+    logger.info(f"Bulk creating {len(items_data)} pantry items for user {user_id}")
+    
+    successful_items = []
+    failed_items = []
+    
+    for idx, item_data in enumerate(items_data):
+        try:
+            item = await create_pantry_item(user_id, item_data, supabase)
+            successful_items.append(item)
+        except Exception as e:
+            logger.error(f"Failed to create item {idx}: {str(e)}")
+            failed_items.append({
+                "index": idx,
+                "item_data": item_data.model_dump(),
+                "error": str(e)
+            })
+    
+    logger.info(f"Bulk create completed: {len(successful_items)} successful, {len(failed_items)} failed")
+    return successful_items, failed_items
+
+
+async def bulk_update_pantry_items(
+    user_id: UUID,
+    updates: Dict[UUID, PantryItemUpdate],
+    supabase: SyncClient,
+) -> Tuple[List[PantryItemData], List[Dict]]:
+    """
+    Update multiple pantry items in bulk.
+    
+    Args:
+        user_id: ID of the user
+        updates: Dictionary mapping item IDs to update data
+        supabase: Supabase client
+        
+    Returns:
+        Tuple of (successful_items, failed_items)
+    """
+    logger.info(f"Bulk updating {len(updates)} pantry items for user {user_id}")
+    
+    successful_items = []
+    failed_items = []
+    
+    for item_id, update_data in updates.items():
+        try:
+            item = await update_pantry_item(item_id, user_id, update_data, supabase)
+            successful_items.append(item)
+        except Exception as e:
+            logger.error(f"Failed to update item {item_id}: {str(e)}")
+            failed_items.append({
+                "item_id": str(item_id),
+                "update_data": update_data.model_dump(exclude_none=True),
+                "error": str(e)
+            })
+    
+    logger.info(f"Bulk update completed: {len(successful_items)} successful, {len(failed_items)} failed")
+    return successful_items, failed_items
+
+
+async def bulk_delete_pantry_items(
+    user_id: UUID,
+    item_ids: List[UUID],
+    supabase: SyncClient,
+) -> Tuple[List[UUID], List[Dict]]:
+    """
+    Delete multiple pantry items in bulk.
+    
+    Args:
+        user_id: ID of the user
+        item_ids: List of item IDs to delete
+        supabase: Supabase client
+        
+    Returns:
+        Tuple of (successful_ids, failed_items)
+    """
+    logger.info(f"Bulk deleting {len(item_ids)} pantry items for user {user_id}")
+    
+    successful_ids = []
+    failed_items = []
+    
+    for item_id in item_ids:
+        try:
+            await delete_pantry_item(item_id, user_id, supabase)
+            successful_ids.append(item_id)
+        except Exception as e:
+            logger.error(f"Failed to delete item {item_id}: {str(e)}")
+            failed_items.append({
+                "item_id": str(item_id),
+                "error": str(e)
+            })
+    
+    logger.info(f"Bulk delete completed: {len(successful_ids)} successful, {len(failed_items)} failed")
+    return successful_ids, failed_items
+
+
+# Statistics and Analytics
+async def get_pantry_stats_overview(
+    user_id: UUID,
+    supabase: SyncClient,
+) -> Dict:
+    """
+    Get overview statistics for user's pantry.
+    
+    Args:
+        user_id: ID of the user
+        supabase: Supabase client
+        
+    Returns:
+        Dictionary with pantry statistics
+    """
+    try:
+        logger.info(f"Generating pantry stats overview for user {user_id}")
+        
+        # Get all pantry items for the user
+        response = supabase.table("pantry_items").select("*").eq("user_id", str(user_id)).execute()
+        
+        if not response.data:
+            return {
+                "total_items": 0,
+                "total_categories": 0,
+                "items_expiring_soon": 0,
+                "expired_items": 0,
+                "low_stock_items": 0,
+                "estimated_total_value": 0.0,
+                "most_common_category": None,
+            }
+        
+        items = [_dict_to_pantry_item_data(item) for item in response.data]
+        today = date.today()
+        three_days_later = today + timedelta(days=3)
+        
+        # Calculate statistics
+        total_items = len(items)
+        categories = [item.category for item in items if item.category]
+        total_categories = len(set(categories))
+        
+        items_expiring_soon = sum(
+            1 for item in items 
+            if item.expiry_date and today < item.expiry_date <= three_days_later
+        )
+        
+        expired_items = sum(
+            1 for item in items 
+            if item.expiry_date and item.expiry_date < today
+        )
+        
+        low_stock_items = sum(1 for item in items if item.quantity <= 1.0)
+        
+        # Most common category
+        most_common_category = None
+        if categories:
+            category_counts = {}
+            for category in categories:
+                category_counts[category] = category_counts.get(category, 0) + 1
+            most_common_category = max(category_counts.keys(), key=lambda k: category_counts[k])
+        
+        # Estimated total value (placeholder - would need price data)
+        estimated_total_value = 0.0  # Would calculate based on ingredient prices
+        
+        stats = {
+            "total_items": total_items,
+            "total_categories": total_categories,
+            "items_expiring_soon": items_expiring_soon,
+            "expired_items": expired_items,
+            "low_stock_items": low_stock_items,
+            "estimated_total_value": estimated_total_value,
+            "most_common_category": most_common_category,
+        }
+        
+        logger.info(f"Generated pantry stats for user {user_id}: {stats}")
+        return stats
+        
+    except Exception as e:
+        logger.error(f"Error generating pantry stats for user {user_id}: {str(e)}")
+        raise PantryItemError(f"Failed to generate pantry statistics: {str(e)}")
+
+
+async def get_pantry_category_stats(
+    user_id: UUID,
+    supabase: SyncClient,
+) -> Dict:
+    """
+    Get category breakdown statistics for user's pantry.
+    
+    Args:
+        user_id: ID of the user
+        supabase: Supabase client
+        
+    Returns:
+        Dictionary with category statistics
+    """
+    try:
+        logger.info(f"Generating pantry category stats for user {user_id}")
+        
+        response = supabase.table("pantry_items").select("category").eq("user_id", str(user_id)).execute()
+        
+        if not response.data:
+            return {
+                "categories": [],
+                "uncategorized_count": 0,
+            }
+        
+        total_items = len(response.data)
+        category_counts = {}
+        uncategorized_count = 0
+        
+        for item in response.data:
+            category = item.get("category")
+            if category:
+                category_counts[category] = category_counts.get(category, 0) + 1
+            else:
+                uncategorized_count += 1
+        
+        # Calculate percentages and create category stats
+        categories = []
+        for category, count in category_counts.items():
+            percentage = (count / total_items) * 100 if total_items > 0 else 0
+            categories.append({
+                "category": category,
+                "item_count": count,
+                "percentage": round(percentage, 2)
+            })
+        
+        # Sort by count descending
+        categories.sort(key=lambda x: x["item_count"], reverse=True)
+        
+        stats = {
+            "categories": categories,
+            "uncategorized_count": uncategorized_count,
+        }
+        
+        logger.info(f"Generated category stats for user {user_id}")
+        return stats
+        
+    except Exception as e:
+        logger.error(f"Error generating category stats for user {user_id}: {str(e)}")
+        raise PantryItemError(f"Failed to generate category statistics: {str(e)}")
+
+
+async def get_pantry_expiry_report(
+    user_id: UUID,
+    supabase: SyncClient,
+) -> Dict:
+    """
+    Get expiry report for user's pantry items.
+    
+    Args:
+        user_id: ID of the user
+        supabase: Supabase client
+        
+    Returns:
+        Dictionary with expiry report
+    """
+    try:
+        logger.info(f"Generating pantry expiry report for user {user_id}")
+        
+        response = supabase.table("pantry_items").select("*").eq("user_id", str(user_id)).is_("expiry_date", "not.null").execute()
+        
+        if not response.data:
+            return {
+                "expiring_soon": [],
+                "expired": [],
+                "fresh": [],
+            }
+        
+        items = [_dict_to_pantry_item_data(item) for item in response.data]
+        today = date.today()
+        three_days_later = today + timedelta(days=3)
+        seven_days_later = today + timedelta(days=7)
+        
+        expiring_soon = []
+        expired = []
+        fresh = []
+        
+        for item in items:
+            if not item.expiry_date:
+                continue
+                
+            days_until_expiry = (item.expiry_date - today).days
+            
+            expiry_item = {
+                "id": item.id,
+                "name": item.name,
+                "quantity": item.quantity,
+                "unit": item.unit,
+                "expiry_date": item.expiry_date,
+                "days_until_expiry": days_until_expiry
+            }
+            
+            if item.expiry_date < today:
+                expired.append(expiry_item)
+            elif item.expiry_date <= three_days_later:
+                expiring_soon.append(expiry_item)
+            elif item.expiry_date > seven_days_later:
+                fresh.append(expiry_item)
+        
+        # Sort by expiry date
+        expiring_soon.sort(key=lambda x: x["expiry_date"])
+        expired.sort(key=lambda x: x["expiry_date"])
+        fresh.sort(key=lambda x: x["expiry_date"])
+        
+        report = {
+            "expiring_soon": expiring_soon,
+            "expired": expired,
+            "fresh": fresh,
+        }
+        
+        logger.info(f"Generated expiry report for user {user_id}: {len(expiring_soon)} expiring, {len(expired)} expired")
+        return report
+        
+    except Exception as e:
+        logger.error(f"Error generating expiry report for user {user_id}: {str(e)}")
+        raise PantryItemError(f"Failed to generate expiry report: {str(e)}")
+
+
+async def get_pantry_low_stock_report(
+    user_id: UUID,
+    supabase: SyncClient,
+    threshold: float = 1.0,
+) -> Dict:
+    """
+    Get low stock report for user's pantry items.
+    
+    Args:
+        user_id: ID of the user
+        supabase: Supabase client
+        threshold: Quantity threshold for considering item as low stock
+        
+    Returns:
+        Dictionary with low stock report
+    """
+    try:
+        logger.info(f"Generating pantry low stock report for user {user_id} with threshold {threshold}")
+        
+        response = supabase.table("pantry_items").select("*").eq("user_id", str(user_id)).lte("quantity", threshold).execute()
+        
+        if not response.data:
+            return {
+                "low_stock_items": [],
+                "threshold_used": threshold,
+            }
+        
+        items = [_dict_to_pantry_item_data(item) for item in response.data]
+        
+        low_stock_items = []
+        for item in items:
+            # Suggest restocking to 3x the current amount or minimum 2 units
+            suggested_restock = max(item.quantity * 3, 2.0)
+            
+            low_stock_items.append({
+                "id": item.id,
+                "name": item.name,
+                "quantity": item.quantity,
+                "unit": item.unit,
+                "category": item.category,
+                "suggested_restock_quantity": suggested_restock
+            })
+        
+        # Sort by quantity ascending (lowest stock first)
+        low_stock_items.sort(key=lambda x: x["quantity"])
+        
+        report = {
+            "low_stock_items": low_stock_items,
+            "threshold_used": threshold,
+        }
+        
+        logger.info(f"Generated low stock report for user {user_id}: {len(low_stock_items)} items")
+        return report
+        
+    except Exception as e:
+        logger.error(f"Error generating low stock report for user {user_id}: {str(e)}")
+        raise PantryItemError(f"Failed to generate low stock report: {str(e)}")
 
 
 def _dict_to_pantry_item_data(data: dict) -> PantryItemData:
