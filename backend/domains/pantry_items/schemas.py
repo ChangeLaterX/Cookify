@@ -77,6 +77,35 @@ class PantryItemUpdate(BaseModel):
         return v.strip() if v else v
 
 
+class PantryItemConsume(BaseModel):
+    """Schema for consuming/reducing quantity of a pantry item."""
+    
+    quantity: float = Field(..., description="Quantity to consume (positive value)", gt=0)
+    
+    @field_validator("quantity")
+    @classmethod
+    def validate_quantity(cls, v):
+        if v <= 0:
+            raise ValueError("Consume quantity must be greater than 0")
+        return v
+
+
+class PantryItemBatchConsume(BaseModel):
+    """Schema for consuming multiple pantry items at once."""
+    
+    items: Dict[UUID, float] = Field(..., description="Mapping of item IDs to quantities to consume", min_length=1, max_length=20)
+    
+    @field_validator("items")
+    @classmethod
+    def validate_items(cls, v):
+        if len(v) > 20:
+            raise ValueError("Cannot consume more than 20 items at once")
+        for item_id, quantity in v.items():
+            if quantity <= 0:
+                raise ValueError(f"Consume quantity for item {item_id} must be greater than 0")
+        return v
+
+
 class PantryItemBulkUpdate(BaseModel):
     """Schema for updating multiple pantry items."""
     
@@ -103,12 +132,32 @@ class PantryItemBulkDelete(BaseModel):
         return v
 
 
-class PantryItemResponse(PantryItemBase):
+class PantryItemResponse(BaseModel):
     """Schema for pantry item response."""
     
     id: UUID = Field(..., description="Unique identifier of the pantry item")
     user_id: UUID = Field(..., description="ID of the user who owns this item")
+    name: str = Field(..., description="Name of the pantry item", min_length=1, max_length=255)
+    quantity: float = Field(..., description="Quantity of the item", ge=0)  # Allow 0 for completely consumed items
+    unit: str = Field(..., description="Unit of measurement", min_length=1, max_length=50)
+    category: Optional[str] = Field(None, description="Category of the item", max_length=100)
+    expiry_date: Optional[date] = Field(None, description="Expiry date of the item")
+    ingredient_id: UUID = Field(..., description="ID of the ingredient from master table")
     added_at: datetime = Field(..., description="When the item was added to pantry")
+
+    @field_validator("quantity")
+    @classmethod
+    def validate_quantity(cls, v):
+        if v < 0:
+            raise ValueError("Quantity cannot be negative")
+        return v
+
+    @field_validator("name", "unit")
+    @classmethod
+    def validate_not_empty(cls, v):
+        if not v or not v.strip():
+            raise ValueError("Field cannot be empty")
+        return v.strip()
 
     class Config:
         from_attributes = True

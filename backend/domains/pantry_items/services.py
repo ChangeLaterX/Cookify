@@ -759,3 +759,81 @@ def _dict_to_pantry_item_data(data: dict) -> PantryItemData:
         added_at=added_at,
         ingredient_id=UUID(data["ingredient_id"]) if isinstance(data["ingredient_id"], str) else data["ingredient_id"],
     )
+
+
+async def consume_pantry_item(
+    item_id: UUID,
+    user_id: UUID,
+    consume_quantity: float,
+    supabase: SyncClient,
+) -> Optional[PantryItemData]:
+    """
+    Consume/reduce quantity of a pantry item.
+    
+    Args:
+        item_id: ID of the pantry item
+        user_id: ID of the user (for authorization)
+        consume_quantity: Quantity to consume (must be positive)
+        supabase: Supabase client
+        
+    Returns:
+        Updated PantryItemData object, or None if item was completely consumed and deleted
+        
+    Raises:
+        PantryItemNotFoundError: If item doesn't exist or doesn't belong to user
+        PantryItemValidationError: If consume quantity is invalid or exceeds available quantity
+    """
+    try:
+        logger.info(f"Consuming {consume_quantity} from pantry item {item_id} for user {user_id}")
+        
+        # First check if item exists and belongs to user
+        current_item = await get_pantry_item_by_id(item_id, user_id, supabase)
+        
+        # Validate consume quantity
+        if consume_quantity <= 0:
+            raise PantryItemValidationError("Consume quantity must be greater than 0")
+        
+        # Check if we have enough quantity
+        if current_item.quantity < consume_quantity:
+            raise PantryItemValidationError(
+                f"Cannot consume {consume_quantity} {current_item.unit}. "
+                f"Only {current_item.quantity} {current_item.unit} available"
+            )
+        
+        # Calculate new quantity
+        new_quantity = current_item.quantity - consume_quantity
+        
+        # If quantity becomes 0, delete the item completely
+        if new_quantity == 0:
+            logger.info(f"Item quantity is 0 after consumption, deleting pantry item {item_id}")
+            response = supabase.table("pantry_items").delete().eq("id", str(item_id)).eq("user_id", str(user_id)).execute()
+            
+            if not response.data:
+                logger.error(f"Failed to delete pantry item {item_id} after full consumption")
+                raise PantryItemError("Failed to delete pantry item after full consumption")
+            
+            logger.info(f"Successfully consumed all {consume_quantity} {current_item.unit} and deleted pantry item {item_id}")
+            return None  # Item was deleted
+        else:
+            # Update the item with new quantity
+            response = supabase.table("pantry_items").update({
+                "quantity": float(new_quantity)
+            }).eq("id", str(item_id)).eq("user_id", str(user_id)).execute()
+            
+            if not response.data:
+                logger.error(f"Failed to update pantry item {item_id} after consumption")
+                raise PantryItemError("Failed to update pantry item after consumption")
+            
+            updated_item = _dict_to_pantry_item_data(response.data[0])
+            logger.info(
+                f"Successfully consumed {consume_quantity} {current_item.unit} from pantry item {item_id}. "
+                f"New quantity: {new_quantity} {current_item.unit}"
+            )
+            
+            return updated_item
+        
+    except (PantryItemNotFoundError, PantryItemValidationError):
+        raise
+    except Exception as e:
+        logger.error(f"Error consuming from pantry item {item_id}: {str(e)}")
+        raise PantryItemError(f"Failed to consume from pantry item: {str(e)}")

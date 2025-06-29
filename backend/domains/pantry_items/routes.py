@@ -24,6 +24,7 @@ from .schemas import (
     PantryItemListResponse,
     PantryItemResponse,
     PantryItemUpdate,
+    PantryItemConsume,
     # Bulk operation schemas
     PantryItemBulkCreate,
     PantryItemBulkUpdate,
@@ -49,6 +50,7 @@ from .services import (
     get_pantry_item_by_id,
     get_user_pantry_items,
     update_pantry_item,
+    consume_pantry_item,
     # Bulk operations
     bulk_create_pantry_items,
     bulk_update_pantry_items,
@@ -721,6 +723,83 @@ async def get_pantry_low_stock_report_endpoint(
         )
     except Exception as e:
         logger.error(f"Unexpected error getting low stock report: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
+        )
+
+
+@router.post(
+    "/items/{item_id}/consume",
+    response_model=PantryItemApiResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Consume pantry item",
+    description="Consume/reduce quantity of a pantry item (user can only consume their own items)",
+)
+async def consume_existing_pantry_item(
+    item_id: UUID,
+    consume_data: PantryItemConsume,
+    current_user=Depends(get_current_user),
+    supabase: SyncClient = Depends(get_db),
+):
+    """Consume/reduce quantity of a pantry item."""
+    try:
+        logger.info(f"User {current_user.id} consuming {consume_data.quantity} from pantry item {item_id}")
+
+        item = await consume_pantry_item(
+            item_id=item_id,
+            user_id=current_user.id,
+            consume_quantity=consume_data.quantity,
+            supabase=supabase,
+        )
+
+        # If item is None, it means the item was completely consumed and deleted
+        if item is None:
+            return PantryItemApiResponse(
+                success=True,
+                message=f"Successfully consumed {consume_data.quantity}. Item was completely used up and removed from pantry.",
+                data=None,
+            )
+
+        # Item still exists with remaining quantity
+        item_response = PantryItemResponse(
+            id=item.id,
+            user_id=item.user_id,
+            name=item.name,
+            quantity=item.quantity,
+            unit=item.unit,
+            category=item.category,
+            expiry_date=item.expiry_date,
+            added_at=item.added_at,
+            ingredient_id=item.ingredient_id,
+        )
+
+        return PantryItemApiResponse(
+            success=True,
+            message=f"Successfully consumed {consume_data.quantity} {item.unit}. Remaining: {item.quantity} {item.unit}",
+            data=item_response,
+        )
+
+    except PantryItemNotFoundError as e:
+        logger.warning(f"Pantry item {item_id} not found for user {current_user.id}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+    except PantryItemValidationError as e:
+        logger.warning(f"Validation error consuming from pantry item {item_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(e),
+        )
+    except PantryItemError as e:
+        logger.error(f"Error consuming from pantry item {item_id}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e),
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error consuming from pantry item {item_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
