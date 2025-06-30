@@ -17,6 +17,7 @@ Central access to all backend scripts with unified user interface.
 ### Development & Setup
 
 #### `setup-backend-dev.sh`
+
 Sets up the complete backend development environment.
 
 **Features:**
@@ -32,6 +33,7 @@ Sets up the complete backend development environment.
 ```
 
 #### `run-tests.sh`
+
 Comprehensive test system with various options.
 
 **Features:**
@@ -62,6 +64,7 @@ Comprehensive test system with various options.
 ### Monitoring & Analysis
 
 #### `monitor.sh`
+
 Monitors backend health and performance in real-time.
 
 **Features:**
@@ -84,6 +87,7 @@ Monitors backend health and performance in real-time.
 ```
 
 #### `analyze-logs.sh`
+
 Detailed log analysis for debugging and monitoring.
 
 **Features:**
@@ -111,6 +115,7 @@ Detailed log analysis for debugging and monitoring.
 ### Database Management
 
 #### `db-manage.sh`
+
 Comprehensive database management for Supabase.
 
 **Features:**
@@ -141,6 +146,7 @@ Comprehensive database management for Supabase.
 ### Deployment & Operations
 
 #### `deploy.sh`
+
 Automated deployment system for different environments.
 
 **Features:**
@@ -167,6 +173,7 @@ Automated deployment system for different environments.
 ```
 
 #### `backup.sh`
+
 Comprehensive backup system for code, data and configurations.
 
 **Features:**
@@ -196,6 +203,7 @@ Comprehensive backup system for code, data and configurations.
 ### Performance Testing
 
 #### `configure_performance_tests.sh`
+
 Configures performance test parameters for different environments.
 
 **Features:**
@@ -260,6 +268,7 @@ configure_staging
 ## 🔧 Configuration
 
 ### Environment Variables
+
 Scripts use the following environment variables from the `.env` file:
 
 - `SUPABASE_URL` - Supabase database URL
@@ -268,6 +277,7 @@ Scripts use the following environment variables from the `.env` file:
 - `LOG_LEVEL` - Log level for the application
 
 ### Performance Test Configuration
+
 See `configure_performance_tests.sh` for detailed performance parameters.
 
 ## 📊 Monitoring & Alerts
@@ -288,16 +298,19 @@ See `configure_performance_tests.sh` for detailed performance parameters.
 ### Common Problems
 
 1. **Permission Denied**
+
    ```bash
    chmod +x scripts/*.sh
    ```
 
 2. **Python Virtual Environment Error**
+
    ```bash
    ./scripts/manage.sh setup
    ```
 
 3. **Database Connection Error**
+
    - Check `.env` file
    - Validate Supabase credentials
 
@@ -308,7 +321,9 @@ See `configure_performance_tests.sh` for detailed performance parameters.
    ```
 
 ### Debug Mode
+
 For detailed debug output:
+
 ```bash
 set -x  # Add at the beginning of the script
 ```
@@ -316,6 +331,7 @@ set -x  # Add at the beginning of the script
 ## 📝 Logging
 
 All scripts log important events:
+
 - `logs/monitoring_YYYYMMDD.log` - Monitoring logs
 - `logs/deployment_YYYYMMDD.log` - Deployment logs
 - `logs/backup_summary.txt` - Backup summaries
@@ -323,6 +339,7 @@ All scripts log important events:
 ## 🔄 Updates
 
 Scripts are continuously extended. For the latest features:
+
 ```bash
 git pull origin main
 chmod +x scripts/*.sh
@@ -331,6 +348,7 @@ chmod +x scripts/*.sh
 ## 📞 Support
 
 For problems or improvement suggestions:
+
 1. Create issues in the repository
 2. Provide log output and error messages
 3. Specify environment details

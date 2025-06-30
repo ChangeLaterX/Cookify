@@ -1,7 +1,7 @@
 """
 Auth Test Suite Package.
 
-This package contains comprehensive tests for the Authentication functionality 
+This package contains comprehensive tests for the Authentication functionality
 in the Cookify backend application.
 
 The test suite is organized into:
@@ -13,10 +13,10 @@ The test suite is organized into:
 Usage:
     Run all Auth tests:
         pytest tests/auth/
-    
+
     Run only unit tests:
         pytest tests/auth/unit/
-    
+
     Run with test runner:
         python tests/auth/run_tests.py --unit
         python tests/auth/run_tests.py --integration
@@ -27,12 +27,12 @@ __version__ = "1.0.0"
 __author__ = "Cookify Team"
 
 # Make key test utilities available at package level
-from .config import AuthTestConfig, AuthTestBase
+from .config import AuthTestBase, AuthTestConfig
 from .utils.mocks import AuthMockFactory, MockContextManager
 
 __all__ = [
     "AuthTestConfig",
-    "AuthTestBase", 
+    "AuthTestBase",
     "AuthMockFactory",
     "MockContextManager",
 ]

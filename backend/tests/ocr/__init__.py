@@ -1,7 +1,7 @@
 """
 OCR Test Suite Package.
 
-This package contains comprehensive tests for the OCR (Optical Character Recognition) 
+This package contains comprehensive tests for the OCR (Optical Character Recognition)
 functionality in the Cookify backend application.
 
 The test suite is organized into:
@@ -13,10 +13,10 @@ The test suite is organized into:
 Usage:
     Run all OCR tests:
         pytest tests/ocr/
-    
+
     Run only unit tests:
         pytest tests/ocr/unit/
-    
+
     Run with test runner:
         python tests/ocr/run_tests.py --unit
         python tests/ocr/run_tests.py --integration
@@ -27,7 +27,8 @@ __version__ = "1.0.0"
 __author__ = "Cookify Team"
 
 # Make key test utilities available at package level
-from .config import OCRTestConfig, OCRTestBase
+from .config import OCRTestBase, OCRTestConfig
+
 # from .utils.mocks import OCRMockFactory, MockContextManager
 # from .utils.test_data import TestDataGenerator
 
@@ -35,6 +36,6 @@ __all__ = [
     "OCRTestConfig",
     "OCRTestBase",
     # "OCRMockFactory",
-    # "MockContextManager", 
+    # "MockContextManager",
     # "TestDataGenerator",
 ]

@@ -7,22 +7,19 @@ Enhanced with security validations and rate limiting.
 import time
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import JSONResponse
 
 from core.logging import get_logger
+
 from .schemas import (
-    OCRTextResponse,
-    OCRProcessedResponse,
-    OCRApiResponse,
-    MessageResponse,
     ErrorResponse,
+    MessageResponse,
+    OCRApiResponse,
+    OCRProcessedResponse,
+    OCRTextResponse,
 )
-from .services import (
-    extract_text_from_image,
-    process_receipt_image,
-    OCRError,
-)
+from .services import OCRError, extract_text_from_image, process_receipt_image
 
 logger = get_logger(__name__)
 
@@ -54,7 +51,7 @@ async def extract_receipt_text(
     """
     request_start_time = time.time()
     image_data: bytes = b""
-    
+
     try:
         # Validate file type
         if not image.content_type or not image.content_type.startswith("image/"):
@@ -63,8 +60,8 @@ async def extract_receipt_text(
                 context={
                     "filename": image.filename,
                     "content_type": image.content_type,
-                    "endpoint": "/ocr/extract-text"
-                }
+                    "endpoint": "/ocr/extract-text",
+                },
             )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -80,10 +77,7 @@ async def extract_receipt_text(
         if len(image_data) == 0:
             logger.warning(
                 "Empty file uploaded",
-                context={
-                    "filename": image.filename,
-                    "endpoint": "/ocr/extract-text"
-                }
+                context={"filename": image.filename, "endpoint": "/ocr/extract-text"},
             )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -96,8 +90,8 @@ async def extract_receipt_text(
                 "filename": image.filename,
                 "file_size_bytes": len(image_data),
                 "content_type": image.content_type,
-                "endpoint": "/ocr/extract-text"
-            }
+                "endpoint": "/ocr/extract-text",
+            },
         )
 
         # Extract text using OCR
@@ -114,18 +108,18 @@ async def extract_receipt_text(
                 "confidence_score": result.confidence,
                 "ocr_processing_time_ms": result.processing_time_ms,
                 "total_request_time_ms": request_duration_ms,
-                "endpoint": "/ocr/extract-text"
+                "endpoint": "/ocr/extract-text",
             },
             data={
                 "performance_metrics": {
                     "file_size_bytes": len(image_data),
                     "ocr_processing_time_ms": result.processing_time_ms,
                     "total_request_time_ms": request_duration_ms,
-                    "confidence_score": result.confidence
+                    "confidence_score": result.confidence,
                 }
-            }
+            },
         )
-        
+
         return result
 
     except OCRError as e:
@@ -138,8 +132,8 @@ async def extract_receipt_text(
                 "error_code": e.error_code,
                 "error_message": e.message,
                 "total_request_time_ms": request_duration_ms,
-                "endpoint": "/ocr/extract-text"
-            }
+                "endpoint": "/ocr/extract-text",
+            },
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -156,8 +150,8 @@ async def extract_receipt_text(
                 "file_size_bytes": len(image_data) if image_data else None,
                 "error_message": str(e),
                 "total_request_time_ms": request_duration_ms,
-                "endpoint": "/ocr/extract-text"
-            }
+                "endpoint": "/ocr/extract-text",
+            },
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -189,7 +183,7 @@ async def process_receipt_with_ocr(
     """
     request_start_time = time.time()
     image_data: bytes = b""
-    
+
     try:
         # Validate file type
         if not image.content_type or not image.content_type.startswith("image/"):
@@ -198,8 +192,8 @@ async def process_receipt_with_ocr(
                 context={
                     "filename": image.filename,
                     "content_type": image.content_type,
-                    "endpoint": "/ocr/process"
-                }
+                    "endpoint": "/ocr/process",
+                },
             )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -215,10 +209,7 @@ async def process_receipt_with_ocr(
         if len(image_data) == 0:
             logger.warning(
                 "Empty file uploaded for receipt processing",
-                context={
-                    "filename": image.filename,
-                    "endpoint": "/ocr/process"
-                }
+                context={"filename": image.filename, "endpoint": "/ocr/process"},
             )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -231,8 +222,8 @@ async def process_receipt_with_ocr(
                 "filename": image.filename,
                 "file_size_bytes": len(image_data),
                 "content_type": image.content_type,
-                "endpoint": "/ocr/process"
-            }
+                "endpoint": "/ocr/process",
+            },
         )
 
         # Process receipt with ingredient suggestions
@@ -248,20 +239,24 @@ async def process_receipt_with_ocr(
                 "total_items_detected": result.total_items_detected,
                 "ocr_processing_time_ms": result.processing_time_ms,
                 "total_request_time_ms": request_duration_ms,
-                "endpoint": "/ocr/process"
+                "endpoint": "/ocr/process",
             },
             data={
                 "performance_metrics": {
                     "file_size_bytes": len(image_data),
                     "ocr_processing_time_ms": result.processing_time_ms,
                     "total_request_time_ms": request_duration_ms,
-                    "items_detected": result.total_items_detected
+                    "items_detected": result.total_items_detected,
                 },
                 "processing_results": {
-                    "items_with_suggestions": len([item for item in result.detected_items if item.suggestions]),
-                    "items_without_suggestions": len([item for item in result.detected_items if not item.suggestions])
-                }
-            }
+                    "items_with_suggestions": len(
+                        [item for item in result.detected_items if item.suggestions]
+                    ),
+                    "items_without_suggestions": len(
+                        [item for item in result.detected_items if not item.suggestions]
+                    ),
+                },
+            },
         )
 
         return OCRApiResponse(
@@ -281,8 +276,8 @@ async def process_receipt_with_ocr(
                 "error_code": e.error_code,
                 "error_message": e.message,
                 "total_request_time_ms": request_duration_ms,
-                "endpoint": "/ocr/process"
-            }
+                "endpoint": "/ocr/process",
+            },
         )
         return OCRApiResponse(
             success=False,
@@ -299,8 +294,8 @@ async def process_receipt_with_ocr(
                 "file_size_bytes": len(image_data) if image_data else None,
                 "error_message": str(e),
                 "total_request_time_ms": request_duration_ms,
-                "endpoint": "/ocr/process"
-            }
+                "endpoint": "/ocr/process",
+            },
         )
         return OCRApiResponse(
             success=False,

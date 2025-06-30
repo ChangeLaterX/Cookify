@@ -22,7 +22,7 @@ and common testing functionality.
 
 __all__ = [
     # 'OCRMockFactory',
-    # 'OCRResponseFactory', 
+    # 'OCRResponseFactory',
     # 'MockContextManager',
     # 'with_mocked_ocr',
     # 'TestDataGenerator',

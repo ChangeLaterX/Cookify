@@ -1,0 +1,6 @@
+# ACT Configuration für Cookify Backend Tests
+# Verwendet kleinere, schnellere Docker-Images für lokale Tests
+
+ubuntu-latest=catthehacker/ubuntu:act-latest
+ubuntu-22.04=catthehacker/ubuntu:act-22.04
+ubuntu-20.04=catthehacker/ubuntu:act-20.04

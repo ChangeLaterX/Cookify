@@ -5,9 +5,8 @@ This module provides realistic sample ingredient data that can be used
 across different test scenarios.
 """
 
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 from uuid import uuid4
-
 
 # Sample ingredient categories with realistic nutritional profiles
 SAMPLE_INGREDIENTS: List[Dict[str, Any]] = [
@@ -19,7 +18,7 @@ SAMPLE_INGREDIENTS: List[Dict[str, Any]] = [
         "fat_per_100g": 0.2,
         "carbs_per_100g": 3.9,
         "price_per_100g_cents": 250,
-        "category": "vegetables"
+        "category": "vegetables",
     },
     {
         "name": "Spinach",
@@ -28,7 +27,7 @@ SAMPLE_INGREDIENTS: List[Dict[str, Any]] = [
         "fat_per_100g": 0.4,
         "carbs_per_100g": 3.6,
         "price_per_100g_cents": 400,
-        "category": "vegetables"
+        "category": "vegetables",
     },
     {
         "name": "Carrot",
@@ -37,9 +36,8 @@ SAMPLE_INGREDIENTS: List[Dict[str, Any]] = [
         "fat_per_100g": 0.2,
         "carbs_per_100g": 9.6,
         "price_per_100g_cents": 180,
-        "category": "vegetables"
+        "category": "vegetables",
     },
-    
     # Proteins
     {
         "name": "Chicken Breast",
@@ -48,7 +46,7 @@ SAMPLE_INGREDIENTS: List[Dict[str, Any]] = [
         "fat_per_100g": 3.6,
         "carbs_per_100g": 0.0,
         "price_per_100g_cents": 1200,
-        "category": "meat"
+        "category": "meat",
     },
     {
         "name": "Salmon Fillet",
@@ -57,7 +55,7 @@ SAMPLE_INGREDIENTS: List[Dict[str, Any]] = [
         "fat_per_100g": 12.4,
         "carbs_per_100g": 0.0,
         "price_per_100g_cents": 2500,
-        "category": "fish"
+        "category": "fish",
     },
     {
         "name": "Eggs",
@@ -66,9 +64,8 @@ SAMPLE_INGREDIENTS: List[Dict[str, Any]] = [
         "fat_per_100g": 11.0,
         "carbs_per_100g": 1.1,
         "price_per_100g_cents": 600,
-        "category": "dairy"
+        "category": "dairy",
     },
-    
     # Grains and Starches
     {
         "name": "Brown Rice",
@@ -77,7 +74,7 @@ SAMPLE_INGREDIENTS: List[Dict[str, Any]] = [
         "fat_per_100g": 0.9,
         "carbs_per_100g": 23.0,
         "price_per_100g_cents": 300,
-        "category": "grains"
+        "category": "grains",
     },
     {
         "name": "Whole Wheat Pasta",
@@ -86,7 +83,7 @@ SAMPLE_INGREDIENTS: List[Dict[str, Any]] = [
         "fat_per_100g": 0.5,
         "carbs_per_100g": 25.0,
         "price_per_100g_cents": 350,
-        "category": "grains"
+        "category": "grains",
     },
     {
         "name": "Sweet Potato",
@@ -95,9 +92,8 @@ SAMPLE_INGREDIENTS: List[Dict[str, Any]] = [
         "fat_per_100g": 0.1,
         "carbs_per_100g": 20.1,
         "price_per_100g_cents": 220,
-        "category": "vegetables"
+        "category": "vegetables",
     },
-    
     # Dairy
     {
         "name": "Greek Yogurt",
@@ -106,7 +102,7 @@ SAMPLE_INGREDIENTS: List[Dict[str, Any]] = [
         "fat_per_100g": 0.4,
         "carbs_per_100g": 3.6,
         "price_per_100g_cents": 800,
-        "category": "dairy"
+        "category": "dairy",
     },
     {
         "name": "Cheddar Cheese",
@@ -115,9 +111,8 @@ SAMPLE_INGREDIENTS: List[Dict[str, Any]] = [
         "fat_per_100g": 33.0,
         "carbs_per_100g": 1.3,
         "price_per_100g_cents": 1500,
-        "category": "dairy"
+        "category": "dairy",
     },
-    
     # Oils and Fats
     {
         "name": "Olive Oil",
@@ -126,7 +121,7 @@ SAMPLE_INGREDIENTS: List[Dict[str, Any]] = [
         "fat_per_100g": 100.0,
         "carbs_per_100g": 0.0,
         "price_per_100g_cents": 800,
-        "category": "oils"
+        "category": "oils",
     },
     {
         "name": "Avocado",
@@ -135,9 +130,8 @@ SAMPLE_INGREDIENTS: List[Dict[str, Any]] = [
         "fat_per_100g": 14.7,
         "carbs_per_100g": 8.5,
         "price_per_100g_cents": 600,
-        "category": "fruits"
+        "category": "fruits",
     },
-    
     # Fruits
     {
         "name": "Apple",
@@ -146,7 +140,7 @@ SAMPLE_INGREDIENTS: List[Dict[str, Any]] = [
         "fat_per_100g": 0.2,
         "carbs_per_100g": 13.8,
         "price_per_100g_cents": 300,
-        "category": "fruits"
+        "category": "fruits",
     },
     {
         "name": "Banana",
@@ -155,9 +149,8 @@ SAMPLE_INGREDIENTS: List[Dict[str, Any]] = [
         "fat_per_100g": 0.3,
         "carbs_per_100g": 22.8,
         "price_per_100g_cents": 250,
-        "category": "fruits"
+        "category": "fruits",
     },
-    
     # Legumes
     {
         "name": "Black Beans",
@@ -166,7 +159,7 @@ SAMPLE_INGREDIENTS: List[Dict[str, Any]] = [
         "fat_per_100g": 0.5,
         "carbs_per_100g": 23.0,
         "price_per_100g_cents": 400,
-        "category": "legumes"
+        "category": "legumes",
     },
     {
         "name": "Lentils",
@@ -175,9 +168,8 @@ SAMPLE_INGREDIENTS: List[Dict[str, Any]] = [
         "fat_per_100g": 0.4,
         "carbs_per_100g": 20.0,
         "price_per_100g_cents": 500,
-        "category": "legumes"
+        "category": "legumes",
     },
-    
     # Nuts and Seeds
     {
         "name": "Almonds",
@@ -186,7 +178,7 @@ SAMPLE_INGREDIENTS: List[Dict[str, Any]] = [
         "fat_per_100g": 49.9,
         "carbs_per_100g": 21.6,
         "price_per_100g_cents": 2000,
-        "category": "nuts"
+        "category": "nuts",
     },
     {
         "name": "Chia Seeds",
@@ -195,9 +187,8 @@ SAMPLE_INGREDIENTS: List[Dict[str, Any]] = [
         "fat_per_100g": 31.0,
         "carbs_per_100g": 42.0,
         "price_per_100g_cents": 2500,
-        "category": "seeds"
+        "category": "seeds",
     },
-    
     # Herbs and Spices
     {
         "name": "Fresh Basil",
@@ -206,7 +197,7 @@ SAMPLE_INGREDIENTS: List[Dict[str, Any]] = [
         "fat_per_100g": 0.6,
         "carbs_per_100g": 2.6,
         "price_per_100g_cents": 1200,
-        "category": "herbs"
+        "category": "herbs",
     },
     {
         "name": "Garlic",
@@ -215,31 +206,44 @@ SAMPLE_INGREDIENTS: List[Dict[str, Any]] = [
         "fat_per_100g": 0.5,
         "carbs_per_100g": 33.1,
         "price_per_100g_cents": 800,
-        "category": "vegetables"
-    }
+        "category": "vegetables",
+    },
 ]
 
 
 # Test scenarios for different use cases
 TEST_SCENARIOS = {
     "high_protein": [
-        "Chicken Breast", "Salmon Fillet", "Eggs", "Greek Yogurt", "Almonds"
+        "Chicken Breast",
+        "Salmon Fillet",
+        "Eggs",
+        "Greek Yogurt",
+        "Almonds",
     ],
-    "low_calorie": [
-        "Tomato", "Spinach", "Carrot", "Apple", "Fresh Basil"
-    ],
-    "high_fat": [
-        "Olive Oil", "Avocado", "Cheddar Cheese", "Almonds", "Chia Seeds"
-    ],
+    "low_calorie": ["Tomato", "Spinach", "Carrot", "Apple", "Fresh Basil"],
+    "high_fat": ["Olive Oil", "Avocado", "Cheddar Cheese", "Almonds", "Chia Seeds"],
     "vegetarian": [
-        "Tomato", "Spinach", "Brown Rice", "Greek Yogurt", "Black Beans", "Lentils"
+        "Tomato",
+        "Spinach",
+        "Brown Rice",
+        "Greek Yogurt",
+        "Black Beans",
+        "Lentils",
     ],
     "expensive": [
-        "Salmon Fillet", "Chia Seeds", "Almonds", "Cheddar Cheese", "Fresh Basil"
+        "Salmon Fillet",
+        "Chia Seeds",
+        "Almonds",
+        "Cheddar Cheese",
+        "Fresh Basil",
     ],
     "budget_friendly": [
-        "Carrot", "Banana", "Sweet Potato", "Brown Rice", "Black Beans"
-    ]
+        "Carrot",
+        "Banana",
+        "Sweet Potato",
+        "Brown Rice",
+        "Black Beans",
+    ],
 }
 
 
@@ -254,7 +258,7 @@ SAMPLE_RESPONSES = [
         "carbs_per_100g": 3.9,
         "price_per_100g_cents": 250,
         "created_at": "2024-01-01T00:00:00Z",
-        "updated_at": "2024-01-01T00:00:00Z"
+        "updated_at": "2024-01-01T00:00:00Z",
     },
     {
         "ingredient_id": str(uuid4()),
@@ -265,8 +269,8 @@ SAMPLE_RESPONSES = [
         "carbs_per_100g": 0.0,
         "price_per_100g_cents": 1200,
         "created_at": "2024-01-01T00:00:00Z",
-        "updated_at": "2024-01-01T00:00:00Z"
-    }
+        "updated_at": "2024-01-01T00:00:00Z",
+    },
 ]
 
 
@@ -279,7 +283,7 @@ INVALID_INGREDIENTS = [
         "fat_per_100g": 5.0,
         "carbs_per_100g": 15.0,
         "price_per_100g_cents": 500,
-        "error_type": "empty_name"
+        "error_type": "empty_name",
     },
     {
         "name": "Test Ingredient",
@@ -288,7 +292,7 @@ INVALID_INGREDIENTS = [
         "fat_per_100g": 5.0,
         "carbs_per_100g": 15.0,
         "price_per_100g_cents": 500,
-        "error_type": "negative_calories"
+        "error_type": "negative_calories",
     },
     {
         "name": "Test Ingredient",
@@ -297,7 +301,7 @@ INVALID_INGREDIENTS = [
         "fat_per_100g": 5.0,
         "carbs_per_100g": 15.0,
         "price_per_100g_cents": -100,  # Negative price
-        "error_type": "negative_price"
+        "error_type": "negative_price",
     },
     {
         "name": "A" * 300,  # Name too long
@@ -306,8 +310,8 @@ INVALID_INGREDIENTS = [
         "fat_per_100g": 5.0,
         "carbs_per_100g": 15.0,
         "price_per_100g_cents": 500,
-        "error_type": "name_too_long"
-    }
+        "error_type": "name_too_long",
+    },
 ]
 
 
@@ -319,16 +323,14 @@ def get_ingredients_by_category(category: str) -> List[Dict[str, Any]]:
 def get_ingredients_by_scenario(scenario: str) -> List[Dict[str, Any]]:
     """Get ingredients for a specific test scenario."""
     ingredient_names = TEST_SCENARIOS.get(scenario, [])
-    return [
-        ing for ing in SAMPLE_INGREDIENTS 
-        if ing["name"] in ingredient_names
-    ]
+    return [ing for ing in SAMPLE_INGREDIENTS if ing["name"] in ingredient_names]
 
 
 def get_random_ingredient() -> Dict[str, Any]:
     """Get a random sample ingredient."""
-    import random
-    return random.choice(SAMPLE_INGREDIENTS)
+    import random  # nosec B311 - Random used for test data generation, not security purposes
+
+    return random.choice(SAMPLE_INGREDIENTS)  # nosec B311 - Random used for test data generation
 
 
 def get_ingredient_by_name(name: str) -> Dict[str, Any]:

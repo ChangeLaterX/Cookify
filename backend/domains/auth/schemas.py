@@ -3,11 +3,11 @@ Pydantic Schemas for Authentication Domain.
 Defines request/response models for API endpoints.
 """
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
-from typing import Optional, Dict, Any, List
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 # ============================================================================
 # Request Schemas
@@ -18,18 +18,14 @@ class UserLogin(BaseModel):
     """Schema for user login request."""
 
     email: EmailStr = Field(..., description="User email address")
-    password: str = Field(
-        ..., min_length=6, max_length=128, description="User password"
-    )
+    password: str = Field(..., min_length=6, max_length=128, description="User password")
 
 
 class UserCreate(BaseModel):
     """Schema for user registration request."""
 
     email: EmailStr = Field(..., description="User email address")
-    password: str = Field(
-        ..., min_length=6, max_length=128, description="User password"
-    )
+    password: str = Field(..., min_length=6, max_length=128, description="User password")
     username: Optional[str] = Field(
         None, min_length=3, max_length=50, description="Optional username/display name"
     )
@@ -62,9 +58,7 @@ class PasswordResetConfirm(BaseModel):
     """Schema for password reset confirmation."""
 
     token: str = Field(..., description="Password reset token")
-    new_password: str = Field(
-        ..., min_length=6, max_length=128, description="New password"
-    )
+    new_password: str = Field(..., min_length=6, max_length=128, description="New password")
 
     @field_validator("new_password")
     @classmethod
@@ -93,12 +87,8 @@ class ResendVerification(BaseModel):
 class PasswordChange(BaseModel):
     """Schema for password change request."""
 
-    old_password: str = Field(
-        ..., min_length=6, max_length=128, description="Current password"
-    )
-    new_password: str = Field(
-        ..., min_length=6, max_length=128, description="New password"
-    )
+    old_password: str = Field(..., min_length=6, max_length=128, description="Current password")
+    new_password: str = Field(..., min_length=6, max_length=128, description="New password")
 
     @field_validator("new_password")
     @classmethod
@@ -118,18 +108,12 @@ class UserProfileUpdate(BaseModel):
     display_name: Optional[str] = Field(
         None, min_length=1, max_length=100, description="Display name"
     )
-    first_name: Optional[str] = Field(
-        None, min_length=1, max_length=50, description="First name"
-    )
-    last_name: Optional[str] = Field(
-        None, min_length=1, max_length=50, description="Last name"
-    )
+    first_name: Optional[str] = Field(None, min_length=1, max_length=50, description="First name")
+    last_name: Optional[str] = Field(None, min_length=1, max_length=50, description="Last name")
     avatar_url: Optional[str] = Field(None, max_length=255, description="Avatar URL")
     bio: Optional[str] = Field(None, max_length=500, description="User bio")
     timezone: Optional[str] = Field(None, max_length=50, description="User timezone")
-    language: Optional[str] = Field(
-        None, max_length=10, description="Preferred language"
-    )
+    language: Optional[str] = Field(None, max_length=10, description="Preferred language")
     preferences: Optional[Dict[str, Any]] = Field(
         None, description="User preferences as JSON object"
     )
@@ -183,9 +167,7 @@ class AuthResponse(BaseModel):
 
     success: bool = Field(default=True, description="Operation success status")
     data: TokenResponse = Field(..., description="Authentication token data")
-    message: str = Field(
-        default="Authentication successful", description="Response message"
-    )
+    message: str = Field(default="Authentication successful", description="Response message")
     error: Optional[str] = Field(None, description="Error message if any")
 
 
@@ -213,9 +195,7 @@ class UserWithProfileResponse(BaseModel):
     """Schema for complete user data with profile."""
 
     user: UserResponse = Field(..., description="User account data")
-    profile: Optional[UserProfileResponse] = Field(
-        None, description="User profile data"
-    )
+    profile: Optional[UserProfileResponse] = Field(None, description="User profile data")
 
 
 class MessageResponse(BaseModel):
@@ -223,9 +203,7 @@ class MessageResponse(BaseModel):
 
     message: str = Field(..., description="Response message")
     success: bool = Field(default=True, description="Operation success status")
-    details: Optional[Dict[str, Any]] = Field(
-        default=None, description="Additional details"
-    )
+    details: Optional[Dict[str, Any]] = Field(default=None, description="Additional details")
 
 
 class ErrorResponse(BaseModel):
@@ -233,12 +211,8 @@ class ErrorResponse(BaseModel):
 
     error: str = Field(..., description="Error message")
     error_code: Optional[str] = Field(None, description="Specific error code")
-    details: Optional[Dict[str, Any]] = Field(
-        None, description="Additional error details"
-    )
-    timestamp: datetime = Field(
-        default_factory=datetime.utcnow, description="Error timestamp"
-    )
+    details: Optional[Dict[str, Any]] = Field(None, description="Additional error details")
+    timestamp: datetime = Field(default_factory=datetime.utcnow, description="Error timestamp")
 
 
 # ============================================================================
@@ -253,12 +227,8 @@ class AuthUser(BaseModel):
     email: EmailStr = Field(..., description="User email address")
     is_active: bool = Field(..., description="Whether user account is active")
     is_verified: bool = Field(..., description="Whether user email is verified")
-    is_super_admin: bool = Field(
-        default=False, description="Whether user is super admin"
-    )
-    profile: Optional[UserProfileResponse] = Field(
-        None, description="User profile data"
-    )
+    is_super_admin: bool = Field(default=False, description="Whether user is super admin")
+    profile: Optional[UserProfileResponse] = Field(None, description="User profile data")
 
     class Config:
         from_attributes = True
@@ -272,9 +242,7 @@ class AuthUser(BaseModel):
 class PasswordStrengthCheck(BaseModel):
     """Schema for password strength checking request."""
 
-    password: str = Field(
-        ..., min_length=1, max_length=128, description="Password to check"
-    )
+    password: str = Field(..., min_length=1, max_length=128, description="Password to check")
 
 
 class PasswordRequirement(BaseModel):
@@ -293,9 +261,7 @@ class PasswordStrengthResponse(BaseModel):
     is_valid: bool = Field(..., description="Whether password meets all requirements")
     errors: List[str] = Field(default_factory=list, description="Validation errors")
     warnings: List[str] = Field(default_factory=list, description="Warnings")
-    suggestions: List[str] = Field(
-        default_factory=list, description="Improvement suggestions"
-    )
+    suggestions: List[str] = Field(default_factory=list, description="Improvement suggestions")
     requirements: List[PasswordRequirement] = Field(
         default_factory=list, description="Detailed requirements"
     )

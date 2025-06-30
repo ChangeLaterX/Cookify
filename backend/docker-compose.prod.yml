@@ -11,7 +11,7 @@ services:
     image: cookify-api:prod
     container_name: cookify_api_prod
     ports:
-      - "8000:8000"
+      - '8000:8000'
     env_file:
       - .env.production
     environment:
@@ -19,87 +19,94 @@ services:
       - DEBUG=false
       - ENVIRONMENT=production
       - LOG_LEVEL=WARNING
-      
+
       # Strict security for production
       - SESSION_HTTPS_ONLY=true
       - SECURITY_HEADERS_ENABLED=true
-      
+
       # Stricter OCR settings for production
-      - OCR_MAX_IMAGE_SIZE_BYTES=3145728  # 3MB
+      - OCR_MAX_IMAGE_SIZE_BYTES=3145728 # 3MB
       - OCR_PROCESSING_TIMEOUT=20
       - RATE_LIMIT_OCR_EXTRACT_ATTEMPTS=3
       - RATE_LIMIT_OCR_EXTRACT_WINDOW_MINUTES=5
       - RATE_LIMIT_OCR_PROCESS_ATTEMPTS=5
       - RATE_LIMIT_OCR_PROCESS_WINDOW_MINUTES=10
-      
+
     volumes:
       # Read-only mounts for production
       - prod-logs:/backend/logs:rw
       - prod-cache:/backend/.cache:rw
-      
+
     networks:
       - cookify-prod-network
-      
+
     # Maximum security for production
     security_opt:
       - no-new-privileges:true
-      - seccomp:unconfined  # May be needed for OCR
-    read_only: false  # OCR needs temp files
+      - seccomp:unconfined # May be needed for OCR
+    read_only: false # OCR needs temp files
     tmpfs:
       - /tmp/ocr_secure:noexec,nosuid,nodev,size=50m,uid=1000,gid=1000
-    
+
     # Production resource limits optimized for dedicated server
     deploy:
       resources:
         limits:
-          memory: 750M  # Use most available RAM for production stability
-          cpus: '1.0'   # Use full CPU core
+          memory: 750M # Use most available RAM for production stability
+          cpus: '1.0' # Use full CPU core
         reservations:
-          memory: 300M  # Reserve more for stable production operation
-          cpus: '0.3'   # Reserve 30% of CPU
+          memory: 300M # Reserve more for stable production operation
+          cpus: '0.3' # Reserve 30% of CPU
       restart_policy:
         condition: on-failure
         delay: 5s
         max_attempts: 3
         window: 120s
-    
+
     # Production healthcheck
     healthcheck:
-      test: ["/backend/healthcheck.sh"]
+      test: ['/backend/healthcheck.sh']
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
-    
+
     restart: unless-stopped
-    
+
     # Production logging
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "10m"
-        max-file: "5"
-        compress: "true"
-    
+        max-size: '10m'
+        max-file: '5'
+        compress: 'true'
+
     # Production command (no reload, optimized)
-    command: [
-      "uvicorn", "main:app",
-      "--host", "0.0.0.0",
-      "--port", "8000",
-      "--workers", "1",
-      "--worker-class", "uvicorn.workers.UvicornWorker",
-      "--log-level", "warning",
-      "--no-server-header",
-      "--no-date-header"
-    ]
+    command:
+      [
+        'uvicorn',
+        'main:app',
+        '--host',
+        '0.0.0.0',
+        '--port',
+        '8000',
+        '--workers',
+        '1',
+        '--worker-class',
+        'uvicorn.workers.UvicornWorker',
+        '--log-level',
+        'warning',
+        '--no-server-header',
+        '--no-date-header',
+      ]
 
   # Production reverse proxy (optional)
   nginx-prod:
     image: nginx:alpine
     container_name: cookify_nginx_prod
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
@@ -109,7 +116,7 @@ services:
     depends_on:
       - cookify-api-prod
     restart: unless-stopped
-    
+
   # Production monitoring (optional)
   # prometheus:
   #   image: prom/prometheus:latest

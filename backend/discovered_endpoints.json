@@ -1,0 +1,478 @@
+{
+  "total_endpoints": 36,
+  "discovery_timestamp": "1790.5236164",
+  "endpoints": [
+    {
+      "path": "/api/auth/register",
+      "method": "POST",
+      "name": "register",
+      "tags": [
+        "Authentication"
+      ],
+      "summary": "User Registration",
+      "description": "Register new user with email and password via Supabase Auth",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/auth/login",
+      "method": "POST",
+      "name": "login",
+      "tags": [
+        "Authentication"
+      ],
+      "summary": "User Login",
+      "description": "Authenticate user with email and password via Supabase Auth",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/auth/refresh",
+      "method": "POST",
+      "name": "refresh_access_token",
+      "tags": [
+        "Authentication"
+      ],
+      "summary": "Refresh Token",
+      "description": "Refresh access token using refresh token",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/auth/logout",
+      "method": "POST",
+      "name": "logout",
+      "tags": [
+        "Authentication"
+      ],
+      "summary": "User Logout",
+      "description": "Logout user and invalidate session",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/auth/me",
+      "method": "GET",
+      "name": "get_current_user_info",
+      "tags": [
+        "Authentication"
+      ],
+      "summary": "Get Current User",
+      "description": "Get current user info from JWT token including profile data",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/auth/profile",
+      "method": "GET",
+      "name": "get_profile",
+      "tags": [
+        "Authentication"
+      ],
+      "summary": "Get User Profile",
+      "description": "Get current user's profile data",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/auth/me",
+      "method": "PUT",
+      "name": "update_current_user_profile",
+      "tags": [
+        "Authentication"
+      ],
+      "summary": "Update User Profile",
+      "description": "Update current user's profile data",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/auth/forgot-password",
+      "method": "POST",
+      "name": "forgot_password",
+      "tags": [
+        "Authentication"
+      ],
+      "summary": "Request Password Reset",
+      "description": "Request password reset email via Supabase",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/auth/reset-password",
+      "method": "POST",
+      "name": "reset_password",
+      "tags": [
+        "Authentication"
+      ],
+      "summary": "Reset Password",
+      "description": "Reset password with token from email",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/auth/verify-email",
+      "method": "POST",
+      "name": "verify_user_email",
+      "tags": [
+        "Authentication"
+      ],
+      "summary": "Verify Email",
+      "description": "Verify user email with token from email",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/auth/resend-verification",
+      "method": "POST",
+      "name": "resend_verification",
+      "tags": [
+        "Authentication"
+      ],
+      "summary": "Resend Verification Email",
+      "description": "Resend email verification link",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/auth/change-password",
+      "method": "POST",
+      "name": "change_user_password",
+      "tags": [
+        "Authentication"
+      ],
+      "summary": "Change Password",
+      "description": "Change user password (requires current password)",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/auth/password-reset",
+      "method": "POST",
+      "name": "request_password_reset_legacy",
+      "tags": [
+        "Authentication"
+      ],
+      "summary": "Request Password Reset (Legacy)",
+      "description": "Legacy endpoint - use /forgot-password instead",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/auth/change-password",
+      "method": "POST",
+      "name": "change_password_legacy",
+      "tags": [
+        "Authentication"
+      ],
+      "summary": "Change Password (Legacy)",
+      "description": "Legacy endpoint - use /change-password instead",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/auth/user-info",
+      "method": "GET",
+      "name": "get_optional_user_info",
+      "tags": [
+        "Authentication"
+      ],
+      "summary": "Get Optional User Info",
+      "description": "Get user info if authenticated, returns None if not",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/auth/dev-login",
+      "method": "POST",
+      "name": "dev_login",
+      "tags": [
+        "Authentication"
+      ],
+      "summary": "Development Test Login",
+      "description": "Development-only endpoint to create test tokens without email verification",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/auth/check-password-strength",
+      "method": "POST",
+      "name": "check_password_strength",
+      "tags": [
+        "Authentication"
+      ],
+      "summary": "Check Password Strength",
+      "description": "Analyze password strength and get detailed feedback",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/ingredients/master",
+      "method": "GET",
+      "name": "list_ingredients",
+      "tags": [
+        "Ingredients"
+      ],
+      "summary": "List All Ingredients",
+      "description": "Retrieve a paginated list of all ingredients from the master database",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/ingredients/master/{ingredient_id}",
+      "method": "GET",
+      "name": "get_ingredient",
+      "tags": [
+        "Ingredients"
+      ],
+      "summary": "Get specific master ingredient",
+      "description": "Retrieve a specific ingredient by its ID from the master table",
+      "requires_auth": false,
+      "path_params": [
+        "ingredient_id"
+      ],
+      "query_params": []
+    },
+    {
+      "path": "/api/ingredients/master",
+      "method": "POST",
+      "name": "create_new_ingredient",
+      "tags": [
+        "Ingredients"
+      ],
+      "summary": "Create new master ingredient",
+      "description": "Create a new ingredient in the master table",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/ingredients/master/{ingredient_id}",
+      "method": "PUT",
+      "name": "update_existing_ingredient",
+      "tags": [
+        "Ingredients"
+      ],
+      "summary": "Update master ingredient",
+      "description": "Update nutritional data or price for an ingredient",
+      "requires_auth": false,
+      "path_params": [
+        "ingredient_id"
+      ],
+      "query_params": []
+    },
+    {
+      "path": "/api/ingredients/master/{ingredient_id}",
+      "method": "DELETE",
+      "name": "delete_existing_ingredient",
+      "tags": [
+        "Ingredients"
+      ],
+      "summary": "Delete master ingredient (admin-only)",
+      "description": "Remove a master ingredient from the database (admin-only operation)",
+      "requires_auth": false,
+      "path_params": [
+        "ingredient_id"
+      ],
+      "query_params": []
+    },
+    {
+      "path": "/api/ingredients/search",
+      "method": "GET",
+      "name": "search_ingredients_by_name",
+      "tags": [
+        "Ingredients"
+      ],
+      "summary": "Search ingredients by name",
+      "description": "Search ingredients by name using query parameter",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/ocr/extract-text",
+      "method": "POST",
+      "name": "extract_receipt_text",
+      "tags": [
+        "OCR"
+      ],
+      "summary": "Extract text from receipt image",
+      "description": "Extract raw text from receipt image using OCR",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/ocr/process",
+      "method": "POST",
+      "name": "process_receipt_with_ocr",
+      "tags": [
+        "OCR"
+      ],
+      "summary": "Process receipt with ingredient suggestions",
+      "description": "Extract text from receipt and provide ingredient matching suggestions",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/health/",
+      "method": "GET",
+      "name": "detailed_health_check",
+      "tags": [
+        "Health"
+      ],
+      "summary": "Health Check",
+      "description": "Comprehensive health check with detailed service status",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/health/quick",
+      "method": "GET",
+      "name": "quick_health_check",
+      "tags": [
+        "Health"
+      ],
+      "summary": "Quick Health Check",
+      "description": "Fast health check for load balancers",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/health/liveness",
+      "method": "GET",
+      "name": "liveness_probe",
+      "tags": [
+        "Health"
+      ],
+      "summary": "Liveness Probe",
+      "description": "Check if the application is alive",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/health/readiness",
+      "method": "GET",
+      "name": "readiness_probe",
+      "tags": [
+        "Health"
+      ],
+      "summary": "Readiness Probe",
+      "description": "Check if the application is ready to serve requests",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/health/metrics",
+      "method": "GET",
+      "name": "health_metrics",
+      "tags": [
+        "Health"
+      ],
+      "summary": "Health Metrics",
+      "description": "Get detailed health metrics and statistics",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/health/alerts",
+      "method": "GET",
+      "name": "health_alerts",
+      "tags": [
+        "Health"
+      ],
+      "summary": "Health Alerts",
+      "description": "Get current health alerts and warnings",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/health/service-history",
+      "method": "GET",
+      "name": "service_health_history",
+      "tags": [
+        "Health"
+      ],
+      "summary": "Service Health History",
+      "description": "Get historical health data for services",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/update/ingredient_cache",
+      "method": "POST",
+      "name": "update_ingredient_cache_endpoint",
+      "tags": [
+        "Update Operations"
+      ],
+      "summary": "Update Ingredient Cache",
+      "description": "Update the ingredient names cache file from the database",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/update/ingredient_cache/status",
+      "method": "GET",
+      "name": "get_ingredient_cache_status_endpoint",
+      "tags": [
+        "Update Operations"
+      ],
+      "summary": "Get Ingredient Cache Status",
+      "description": "Get current status and metadata of the ingredient cache",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/api/update/all_caches",
+      "method": "POST",
+      "name": "force_refresh_all_caches_endpoint",
+      "tags": [
+        "Update Operations"
+      ],
+      "summary": "Force Refresh All Caches",
+      "description": "Force refresh all application caches",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    },
+    {
+      "path": "/",
+      "method": "GET",
+      "name": "root",
+      "tags": [],
+      "summary": null,
+      "description": "Root endpoint for basic application info.",
+      "requires_auth": false,
+      "path_params": [],
+      "query_params": []
+    }
+  ]
+}

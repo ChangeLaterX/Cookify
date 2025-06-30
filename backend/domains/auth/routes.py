@@ -9,48 +9,49 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-
-from .schemas import (
-    UserLogin,
-    UserCreate,
-    TokenRefresh,
-    PasswordReset,
-    PasswordResetConfirm,
-    PasswordChange,
-    EmailVerification,
-    ResendVerification,
-    UserProfileUpdate,
-    TokenResponse,
-    UserResponse,
-    UserProfileResponse,
-    UserWithProfileResponse,
-    MessageResponse,
-    ErrorResponse,
-    AuthUser,
-    ApiResponse,
-    AuthResponse,
-    PasswordStrengthResponse,
-    PasswordStrengthCheck,
-    PasswordRequirement,
-)
-from .services import (
-    authenticate_user,
-    register_user,
-    refresh_token,
-    logout_user,
-    get_user_profile,
-    update_user_profile,
-    AuthenticationError,
-    request_password_reset,
-    confirm_password_reset,
-    change_password,
-    verify_email,
-    resend_verification_email,
-)
-from middleware.security import get_current_user, get_optional_user
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from core.logging import get_logger
+from middleware.security import get_current_user, get_optional_user
+
+from .schemas import (
+    ApiResponse,
+    AuthResponse,
+    AuthUser,
+    EmailVerification,
+    ErrorResponse,
+    MessageResponse,
+    PasswordChange,
+    PasswordRequirement,
+    PasswordReset,
+    PasswordResetConfirm,
+    PasswordStrengthCheck,
+    PasswordStrengthResponse,
+    ResendVerification,
+    TokenRefresh,
+    TokenResponse,
+    UserCreate,
+    UserLogin,
+    UserProfileResponse,
+    UserProfileUpdate,
+    UserResponse,
+    UserWithProfileResponse,
+)
+from .services import (
+    AuthenticationError,
+    authenticate_user,
+    change_password,
+    confirm_password_reset,
+    get_user_profile,
+    logout_user,
+    refresh_token,
+    register_user,
+    request_password_reset,
+    resend_verification_email,
+    update_user_profile,
+    verify_email,
+)
+
 logger = get_logger(__name__)
 
 # Create router for auth endpoints
@@ -105,9 +106,7 @@ async def register(user_data: UserCreate) -> AuthResponse:
             detail={"error": e.message, "error_code": e.error_code},
         )
     except Exception as e:
-        logger.error(
-            f"Unexpected error during registration for {user_data.email}: {str(e)}"
-        )
+        logger.error(f"Unexpected error during registration for {user_data.email}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"error": "Internal server error", "error_code": "INTERNAL_ERROR"},
@@ -240,9 +239,7 @@ async def logout(
         return MessageResponse(
             message="Logged out (best effort)",
             success=True,
-            details={
-                "warning": "Logout completed but may not have been fully processed"
-            },
+            details={"warning": "Logout completed but may not have been fully processed"},
         )
 
 
@@ -683,6 +680,7 @@ async def get_optional_user_info(
 
 # Import datetime for responses
 from datetime import datetime
+
 from core.config import settings
 
 
@@ -706,8 +704,9 @@ async def dev_login() -> AuthResponse:
         )
 
     # Create a mock token response for testing
-    import jwt
     from datetime import datetime, timedelta
+
+    import jwt
 
     # Mock user data
     user_data = {
@@ -718,9 +717,7 @@ async def dev_login() -> AuthResponse:
     }
 
     # Create test tokens
-    access_token = jwt.encode(
-        user_data, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
-    )
+    access_token = jwt.encode(user_data, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
     refresh_token = jwt.encode(
         {**user_data, "exp": datetime.utcnow() + timedelta(days=7)},
         settings.JWT_SECRET_KEY,
@@ -734,7 +731,7 @@ async def dev_login() -> AuthResponse:
         data=TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
-            token_type="bearer",
+            token_type="bearer",  # nosec B106 - Standard OAuth2 token type, not a password
             expires_in=1800,
             expires_at=datetime.utcnow() + timedelta(minutes=30),
         ),
@@ -765,8 +762,8 @@ async def check_password_strength(
     """
     try:
         from shared.utils.password_security import (
-            get_password_analysis,
             PasswordStrength,
+            get_password_analysis,
         )
 
         # Prepare user info for personal information checks
@@ -814,12 +811,8 @@ async def check_password_strength(
         }
 
         for key, met in analysis.meets_requirements.items():
-            description = requirement_descriptions.get(
-                key, key.replace("_", " ").title()
-            )
-            requirements.append(
-                PasswordRequirement(key=key, met=met, description=description)
-            )
+            description = requirement_descriptions.get(key, key.replace("_", " ").title())
+            requirements.append(PasswordRequirement(key=key, met=met, description=description))
 
         return PasswordStrengthResponse(
             strength=int(analysis.strength),

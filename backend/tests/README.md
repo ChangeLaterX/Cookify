@@ -61,7 +61,7 @@ python tests/run_all_tests.py --list
 # Auth Tests
 cd tests/auth && python run_tests.py
 
-# Ingredients Tests  
+# Ingredients Tests
 cd tests/ingredients && python run_tests.py
 
 # OCR Tests
@@ -86,6 +86,7 @@ pytest -m "not slow"
 ## Fixtures
 
 ### Globale Fixtures (conftest.py)
+
 - `test_client` - FastAPI TestClient
 - `async_test_client` - Async HTTP Client
 - `mock_supabase_client` - Supabase Mock
@@ -94,6 +95,7 @@ pytest -m "not slow"
 - `mock_jwt_token` - JWT Token Mock
 
 ### Domain-spezifische Fixtures
+
 Jede Domain hat ihre eigenen Fixtures in `config.py` und `fixtures/`.
 
 ## Test-Marker
@@ -114,7 +116,7 @@ from tests.auth.config import AuthTestBase
 from tests.auth.utils.mocks import with_mocked_auth
 
 class TestUserRegistration(AuthTestBase):
-    
+
     @pytest.mark.unit
     @pytest.mark.auth
     async def test_user_registration(self):

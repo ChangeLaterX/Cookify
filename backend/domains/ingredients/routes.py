@@ -7,30 +7,31 @@ import time
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from core.config import settings
 from core.logging import get_logger
+from middleware.security import get_current_user, get_optional_user
+
 from .schemas import (
-    IngredientMasterCreate,
-    IngredientMasterUpdate,
-    IngredientMasterResponse,
-    IngredientListResponse,
-    IngredientResponse,
-    IngredientListApiResponse,
-    MessageResponse,
     ErrorResponse,
+    IngredientListApiResponse,
+    IngredientListResponse,
+    IngredientMasterCreate,
+    IngredientMasterResponse,
+    IngredientMasterUpdate,
+    IngredientResponse,
+    MessageResponse,
 )
 from .services import (
+    IngredientError,
+    create_ingredient,
+    delete_ingredient,
     get_all_ingredients,
     get_ingredient_by_id,
-    create_ingredient,
-    update_ingredient,
-    delete_ingredient,
     search_ingredients,
-    IngredientError,
+    update_ingredient,
 )
-from middleware.security import get_current_user, get_optional_user
 
 logger = get_logger(__name__)
 
@@ -47,10 +48,10 @@ router = APIRouter(prefix=settings.INGREDIENTS_PREFIX, tags=[settings.INGREDIENT
 )
 async def list_ingredients(
     limit: int = Query(
-        default=settings.INGREDIENTS_DEFAULT_LIMIT, 
-        ge=1, 
-        le=settings.INGREDIENTS_MAX_LIMIT, 
-        description="Maximum number of results"
+        default=settings.INGREDIENTS_DEFAULT_LIMIT,
+        ge=1,
+        le=settings.INGREDIENTS_MAX_LIMIT,
+        description="Maximum number of results",
     ),
     offset: int = Query(0, ge=0, description="Number of results to skip"),
 ) -> IngredientListApiResponse:
@@ -68,15 +69,15 @@ async def list_ingredients(
         HTTPException: 500 if database error occurs
     """
     start_time = time.time()
-    
+
     try:
         logger.info(
             "Listing ingredients with pagination",
             context={
                 "limit": limit,
                 "offset": offset,
-                "endpoint": "/ingredients/master"
-            }
+                "endpoint": "/ingredients/master",
+            },
         )
 
         ingredient_list = await get_all_ingredients(limit=limit, offset=offset)
@@ -91,16 +92,16 @@ async def list_ingredients(
                 "limit": limit,
                 "offset": offset,
                 "request_duration_ms": request_duration_ms,
-                "endpoint": "/ingredients/master"
+                "endpoint": "/ingredients/master",
             },
             data={
                 "performance_metrics": {
                     "request_duration_ms": request_duration_ms,
-                    "results_count": len(ingredient_list.ingredients)
+                    "results_count": len(ingredient_list.ingredients),
                 }
-            }
+            },
         )
-        
+
         return IngredientListApiResponse(
             success=True,
             data=ingredient_list,
@@ -118,8 +119,8 @@ async def list_ingredients(
                 "error_code": e.error_code,
                 "error_message": e.message,
                 "request_duration_ms": request_duration_ms,
-                "endpoint": "/ingredients/master"
-            }
+                "endpoint": "/ingredients/master",
+            },
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -134,8 +135,8 @@ async def list_ingredients(
                 "offset": offset,
                 "error_message": str(e),
                 "request_duration_ms": request_duration_ms,
-                "endpoint": "/ingredients/master"
-            }
+                "endpoint": "/ingredients/master",
+            },
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -382,10 +383,10 @@ async def delete_existing_ingredient(
 async def search_ingredients_by_name(
     q: str = Query(..., min_length=1, max_length=255, description="Search query"),
     limit: int = Query(
-        default=settings.INGREDIENTS_SEARCH_DEFAULT_LIMIT, 
-        ge=1, 
-        le=settings.INGREDIENTS_SEARCH_MAX_LIMIT, 
-        description="Maximum number of results"
+        default=settings.INGREDIENTS_SEARCH_DEFAULT_LIMIT,
+        ge=1,
+        le=settings.INGREDIENTS_SEARCH_MAX_LIMIT,
+        description="Maximum number of results",
     ),
     offset: int = Query(0, ge=0, description="Number of results to skip"),
 ) -> IngredientListApiResponse:
@@ -404,15 +405,11 @@ async def search_ingredients_by_name(
         HTTPException: 500 if search fails
     """
     try:
-        logger.info(
-            f"Searching ingredients with query: '{q}', limit={limit}, offset={offset}"
-        )
+        logger.info(f"Searching ingredients with query: '{q}', limit={limit}, offset={offset}")
 
         ingredient_list = await search_ingredients(query=q, limit=limit, offset=offset)
 
-        logger.info(
-            f"Found {len(ingredient_list.ingredients)} ingredients matching '{q}'"
-        )
+        logger.info(f"Found {len(ingredient_list.ingredients)} ingredients matching '{q}'")
         return IngredientListApiResponse(
             success=True,
             data=ingredient_list,

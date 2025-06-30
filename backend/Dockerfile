@@ -57,14 +57,14 @@ USER appuser
 
 # Create healthcheck script with proper error handling
 RUN echo '#!/bin/bash\n\
-set -e\n\
-if curl -f --max-time 10 --retry 3 --retry-delay 1 http://localhost:8000/api/health > /dev/null 2>&1; then\n\
+    set -e\n\
+    if curl -f --max-time 10 --retry 3 --retry-delay 1 http://localhost:8000/api/health > /dev/null 2>&1; then\n\
     echo "Health check passed"\n\
     exit 0\n\
-else\n\
+    else\n\
     echo "Health check failed"\n\
     exit 1\n\
-fi' > /backend/healthcheck.sh \
+    fi' > /backend/healthcheck.sh \
     && chmod +x /backend/healthcheck.sh
 
 # Expose port 8000
@@ -76,10 +76,10 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 
 # Start the application with settings optimized for low-resource servers
 CMD ["uvicorn", "main:app", \
-     "--host", "0.0.0.0", \
-     "--port", "8000", \
-     "--workers", "1", \
-     "--worker-class", "uvicorn.workers.UvicornWorker", \
-     "--access-log", \
-     "--log-level", "info", \
-     "--no-server-header"]
+    "--host", "0.0.0.0", \
+    "--port", "8000", \
+    "--workers", "1", \
+    "--worker-class", "uvicorn.workers.UvicornWorker", \
+    "--access-log", \
+    "--log-level", "info", \
+    "--no-server-header"]

@@ -4,25 +4,33 @@ Generate a sample receipt image for OCR testing in Cookify.
 This creates a realistic grocery receipt with food items.
 """
 
-from PIL import Image, ImageDraw, ImageFont
 import os
+
+from PIL import Image, ImageDraw, ImageFont
+
 
 def create_receipt_image():
     """Create a sample grocery receipt image for OCR testing."""
-    
+
     # Image dimensions
     width = 400
     height = 800
-    
+
     # Create white background
-    img = Image.new('RGB', (width, height), color='white')
+    img = Image.new("RGB", (width, height), color="white")
     draw = ImageDraw.Draw(img)
-    
+
     # Try to use a monospace font, fallback to default
     try:
-        font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", 16)
-        font_medium = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", 14)
-        font_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", 12)
+        font_large = ImageFont.truetype(
+            "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", 16
+        )
+        font_medium = ImageFont.truetype(
+            "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", 14
+        )
+        font_small = ImageFont.truetype(
+            "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", 12
+        )
     except:
         try:
             font_large = ImageFont.load_default()
@@ -30,11 +38,11 @@ def create_receipt_image():
             font_small = ImageFont.load_default()
         except:
             font_large = font_medium = font_small = None
-    
+
     # Receipt content
     y_pos = 20
     line_height = 20
-    
+
     # Store header
     receipt_text = [
         "FRESH MARKET GROCERY",
@@ -86,9 +94,9 @@ def create_receipt_image():
         "Have a great day!",
         "",
         "Visit us online:",
-        "www.freshmarketgrocery.com"
+        "www.freshmarketgrocery.com",
     ]
-    
+
     # Draw each line of text
     for line in receipt_text:
         if line.startswith("FRESH MARKET"):
@@ -97,9 +105,14 @@ def create_receipt_image():
             font = font_medium
         else:
             font = font_small
-            
+
         # Center store name
-        if line.startswith("FRESH MARKET") or line.startswith("123 Main") or line.startswith("Anytown") or line.startswith("Tel:"):
+        if (
+            line.startswith("FRESH MARKET")
+            or line.startswith("123 Main")
+            or line.startswith("Anytown")
+            or line.startswith("Tel:")
+        ):
             if font:
                 bbox = draw.textbbox((0, 0), line, font=font)
                 text_width = bbox[2] - bbox[0]
@@ -108,34 +121,37 @@ def create_receipt_image():
                 x_pos = 50
         else:
             x_pos = 20
-            
-        draw.text((x_pos, y_pos), line, fill='black', font=font)
+
+        draw.text((x_pos, y_pos), line, fill="black", font=font)
         y_pos += line_height
-    
+
     return img
+
 
 def main():
     """Generate and save the receipt image."""
     # Create the receipt image
     receipt_img = create_receipt_image()
-    
+
     # Save the image
     output_path = "/home/cipher/dev/Cookify/data/sample_receipt.png"
     receipt_img.save(output_path)
     print(f"Receipt image saved to: {output_path}")
-    
+
     # Also create a slightly blurred version for testing OCR robustness
     from PIL import ImageFilter
+
     blurred_img = receipt_img.filter(ImageFilter.GaussianBlur(radius=0.5))
     blurred_path = "/home/cipher/dev/Cookify/data/sample_receipt_blurred.png"
     blurred_img.save(blurred_path)
     print(f"Blurred receipt image saved to: {blurred_path}")
-    
+
     # Create a rotated version
-    rotated_img = receipt_img.rotate(2, expand=True, fillcolor='white')
+    rotated_img = receipt_img.rotate(2, expand=True, fillcolor="white")
     rotated_path = "/home/cipher/dev/Cookify/data/sample_receipt_rotated.png"
     rotated_img.save(rotated_path)
     print(f"Rotated receipt image saved to: {rotated_path}")
+
 
 if __name__ == "__main__":
     main()
