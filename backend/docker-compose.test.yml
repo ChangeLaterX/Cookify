@@ -1,8 +1,6 @@
 # Docker Compose for CI/CD Testing
 # This configuration ensures OCR tests can run in containerized CI environments
 
-version: '3.8'
-
 services:
   backend-test:
     build:
