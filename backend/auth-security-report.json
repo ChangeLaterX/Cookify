@@ -1,0 +1,219 @@
+{
+  "errors": [],
+  "generated_at": "2025-06-24T04:51:58Z",
+  "metrics": {
+    "_totals": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 5,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 5,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 1671,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "domains/auth/__init__.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 61,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "domains/auth/models.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 120,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "domains/auth/routes.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 1,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 1,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 697,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "domains/auth/schemas.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 227,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "domains/auth/services.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 4,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 4,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 566,
+      "nosec": 0,
+      "skipped_tests": 0
+    }
+  },
+  "results": [
+    {
+      "code": "734         success=True,\n735         data=TokenResponse(\n736             access_token=access_token,\n737             refresh_token=refresh_token,\n738             token_type=\"bearer\",\n739             expires_in=1800,\n740             expires_at=datetime.utcnow() + timedelta(minutes=30),\n741         ),\n742         message=\"Development test login successful\",\n",
+      "col_offset": 13,
+      "end_col_offset": 9,
+      "filename": "domains/auth/routes.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 259,
+        "link": "https://cwe.mitre.org/data/definitions/259.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Possible hardcoded password: 'bearer'",
+      "line_number": 735,
+      "line_range": [
+        735,
+        736,
+        737,
+        738,
+        739,
+        740,
+        741
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.8.5/plugins/b106_hardcoded_password_funcarg.html",
+      "test_id": "B106",
+      "test_name": "hardcoded_password_funcarg"
+    },
+    {
+      "code": "132                 # Return response indicating email verification needed\n133                 return TokenResponse(\n134                     access_token=\"\",  # No token until email verified\n135                     refresh_token=\"\",\n136                     token_type=\"bearer\",\n137                     expires_in=0,\n138                     expires_at=datetime.now(timezone.utc),\n139                 )\n140 \n",
+      "col_offset": 23,
+      "end_col_offset": 17,
+      "filename": "domains/auth/services.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 259,
+        "link": "https://cwe.mitre.org/data/definitions/259.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Possible hardcoded password: ''",
+      "line_number": 133,
+      "line_range": [
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.8.5/plugins/b106_hardcoded_password_funcarg.html",
+      "test_id": "B106",
+      "test_name": "hardcoded_password_funcarg"
+    },
+    {
+      "code": "166 \n167             return TokenResponse(\n168                 access_token=session.access_token,\n169                 refresh_token=session.refresh_token,\n170                 token_type=\"bearer\",\n171                 expires_in=session.expires_in\n172                 or settings.AUTH_SESSION_DEFAULT_EXPIRES_IN,\n173                 expires_at=expires_at,\n174             )\n175 \n",
+      "col_offset": 19,
+      "end_col_offset": 13,
+      "filename": "domains/auth/services.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 259,
+        "link": "https://cwe.mitre.org/data/definitions/259.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Possible hardcoded password: 'bearer'",
+      "line_number": 167,
+      "line_range": [
+        167,
+        168,
+        169,
+        170,
+        171,
+        172,
+        173,
+        174
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.8.5/plugins/b106_hardcoded_password_funcarg.html",
+      "test_id": "B106",
+      "test_name": "hardcoded_password_funcarg"
+    },
+    {
+      "code": "396 \n397             return TokenResponse(\n398                 access_token=session.access_token,\n399                 refresh_token=session.refresh_token,\n400                 token_type=\"bearer\",\n401                 expires_in=session.expires_in\n402                 or settings.AUTH_SESSION_DEFAULT_EXPIRES_IN,\n403                 expires_at=expires_at,\n404             )\n405 \n",
+      "col_offset": 19,
+      "end_col_offset": 13,
+      "filename": "domains/auth/services.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 259,
+        "link": "https://cwe.mitre.org/data/definitions/259.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Possible hardcoded password: 'bearer'",
+      "line_number": 397,
+      "line_range": [
+        397,
+        398,
+        399,
+        400,
+        401,
+        402,
+        403,
+        404
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.8.5/plugins/b106_hardcoded_password_funcarg.html",
+      "test_id": "B106",
+      "test_name": "hardcoded_password_funcarg"
+    },
+    {
+      "code": "511 \n512             return TokenResponse(\n513                 access_token=session.access_token,\n514                 refresh_token=session.refresh_token,\n515                 token_type=\"bearer\",\n516                 expires_in=session.expires_in\n517                 or settings.AUTH_SESSION_DEFAULT_EXPIRES_IN,\n518                 expires_at=expires_at,\n519             )\n520 \n",
+      "col_offset": 19,
+      "end_col_offset": 13,
+      "filename": "domains/auth/services.py",
+      "issue_confidence": "MEDIUM",
+      "issue_cwe": {
+        "id": 259,
+        "link": "https://cwe.mitre.org/data/definitions/259.html"
+      },
+      "issue_severity": "LOW",
+      "issue_text": "Possible hardcoded password: 'bearer'",
+      "line_number": 512,
+      "line_range": [
+        512,
+        513,
+        514,
+        515,
+        516,
+        517,
+        518,
+        519
+      ],
+      "more_info": "https://bandit.readthedocs.io/en/1.8.5/plugins/b106_hardcoded_password_funcarg.html",
+      "test_id": "B106",
+      "test_name": "hardcoded_password_funcarg"
+    }
+  ]
+}

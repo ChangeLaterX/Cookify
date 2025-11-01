@@ -1,0 +1,109 @@
+# Development-specific Docker Compose configuration
+# This extends the main docker-compose.yml for development use
+
+services:
+  cookify-api-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # target: development  # Commented out - single-stage Dockerfile
+    image: cookify-api:dev
+    container_name: cookify_api_dev
+    ports:
+      - '8000:8000'
+      - '8001:8001' # Debug port
+    env_file:
+      - .env.development
+    environment:
+      # Development overrides
+      - DEBUG=true
+      - ENVIRONMENT=development
+      - LOG_LEVEL=DEBUG
+      - RELOAD=true
+
+      # Relaxed security for development
+      - SESSION_HTTPS_ONLY=false
+      - CORS_ORIGINS=["http://localhost:3000","http://localhost:5173","http://127.0.0.1:3000","http://127.0.0.1:5173"]
+
+      # Development OCR settings (more permissive)
+      - OCR_MAX_IMAGE_SIZE_BYTES=10485760 # 10MB for dev
+      - RATE_LIMIT_OCR_EXTRACT_ATTEMPTS=20
+      - RATE_LIMIT_OCR_PROCESS_ATTEMPTS=15
+
+    volumes:
+      # Mount source code for live reload
+      - .:/backend:rw
+      - dev-cache:/backend/.cache:rw
+      - ./logs:/backend/logs:rw
+      # Mount test data
+      - ./data:/backend/data:ro
+
+    networks:
+      - cookify-dev-network
+
+    # Development doesn't need strict security
+    security_opt:
+      - no-new-privileges:true
+    read_only: false
+
+    # Resource limits optimized for dedicated server (1 CPU, 861MB RAM)
+    deploy:
+      resources:
+        limits:
+          memory: 750M # Use most available RAM (leave ~110MB for system)
+          cpus: '1.0' # Use full CPU core
+        reservations:
+          memory: 300M # Reserve more for stable operation
+          cpus: '0.3' # Reserve 30% of CPU
+
+    # Fast restart for development
+    restart: unless-stopped
+
+    # Development command with reload
+    command:
+      [
+        'uvicorn',
+        'main:app',
+        '--host',
+        '0.0.0.0',
+        '--port',
+        '8000',
+        '--reload',
+        '--log-level',
+        'debug',
+        '--access-log',
+      ]
+
+  # Optional: Add a database for development
+  # postgres-dev:
+  #   image: postgres:15-alpine
+  #   container_name: cookify_db_dev
+  #   environment:
+  #     - POSTGRES_DB=cookify_dev
+  #     - POSTGRES_USER=cookify
+  #     - POSTGRES_PASSWORD=development_password
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres-dev-data:/var/lib/postgresql/data
+  #   networks:
+  #     - cookify-dev-network
+
+  # Optional: Redis for rate limiting in development
+  # redis-dev:
+  #   image: redis:7-alpine
+  #   container_name: cookify_redis_dev
+  #   ports:
+  #     - "6379:6379"
+  #   networks:
+  #     - cookify-dev-network
+
+networks:
+  cookify-dev-network:
+    driver: bridge
+
+volumes:
+  dev-cache:
+    driver: local
+  # postgres-dev-data:
+  #   driver: local

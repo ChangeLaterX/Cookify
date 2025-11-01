@@ -46,3 +46,4 @@ wheels/
 .vscode/
 *.swp
 *.swo
+*.log

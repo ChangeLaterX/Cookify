@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="14" failures="0" skipped="0" tests="14" time="1.771" timestamp="2025-06-21T00:36:55.057817+02:00" hostname="shadow"><testcase classname="" name="ingredients.unit.test_error_handling" time="0.000"><error message="collection failure">import file mismatch:
+imported module 'test_error_handling' has this __file__ attribute:
+  /home/cipher/dev/Cookify/backend/tests/auth/unit/test_error_handling.py
+which is not the same as the test file we want to collect:
+  /home/cipher/dev/Cookify/backend/tests/ingredients/unit/test_error_handling.py
+HINT: remove __pycache__ / .pyc files and/or use a unique basename for your test file modules</error></testcase><testcase classname="" name="ocr.integration.test_performance" time="0.000"><error message="collection failure">ImportError while importing test module '/home/cipher/dev/Cookify/backend/tests/ocr/integration/test_performance.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/python.py:497: in importtestmodule
+    mod = import_path(
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+../../../.conda/envs/cookify/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;frozen importlib._bootstrap&gt;:1387: in _gcd_import
+    ???
+&lt;frozen importlib._bootstrap&gt;:1360: in _find_and_load
+    ???
+&lt;frozen importlib._bootstrap&gt;:1310: in _find_and_load_unlocked
+    ???
+&lt;frozen importlib._bootstrap&gt;:488: in _call_with_frames_removed
+    ???
+&lt;frozen importlib._bootstrap&gt;:1387: in _gcd_import
+    ???
+&lt;frozen importlib._bootstrap&gt;:1360: in _find_and_load
+    ???
+&lt;frozen importlib._bootstrap&gt;:1310: in _find_and_load_unlocked
+    ???
+&lt;frozen importlib._bootstrap&gt;:488: in _call_with_frames_removed
+    ???
+&lt;frozen importlib._bootstrap&gt;:1387: in _gcd_import
+    ???
+&lt;frozen importlib._bootstrap&gt;:1360: in _find_and_load
+    ???
+&lt;frozen importlib._bootstrap&gt;:1331: in _find_and_load_unlocked
+    ???
+&lt;frozen importlib._bootstrap&gt;:935: in _load_unlocked
+    ???
+&lt;frozen importlib._bootstrap_external&gt;:999: in exec_module
+    ???
+&lt;frozen importlib._bootstrap&gt;:488: in _call_with_frames_removed
+    ???
+tests/ocr/__init__.py:31: in &lt;module&gt;
+    from .utils.mocks import OCRMockFactory, MockContextManager
+tests/ocr/utils/__init__.py:8: in &lt;module&gt;
+    from .mocks import (
+tests/ocr/utils/mocks.py:19: in &lt;module&gt;
+    from tests.ocr.config import OCRTestConfig
+tests/ocr/__init__.py:31: in &lt;module&gt;
+    from .utils.mocks import OCRMockFactory, MockContextManager
+tests/ocr/utils/__init__.py:14: in &lt;module&gt;
+    from .test_data import (
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests/ocr/utils/test_data.py:19: in &lt;module&gt;
+    from domains.ingredients.schemas import Ingredient, IngredientSearchResult
+E   ImportError: cannot import name 'Ingredient' from 'domains.ingredients.schemas' (/home/cipher/dev/Cookify/backend/domains/ingredients/schemas.py). Did you mean: 'ingredients'?</error></testcase><testcase classname="" name="ocr.integration.test_real_ocr" time="0.000"><error message="collection failure">ImportError while importing test module '/home/cipher/dev/Cookify/backend/tests/ocr/integration/test_real_ocr.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/python.py:497: in importtestmodule
+    mod = import_path(
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+../../../.conda/envs/cookify/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;frozen importlib._bootstrap&gt;:1387: in _gcd_import
+    ???
+&lt;frozen importlib._bootstrap&gt;:1360: in _find_and_load
+    ???
+&lt;frozen importlib._bootstrap&gt;:1310: in _find_and_load_unlocked
+    ???
+&lt;frozen importlib._bootstrap&gt;:488: in _call_with_frames_removed
+    ???
+&lt;frozen importlib._bootstrap&gt;:1387: in _gcd_import
+    ???
+&lt;frozen importlib._bootstrap&gt;:1360: in _find_and_load
+    ???
+&lt;frozen importlib._bootstrap&gt;:1310: in _find_and_load_unlocked
+    ???
+&lt;frozen importlib._bootstrap&gt;:488: in _call_with_frames_removed
+    ???
+&lt;frozen importlib._bootstrap&gt;:1387: in _gcd_import
+    ???
+&lt;frozen importlib._bootstrap&gt;:1360: in _find_and_load
+    ???
+&lt;frozen importlib._bootstrap&gt;:1331: in _find_and_load_unlocked
+    ???
+&lt;frozen importlib._bootstrap&gt;:935: in _load_unlocked
+    ???
+&lt;frozen importlib._bootstrap_external&gt;:999: in exec_module
+    ???
+&lt;frozen importlib._bootstrap&gt;:488: in _call_with_frames_removed
+    ???
+tests/ocr/__init__.py:31: in &lt;module&gt;
+    from .utils.mocks import OCRMockFactory, MockContextManager
+tests/ocr/utils/__init__.py:14: in &lt;module&gt;
+    from .test_data import (
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests/ocr/utils/test_data.py:19: in &lt;module&gt;
+    from domains.ingredients.schemas import Ingredient, IngredientSearchResult
+E   ImportError: cannot import name 'Ingredient' from 'domains.ingredients.schemas' (/home/cipher/dev/Cookify/backend/domains/ingredients/schemas.py). Did you mean: 'ingredients'?</error></testcase><testcase classname="" name="ocr.run_tests" time="0.000"><error message="collection failure">ImportError while importing test module '/home/cipher/dev/Cookify/backend/tests/ocr/run_tests.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/python.py:497: in importtestmodule
+    mod = import_path(
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+../../../.conda/envs/cookify/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;frozen importlib._bootstrap&gt;:1387: in _gcd_import
+    ???
+&lt;frozen importlib._bootstrap&gt;:1360: in _find_and_load
+    ???
+&lt;frozen importlib._bootstrap&gt;:1310: in _find_and_load_unlocked
+    ???
+&lt;frozen importlib._bootstrap&gt;:488: in _call_with_frames_removed
+    ???
+&lt;frozen importlib._bootstrap&gt;:1387: in _gcd_import
+    ???
+&lt;frozen importlib._bootstrap&gt;:1360: in _find_and_load
+    ???
+&lt;frozen importlib._bootstrap&gt;:1331: in _find_and_load_unlocked
+    ???
+&lt;frozen importlib._bootstrap&gt;:935: in _load_unlocked
+    ???
+&lt;frozen importlib._bootstrap_external&gt;:999: in exec_module
+    ???
+&lt;frozen importlib._bootstrap&gt;:488: in _call_with_frames_removed
+    ???
+tests/ocr/__init__.py:32: in &lt;module&gt;
+    from .utils.test_data import TestDataGenerator
+tests/ocr/utils/__init__.py:14: in &lt;module&gt;
+    from .test_data import (
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests/ocr/utils/test_data.py:19: in &lt;module&gt;
+    from domains.ingredients.schemas import Ingredient, IngredientSearchResult
+E   ImportError: cannot import name 'Ingredient' from 'domains.ingredients.schemas' (/home/cipher/dev/Cookify/backend/domains/ingredients/schemas.py). Did you mean: 'ingredients'?</error></testcase><testcase classname="" name="ocr.unit.test_complete_workflow" time="0.000"><error message="collection failure">import file mismatch:
+imported module 'test_complete_workflow' has this __file__ attribute:
+  /home/cipher/dev/Cookify/backend/tests/auth/unit/test_complete_workflow.py
+which is not the same as the test file we want to collect:
+  /home/cipher/dev/Cookify/backend/tests/ocr/unit/test_complete_workflow.py
+HINT: remove __pycache__ / .pyc files and/or use a unique basename for your test file modules</error></testcase><testcase classname="" name="ocr.unit.test_data_extraction" time="0.000"><error message="collection failure">ImportError while importing test module '/home/cipher/dev/Cookify/backend/tests/ocr/unit/test_data_extraction.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/python.py:497: in importtestmodule
+    mod = import_path(
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+../../../.conda/envs/cookify/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;frozen importlib._bootstrap&gt;:1387: in _gcd_import
+    ???
+&lt;frozen importlib._bootstrap&gt;:1360: in _find_and_load
+    ???
+&lt;frozen importlib._bootstrap&gt;:1331: in _find_and_load_unlocked
+    ???
+&lt;frozen importlib._bootstrap&gt;:935: in _load_unlocked
+    ???
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests/ocr/unit/test_data_extraction.py:13: in &lt;module&gt;
+    from tests.ocr.utils.test_data import get_test_data
+tests/ocr/__init__.py:32: in &lt;module&gt;
+    from .utils.test_data import TestDataGenerator
+tests/ocr/utils/__init__.py:14: in &lt;module&gt;
+    from .test_data import (
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests/ocr/utils/test_data.py:19: in &lt;module&gt;
+    from domains.ingredients.schemas import Ingredient, IngredientSearchResult
+E   ImportError: cannot import name 'Ingredient' from 'domains.ingredients.schemas' (/home/cipher/dev/Cookify/backend/domains/ingredients/schemas.py). Did you mean: 'ingredients'?</error></testcase><testcase classname="" name="ocr.unit.test_error_handling" time="0.000"><error message="collection failure">import file mismatch:
+imported module 'test_error_handling' has this __file__ attribute:
+  /home/cipher/dev/Cookify/backend/tests/auth/unit/test_error_handling.py
+which is not the same as the test file we want to collect:
+  /home/cipher/dev/Cookify/backend/tests/ocr/unit/test_error_handling.py
+HINT: remove __pycache__ / .pyc files and/or use a unique basename for your test file modules</error></testcase><testcase classname="" name="ocr.unit.test_ingredient_suggestions" time="0.000"><error message="collection failure">ImportError while importing test module '/home/cipher/dev/Cookify/backend/tests/ocr/unit/test_ingredient_suggestions.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/python.py:497: in importtestmodule
+    mod = import_path(
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+../../../.conda/envs/cookify/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;frozen importlib._bootstrap&gt;:1387: in _gcd_import
+    ???
+&lt;frozen importlib._bootstrap&gt;:1360: in _find_and_load
+    ???
+&lt;frozen importlib._bootstrap&gt;:1331: in _find_and_load_unlocked
+    ???
+&lt;frozen importlib._bootstrap&gt;:935: in _load_unlocked
+    ???
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests/ocr/unit/test_ingredient_suggestions.py:16: in &lt;module&gt;
+    from tests.ocr.utils.test_data import TestDataGenerator
+tests/ocr/__init__.py:32: in &lt;module&gt;
+    from .utils.test_data import TestDataGenerator
+tests/ocr/utils/__init__.py:14: in &lt;module&gt;
+    from .test_data import (
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests/ocr/utils/test_data.py:19: in &lt;module&gt;
+    from domains.ingredients.schemas import Ingredient, IngredientSearchResult
+E   ImportError: cannot import name 'Ingredient' from 'domains.ingredients.schemas' (/home/cipher/dev/Cookify/backend/domains/ingredients/schemas.py). Did you mean: 'ingredients'?</error></testcase><testcase classname="" name="ocr.unit.test_receipt_items" time="0.000"><error message="collection failure">ImportError while importing test module '/home/cipher/dev/Cookify/backend/tests/ocr/unit/test_receipt_items.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/python.py:497: in importtestmodule
+    mod = import_path(
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+../../../.conda/envs/cookify/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;frozen importlib._bootstrap&gt;:1387: in _gcd_import
+    ???
+&lt;frozen importlib._bootstrap&gt;:1360: in _find_and_load
+    ???
+&lt;frozen importlib._bootstrap&gt;:1331: in _find_and_load_unlocked
+    ???
+&lt;frozen importlib._bootstrap&gt;:935: in _load_unlocked
+    ???
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests/ocr/unit/test_receipt_items.py:13: in &lt;module&gt;
+    from tests.ocr.utils.test_data import get_test_data
+tests/ocr/__init__.py:32: in &lt;module&gt;
+    from .utils.test_data import TestDataGenerator
+tests/ocr/utils/__init__.py:14: in &lt;module&gt;
+    from .test_data import (
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests/ocr/utils/test_data.py:19: in &lt;module&gt;
+    from domains.ingredients.schemas import Ingredient, IngredientSearchResult
+E   ImportError: cannot import name 'Ingredient' from 'domains.ingredients.schemas' (/home/cipher/dev/Cookify/backend/domains/ingredients/schemas.py). Did you mean: 'ingredients'?</error></testcase><testcase classname="" name="ocr.unit.test_service_initialization" time="0.000"><error message="collection failure">import file mismatch:
+imported module 'test_service_initialization' has this __file__ attribute:
+  /home/cipher/dev/Cookify/backend/tests/auth/unit/test_service_initialization.py
+which is not the same as the test file we want to collect:
+  /home/cipher/dev/Cookify/backend/tests/ocr/unit/test_service_initialization.py
+HINT: remove __pycache__ / .pyc files and/or use a unique basename for your test file modules</error></testcase><testcase classname="" name="ocr.unit.test_text_extraction" time="0.000"><error message="collection failure">'ocr_unit' not found in `markers` configuration option</error></testcase><testcase classname="" name="ocr.utils.test_data" time="0.000"><error message="collection failure">ImportError while importing test module '/home/cipher/dev/Cookify/backend/tests/ocr/utils/test_data.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/python.py:497: in importtestmodule
+    mod = import_path(
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+../../../.conda/envs/cookify/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;frozen importlib._bootstrap&gt;:1387: in _gcd_import
+    ???
+&lt;frozen importlib._bootstrap&gt;:1360: in _find_and_load
+    ???
+&lt;frozen importlib._bootstrap&gt;:1310: in _find_and_load_unlocked
+    ???
+&lt;frozen importlib._bootstrap&gt;:488: in _call_with_frames_removed
+    ???
+&lt;frozen importlib._bootstrap&gt;:1387: in _gcd_import
+    ???
+&lt;frozen importlib._bootstrap&gt;:1360: in _find_and_load
+    ???
+&lt;frozen importlib._bootstrap&gt;:1310: in _find_and_load_unlocked
+    ???
+&lt;frozen importlib._bootstrap&gt;:488: in _call_with_frames_removed
+    ???
+&lt;frozen importlib._bootstrap&gt;:1387: in _gcd_import
+    ???
+&lt;frozen importlib._bootstrap&gt;:1360: in _find_and_load
+    ???
+&lt;frozen importlib._bootstrap&gt;:1331: in _find_and_load_unlocked
+    ???
+&lt;frozen importlib._bootstrap&gt;:935: in _load_unlocked
+    ???
+&lt;frozen importlib._bootstrap_external&gt;:999: in exec_module
+    ???
+&lt;frozen importlib._bootstrap&gt;:488: in _call_with_frames_removed
+    ???
+tests/ocr/__init__.py:32: in &lt;module&gt;
+    from .utils.test_data import TestDataGenerator
+tests/ocr/utils/__init__.py:14: in &lt;module&gt;
+    from .test_data import (
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests/ocr/utils/test_data.py:19: in &lt;module&gt;
+    from domains.ingredients.schemas import Ingredient, IngredientSearchResult
+E   ImportError: cannot import name 'Ingredient' from 'domains.ingredients.schemas' (/home/cipher/dev/Cookify/backend/domains/ingredients/schemas.py). Did you mean: 'ingredients'?</error></testcase><testcase classname="" name="ocr.utils.test_data_new" time="0.000"><error message="collection failure">ImportError while importing test module '/home/cipher/dev/Cookify/backend/tests/ocr/utils/test_data_new.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/python.py:497: in importtestmodule
+    mod = import_path(
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+../../../.conda/envs/cookify/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;frozen importlib._bootstrap&gt;:1387: in _gcd_import
+    ???
+&lt;frozen importlib._bootstrap&gt;:1360: in _find_and_load
+    ???
+&lt;frozen importlib._bootstrap&gt;:1310: in _find_and_load_unlocked
+    ???
+&lt;frozen importlib._bootstrap&gt;:488: in _call_with_frames_removed
+    ???
+&lt;frozen importlib._bootstrap&gt;:1387: in _gcd_import
+    ???
+&lt;frozen importlib._bootstrap&gt;:1360: in _find_and_load
+    ???
+&lt;frozen importlib._bootstrap&gt;:1310: in _find_and_load_unlocked
+    ???
+&lt;frozen importlib._bootstrap&gt;:488: in _call_with_frames_removed
+    ???
+&lt;frozen importlib._bootstrap&gt;:1387: in _gcd_import
+    ???
+&lt;frozen importlib._bootstrap&gt;:1360: in _find_and_load
+    ???
+&lt;frozen importlib._bootstrap&gt;:1331: in _find_and_load_unlocked
+    ???
+&lt;frozen importlib._bootstrap&gt;:935: in _load_unlocked
+    ???
+&lt;frozen importlib._bootstrap_external&gt;:999: in exec_module
+    ???
+&lt;frozen importlib._bootstrap&gt;:488: in _call_with_frames_removed
+    ???
+tests/ocr/__init__.py:32: in &lt;module&gt;
+    from .utils.test_data import TestDataGenerator
+tests/ocr/utils/__init__.py:14: in &lt;module&gt;
+    from .test_data import (
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests/ocr/utils/test_data.py:19: in &lt;module&gt;
+    from domains.ingredients.schemas import Ingredient, IngredientSearchResult
+E   ImportError: cannot import name 'Ingredient' from 'domains.ingredients.schemas' (/home/cipher/dev/Cookify/backend/domains/ingredients/schemas.py). Did you mean: 'ingredients'?</error></testcase><testcase classname="" name="ocr.utils.test_data_old" time="0.000"><error message="collection failure">ImportError while importing test module '/home/cipher/dev/Cookify/backend/tests/ocr/utils/test_data_old.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/python.py:497: in importtestmodule
+    mod = import_path(
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+../../../.conda/envs/cookify/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;frozen importlib._bootstrap&gt;:1387: in _gcd_import
+    ???
+&lt;frozen importlib._bootstrap&gt;:1360: in _find_and_load
+    ???
+&lt;frozen importlib._bootstrap&gt;:1310: in _find_and_load_unlocked
+    ???
+&lt;frozen importlib._bootstrap&gt;:488: in _call_with_frames_removed
+    ???
+&lt;frozen importlib._bootstrap&gt;:1387: in _gcd_import
+    ???
+&lt;frozen importlib._bootstrap&gt;:1360: in _find_and_load
+    ???
+&lt;frozen importlib._bootstrap&gt;:1310: in _find_and_load_unlocked
+    ???
+&lt;frozen importlib._bootstrap&gt;:488: in _call_with_frames_removed
+    ???
+&lt;frozen importlib._bootstrap&gt;:1387: in _gcd_import
+    ???
+&lt;frozen importlib._bootstrap&gt;:1360: in _find_and_load
+    ???
+&lt;frozen importlib._bootstrap&gt;:1331: in _find_and_load_unlocked
+    ???
+&lt;frozen importlib._bootstrap&gt;:935: in _load_unlocked
+    ???
+&lt;frozen importlib._bootstrap_external&gt;:999: in exec_module
+    ???
+&lt;frozen importlib._bootstrap&gt;:488: in _call_with_frames_removed
+    ???
+tests/ocr/__init__.py:32: in &lt;module&gt;
+    from .utils.test_data import TestDataGenerator
+tests/ocr/utils/__init__.py:14: in &lt;module&gt;
+    from .test_data import (
+../../../.conda/envs/cookify/lib/python3.12/site-packages/_pytest/assertion/rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests/ocr/utils/test_data.py:19: in &lt;module&gt;
+    from domains.ingredients.schemas import Ingredient, IngredientSearchResult
+E   ImportError: cannot import name 'Ingredient' from 'domains.ingredients.schemas' (/home/cipher/dev/Cookify/backend/domains/ingredients/schemas.py). Did you mean: 'ingredients'?</error></testcase></testsuite></testsuites>

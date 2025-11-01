@@ -1,0 +1,11 @@
+{
+  "timestamp": 1750719090.5260706,
+  "duration_seconds": 162.07843852043152,
+  "results": {
+    "code_quality": false,
+    "security_scan": true,
+    "tests": false,
+    "performance": false
+  },
+  "overall_status": "failure"
+}

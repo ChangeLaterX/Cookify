@@ -54,7 +54,7 @@ npm run dev
 ### Development
 
 - Mobile app: `npm run dev:mobile`
-- Backend: `cd backend && uvicorn app.main:app --reload`
+- Backend: `cd backend && uvicorn main:app --reload`
 - Build web: `npm run build:web`
 
 ## Project Structure

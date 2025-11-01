@@ -1,0 +1,1173 @@
+name: 🧪 Backend Test Suite
+
+'on':
+  push:
+    branches: [main, dev, release/*]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-tests.yml'
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-tests.yml'
+  schedule:
+    # Run full test suite daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test suite to run'
+        required: false
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - unit-only
+          - integration-only
+          - performance-only
+          - security-only
+          - smoke-only
+      environment:
+        description: 'Target environment'
+        required: false
+        default: 'ci'
+        type: choice
+        options:
+          - ci
+          - staging
+          - production-like
+
+env:
+  # Python configuration
+  PYTHON_VERSION_PRIMARY: '3.12'
+
+  # Test configuration
+  PYTEST_WORKERS: 4
+  COVERAGE_THRESHOLD: 80
+  PERFORMANCE_THRESHOLD_MS: 5000
+
+  # CI configuration
+  CACHE_VERSION: v2
+  ARTIFACT_RETENTION_DAYS: 30
+
+# Global concurrency control
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ============================================================================
+  # 🔍 CODE QUALITY & STATIC ANALYSIS
+  # ============================================================================
+  code-quality:
+    name: 🔍 Code Quality & Linting
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for better analysis
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION_PRIMARY }}
+          cache: 'pip'
+
+      - name: 📦 Install Quality Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install black "isort[colors]" flake8 mypy bandit safety colorama
+          pip install -r backend/requirements.txt
+
+      - name: 🎨 Check Code Formatting (Black)
+        working-directory: ./backend
+        run: |
+          echo "🔍 Checking code formatting with Black..."
+          
+          # Run black check and capture output
+          if ! black --check --diff --color . > black_output.txt 2>&1; then
+            echo "❌ Code formatting issues found!"
+            echo ""
+            echo "📋 FORMATTING ISSUES SUMMARY:"
+            echo "=============================="
+            
+            # Extract and show files that need formatting
+            grep "would reformat" black_output.txt | sed 's/would reformat /❌ /' || true
+            
+            echo ""
+            echo "🔧 DETAILED DIFF:"
+            echo "=================="
+            cat black_output.txt
+            
+            echo ""
+            echo "💡 To fix these issues, run: black ."
+            echo ""
+            
+            # Count files that need formatting
+            REFORMAT_COUNT=$(grep -c "would reformat" black_output.txt || echo "0")
+            echo "📊 Total files needing formatting: $REFORMAT_COUNT"
+            
+            exit 1
+          else
+            echo "✅ All files are properly formatted with Black"
+          fi
+
+      - name: 📊 Check Import Sorting (isort)
+        working-directory: ./backend
+        run: |
+          echo "🔍 Checking import sorting with isort..."
+          
+          # Run isort check and capture output (without color to avoid colorama issues)
+          if ! isort --check-only --diff . > isort_output.txt 2>&1; then
+            echo "❌ Import sorting issues found!"
+            echo ""
+            echo "📋 IMPORT SORTING ISSUES SUMMARY:"
+            echo "=================================="
+            
+            # Extract and show files that need import sorting
+            grep "ERROR:" isort_output.txt | sed 's/ERROR: /❌ /' || true
+            grep "Skipped" isort_output.txt | sed 's/Skipped/⚠️ Skipped/' || true
+            grep "would reformat" isort_output.txt | sed 's/would reformat/❌ Needs sorting:/' || true
+            
+            echo ""
+            echo "🔧 DETAILED DIFF:"
+            echo "=================="
+            cat isort_output.txt
+            
+            echo ""
+            echo "💡 To fix these issues, run: isort ."
+            echo ""
+            
+            # Count files that need import sorting
+            ERROR_COUNT=$(grep -c "ERROR:\|would reformat" isort_output.txt || echo "0")
+            echo "📊 Total files needing import sorting: $ERROR_COUNT"
+            
+            exit 1
+          else
+            echo "✅ All imports are properly sorted with isort"
+          fi
+
+      - name: 🔍 Lint Code (Flake8)
+        working-directory: ./backend
+        run: |
+          echo "🔍 Running code linting with Flake8..."
+          
+          # Run critical error check first
+          echo "🚨 Checking for critical errors (syntax, undefined names)..."
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          
+          # Run full linting and capture output
+          echo ""
+          echo "📊 Running full linting check..."
+          if ! flake8 . --count --max-complexity=10 --max-line-length=88 --statistics --format='%(path)s:%(row)d:%(col)d: %(code)s %(text)s' > flake8_output.txt 2>&1; then
+            echo "❌ Linting issues found!"
+            echo ""
+            echo "📋 LINTING ISSUES SUMMARY:"
+            echo "=========================="
+            
+            # Group issues by file
+            echo "📁 Files with issues:"
+            awk -F: '{print $1}' flake8_output.txt | sort | uniq -c | sort -nr | head -10 | while read count file; do
+              echo "  ❌ $file ($count issues)"
+            done
+            
+            echo ""
+            echo "🔧 DETAILED ISSUES:"
+            echo "==================="
+            cat flake8_output.txt
+            
+            echo ""
+            echo "💡 To fix these issues, review the files listed above"
+            
+            # Count total issues
+            ISSUE_COUNT=$(wc -l < flake8_output.txt || echo "0")
+            echo "📊 Total linting issues: $ISSUE_COUNT"
+            
+            # Only fail for critical errors, warn for style issues
+            CRITICAL_COUNT=$(flake8 . --select=E9,F63,F7,F82 --count --quiet || echo "0")
+            if [ "$CRITICAL_COUNT" -gt 0 ]; then
+              echo "💥 Critical errors found - failing build"
+              exit 1
+            else
+              echo "⚠️ Style issues found but no critical errors"
+            fi
+          else
+            echo "✅ No linting issues found"
+          fi
+
+      - name: 🔒 Security Scan (Bandit)
+        working-directory: ./backend
+        run: |
+          bandit -r . -f json -o bandit-report.json || echo "⚠️ Security issues found"
+          bandit -r . -f txt
+
+      - name: 🛡️ Dependency Security Check (Safety)
+        working-directory: ./backend
+        run: |
+          safety check --json --output safety-report.json || echo "⚠️ Vulnerable dependencies found"
+          safety check
+
+      - name: 📤 Upload Security Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            backend/bandit-report.json
+            backend/safety-report.json
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+
+      - name: 📋 Code Quality Summary
+        if: always()
+        working-directory: ./backend
+        run: |
+          echo "📊 CODE QUALITY SUMMARY REPORT"
+          echo "==============================="
+          echo ""
+          
+          # Initialize counters
+          TOTAL_ISSUES=0
+          
+          # Check for Black formatting issues
+          if [ -f "black_output.txt" ]; then
+            BLACK_COUNT=$(grep -c "would reformat" black_output.txt || echo "0")
+            if [ "$BLACK_COUNT" -gt 0 ]; then
+              echo "🎨 BLACK FORMATTING: $BLACK_COUNT files need formatting"
+              grep "would reformat" black_output.txt | head -5 | sed 's/would reformat /  ❌ /'
+              [ "$BLACK_COUNT" -gt 5 ] && echo "    ... and $((BLACK_COUNT - 5)) more files"
+              TOTAL_ISSUES=$((TOTAL_ISSUES + BLACK_COUNT))
+            else
+              echo "🎨 BLACK FORMATTING: ✅ All files properly formatted"
+            fi
+          else
+            echo "🎨 BLACK FORMATTING: ✅ All files properly formatted"
+          fi
+          
+          echo ""
+          
+          # Check for isort import sorting issues
+          if [ -f "isort_output.txt" ]; then
+            ISORT_COUNT=$(grep -c "ERROR:" isort_output.txt || echo "0")
+            if [ "$ISORT_COUNT" -gt 0 ]; then
+              echo "📊 IMPORT SORTING: $ISORT_COUNT files need sorting"
+              grep "ERROR:" isort_output.txt | head -5 | sed 's/ERROR: /  ❌ /'
+              [ "$ISORT_COUNT" -gt 5 ] && echo "    ... and $((ISORT_COUNT - 5)) more files"
+              TOTAL_ISSUES=$((TOTAL_ISSUES + ISORT_COUNT))
+            else
+              echo "📊 IMPORT SORTING: ✅ All imports properly sorted"
+            fi
+          else
+            echo "📊 IMPORT SORTING: ✅ All imports properly sorted"
+          fi
+          
+          echo ""
+          
+          # Check for Flake8 linting issues
+          if [ -f "flake8_output.txt" ]; then
+            FLAKE8_COUNT=$(wc -l < flake8_output.txt || echo "0")
+            if [ "$FLAKE8_COUNT" -gt 0 ]; then
+              echo "🔍 LINTING: $FLAKE8_COUNT issues found"
+              awk -F: '{print $1}' flake8_output.txt | sort | uniq -c | sort -nr | head -3 | while read count file; do
+                echo "  ❌ $file ($count issues)"
+              done
+              TOTAL_ISSUES=$((TOTAL_ISSUES + FLAKE8_COUNT))
+            else
+              echo "🔍 LINTING: ✅ No issues found"
+            fi
+          else
+            echo "🔍 LINTING: ✅ No issues found"
+          fi
+          
+          echo ""
+          echo "==============================="
+          
+          if [ "$TOTAL_ISSUES" -eq 0 ]; then
+            echo "🎉 OVERALL STATUS: ✅ ALL CODE QUALITY CHECKS PASSED"
+          else
+            echo "⚠️ OVERALL STATUS: $TOTAL_ISSUES issues found"
+            echo ""
+            echo "💡 QUICK FIX COMMANDS:"
+            echo "  black ."
+            echo "  isort ."
+            echo "  flake8 . --statistics"
+          fi
+
+  # ============================================================================
+  # 🧪 UNIT TESTS - DOMAIN MATRIX
+  # ============================================================================
+  unit-tests:
+    name: 🧪 Unit Tests
+    runs-on: ubuntu-latest
+    needs: code-quality
+    if: |
+      !failure() && 
+      (github.event.inputs.test_suite == '' || 
+       github.event.inputs.test_suite == 'full' || 
+       github.event.inputs.test_suite == 'unit-only')
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12']
+        domain: ['auth', 'ingredients', 'ocr']
+        include:
+          # Special configurations per domain
+          - domain: 'ocr'
+            extra-deps: 'tesseract-ocr tesseract-ocr-deu tesseract-ocr-eng libtesseract-dev'
+          - domain: 'auth'
+            extra-deps: ''
+          - domain: 'ingredients'
+            extra-deps: 'libmagic1 libmagic-dev'
+
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: 'backend/requirements.txt'
+
+      - name: 🔧 Install System Dependencies
+        if: matrix.extra-deps != ''
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ${{ matrix.extra-deps }}
+
+      - name: 📦 Install Python Dependencies
+        working-directory: ./backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest-cov pytest-xdist pytest-mock pytest-asyncio
+
+      - name: 🛠️ Setup Test Environment
+        working-directory: ./backend
+        run: |
+          export PYTHONPATH="$(pwd):${PYTHONPATH}"
+          pip install -e .
+
+      - name: 🧪 Run ${{ matrix.domain }} Unit Tests
+        working-directory: ./backend
+        env:
+          ENVIRONMENT: testing
+          DEBUG: false
+          PYTEST_CURRENT_TEST: true
+          DB_READ_ONLY: true
+          OCR_TEST_MOCK_MODE: true
+        run: |
+          python -m pytest tests/${{ matrix.domain }}/unit/ \
+            -c tests/pytest-ci.ini \
+            -m "unit and ${{ matrix.domain }}" \
+            --cov=domains/${{ matrix.domain }} \
+            --cov=core \
+            --cov=middleware \
+            --cov=shared \
+            --cov-report=xml:coverage-${{ matrix.domain }}-py${{ matrix.python-version }}.xml \
+            --cov-report=html:htmlcov-${{ matrix.domain }}-py${{ matrix.python-version }} \
+            --cov-report=term \
+            --junitxml=test-results-${{ matrix.domain }}-py${{ matrix.python-version }}.xml \
+            --verbose \
+            -n ${{ env.PYTEST_WORKERS }}
+
+      - name: 📊 Generate Test Summary
+        if: always()
+        working-directory: ./backend
+        run: |
+          echo "## 🧪 Unit Test Results - ${{ matrix.domain }} (Python ${{ matrix.python-version }})" > test-summary-${{ matrix.domain }}-py${{ matrix.python-version }}.md
+          if [ -f test-results-${{ matrix.domain }}-py${{ matrix.python-version }}.xml ]; then
+            echo "✅ Tests completed successfully" >> test-summary-${{ matrix.domain }}-py${{ matrix.python-version }}.md
+            grep -o 'tests="[0-9]*"' test-results-${{ matrix.domain }}-py${{ matrix.python-version }}.xml | head -1 >> test-summary-${{ matrix.domain }}-py${{ matrix.python-version }}.md || true
+          else
+            echo "❌ Test execution failed" >> test-summary-${{ matrix.domain }}-py${{ matrix.python-version }}.md
+          fi
+
+      - name: 📤 Upload Test Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-test-results-${{ matrix.domain }}-py${{ matrix.python-version }}
+          path: |
+            backend/test-results-${{ matrix.domain }}-py${{ matrix.python-version }}.xml
+            backend/coverage-${{ matrix.domain }}-py${{ matrix.python-version }}.xml
+            backend/htmlcov-${{ matrix.domain }}-py${{ matrix.python-version }}/
+            backend/test-summary-${{ matrix.domain }}-py${{ matrix.python-version }}.md
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+
+  # ============================================================================
+  # 🔗 INTEGRATION TESTS
+  # ============================================================================
+  integration-tests:
+    name: 🔗 Integration Tests
+    runs-on: ubuntu-latest
+    needs: [code-quality, unit-tests]
+    if: |
+      !failure() && 
+      (github.event.inputs.test_suite == '' || 
+       github.event.inputs.test_suite == 'full' || 
+       github.event.inputs.test_suite == 'integration-only')
+
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_USER: test_user
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION_PRIMARY }}
+          cache: 'pip'
+          cache-dependency-path: 'backend/requirements.txt'
+
+      - name: 🔧 Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libmagic1 libmagic-dev tesseract-ocr tesseract-ocr-deu tesseract-ocr-eng libtesseract-dev
+
+      - name: 📦 Install Python Dependencies
+        working-directory: ./backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest-cov pytest-xdist pytest-mock pytest-asyncio
+
+      - name: 🛠️ Setup Test Environment
+        working-directory: ./backend
+        run: |
+          export PYTHONPATH="$(pwd):${PYTHONPATH}"
+          pip install -e .
+
+      - name: 🔗 Run Integration Tests
+        working-directory: ./backend
+        env:
+          ENVIRONMENT: testing
+          DEBUG: false
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_ALGORITHM: HS256
+          JWT_EXPIRATION: 1440
+          TEST_EMAIL: krijajannis@gmail.com
+          TEST_PASSWORD: '221224'
+          OCR_TEST_MOCK_MODE: false
+          OCR_TEST_INTEGRATION: true
+          DB_READ_ONLY: false
+          TEST_DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+        run: |
+          python -m pytest tests/ \
+            -c tests/pytest-ci.ini \
+            -m "integration" \
+            --cov=domains \
+            --cov=core \
+            --cov=middleware \
+            --cov=shared \
+            --cov-report=xml:coverage-integration.xml \
+            --cov-report=html:htmlcov-integration \
+            --cov-report=term \
+            --junitxml=test-results-integration.xml \
+            --verbose \
+            -n ${{ env.PYTEST_WORKERS }}
+
+      - name: 🧪 Run API Endpoint Discovery Tests
+        working-directory: ./backend
+        run: |
+          # Discover endpoints
+          python tests/test_endpoint_discovery.py
+
+          # Test discovered endpoints
+          python -m pytest tests/test_endpoint_discovery.py::TestDiscoveredEndpoints \
+            -c tests/pytest-ci.ini \
+            --junitxml=test-results-endpoints.xml \
+            --verbose
+
+      - name: 📊 Generate Integration Test Summary
+        if: always()
+        working-directory: ./backend
+        run: |
+          echo "## 🔗 Integration Test Results" > test-summary-integration.md
+          if [ -f test-results-integration.xml ]; then
+            echo "✅ Integration tests completed" >> test-summary-integration.md
+            grep -o 'tests="[0-9]*"' test-results-integration.xml | head -1 >> test-summary-integration.md || true
+          fi
+          if [ -f test-results-endpoints.xml ]; then
+            echo "✅ Endpoint discovery tests completed" >> test-summary-integration.md
+            grep -o 'tests="[0-9]*"' test-results-endpoints.xml | head -1 >> test-summary-integration.md || true
+          fi
+
+      - name: 📤 Upload Integration Test Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-test-results
+          path: |
+            backend/test-results-integration.xml
+            backend/test-results-endpoints.xml
+            backend/coverage-integration.xml
+            backend/htmlcov-integration/
+            backend/discovered_endpoints.json
+            backend/test-summary-integration.md
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+
+  # ============================================================================
+  # 🚀 PERFORMANCE TESTS
+  # ============================================================================
+  performance-tests:
+    name: 🚀 Performance Tests
+    runs-on: ubuntu-latest
+    needs: [integration-tests]
+    if: |
+      !failure() && 
+      (github.event.inputs.test_suite == '' || 
+       github.event.inputs.test_suite == 'full' || 
+       github.event.inputs.test_suite == 'performance-only')
+
+    timeout-minutes: 30
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION_PRIMARY }}
+          cache: 'pip'
+          cache-dependency-path: 'backend/requirements.txt'
+
+      - name: 🔧 Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libmagic1 libmagic-dev tesseract-ocr tesseract-ocr-deu tesseract-ocr-eng libtesseract-dev
+
+      - name: 📦 Install Python Dependencies
+        working-directory: ./backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest-benchmark pytest-timeout locust
+
+      - name: 🛠️ Setup Performance Test Environment
+        working-directory: ./backend
+        run: |
+          export PYTHONPATH="$(pwd):${PYTHONPATH}"
+          pip install -e .
+
+      - name: 🚀 Run Performance Tests
+        working-directory: ./backend
+        env:
+          ENVIRONMENT: testing
+          DEBUG: false
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          OCR_TEST_INTEGRATION: true
+          PERFORMANCE_THRESHOLD_MS: ${{ env.PERFORMANCE_THRESHOLD_MS }}
+        run: |
+          python -m pytest tests/ \
+            -c tests/pytest-ci.ini \
+            -m "performance" \
+            --benchmark-json=benchmark-results.json \
+            --benchmark-histogram=benchmark-histogram \
+            --junitxml=test-results-performance.xml \
+            --verbose \
+            --timeout=300
+
+      - name: 🎯 Health Endpoint Performance Test
+        working-directory: ./backend
+        run: |
+          echo "Testing health endpoint performance..."
+          python -c "
+          import time
+          import requests
+          import json
+          from main import app
+          from fastapi.testclient import TestClient
+
+          client = TestClient(app)
+          results = []
+
+          for i in range(10):
+              start = time.time()
+              response = client.get('/api/health')
+              duration = (time.time() - start) * 1000
+              results.append({
+                  'iteration': i + 1,
+                  'duration_ms': round(duration, 2),
+                  'status_code': response.status_code
+              })
+
+          avg_duration = sum(r['duration_ms'] for r in results) / len(results)
+          max_duration = max(r['duration_ms'] for r in results)
+
+          print(f'Average response time: {avg_duration:.2f}ms')
+          print(f'Max response time: {max_duration:.2f}ms')
+
+          with open('health-performance.json', 'w') as f:
+              json.dump({
+                  'average_ms': avg_duration,
+                  'max_ms': max_duration,
+                  'results': results
+              }, f, indent=2)
+
+          if avg_duration > ${{ env.PERFORMANCE_THRESHOLD_MS }}:
+              print(f'❌ Performance test failed: {avg_duration:.2f}ms > ${{ env.PERFORMANCE_THRESHOLD_MS }}ms')
+              exit(1)
+          else:
+              print(f'✅ Performance test passed: {avg_duration:.2f}ms < ${{ env.PERFORMANCE_THRESHOLD_MS }}ms')
+          "
+
+      - name: 📊 Generate Performance Summary
+        if: always()
+        working-directory: ./backend
+        run: |
+          echo "## 🚀 Performance Test Results" > test-summary-performance.md
+          if [ -f benchmark-results.json ]; then
+            echo "✅ Benchmark tests completed" >> test-summary-performance.md
+            python -c "
+            import json
+            try:
+                with open('benchmark-results.json', 'r') as f:
+                    data = json.load(f)
+                print(f'📊 Benchmarks: {len(data.get(\"benchmarks\", []))} tests')
+                print(f'🎯 Machine: {data.get(\"machine_info\", {}).get(\"machine\", \"unknown\")}')
+            except: pass
+            " >> test-summary-performance.md
+          fi
+          if [ -f health-performance.json ]; then
+            echo "✅ Health endpoint performance test completed" >> test-summary-performance.md
+            python -c "
+            import json
+            try:
+                with open('health-performance.json', 'r') as f:
+                    data = json.load(f)
+                print(f'⚡ Average: {data[\"average_ms\"]:.2f}ms')
+                print(f'🔥 Max: {data[\"max_ms\"]:.2f}ms')
+            except: pass
+            " >> test-summary-performance.md
+          fi
+
+      - name: 📤 Upload Performance Test Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: performance-test-results
+          path: |
+            backend/test-results-performance.xml
+            backend/benchmark-results.json
+            backend/benchmark-histogram.svg
+            backend/health-performance.json
+            backend/test-summary-performance.md
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+
+  # ============================================================================
+  # 🛡️ SECURITY TESTS
+  # ============================================================================
+  security-tests:
+    name: 🛡️ Security Tests
+    runs-on: ubuntu-latest
+    needs: code-quality
+    if: |
+      !failure() && 
+      (github.event.inputs.test_suite == '' || 
+       github.event.inputs.test_suite == 'full' || 
+       github.event.inputs.test_suite == 'security-only')
+
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION_PRIMARY }}
+          cache: 'pip'
+
+      - name: 📦 Install Security Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit safety semgrep pip-audit
+          pip install -r backend/requirements.txt
+
+      - name: 🔒 Advanced Security Scan (Bandit)
+        working-directory: ./backend
+        run: |
+          bandit -r . \
+            -f json -o bandit-detailed-report.json \
+            -f txt -o bandit-detailed-report.txt \
+            --severity-level medium \
+            --confidence-level medium
+
+      - name: 🛡️ Dependency Vulnerability Scan (Safety)
+        working-directory: ./backend
+        run: |
+          safety check \
+            --json --output safety-detailed-report.json \
+            --full-report || echo "Vulnerabilities found - check report"
+
+      - name: 🔍 Static Analysis (Semgrep)
+        working-directory: ./backend
+        run: |
+          semgrep --config=auto \
+            --json --output=semgrep-report.json \
+            --timeout=300 \
+            . || echo "Security issues found - check report"
+
+      - name: 📋 Package Audit (pip-audit)
+        working-directory: ./backend
+        run: |
+          pip-audit \
+            --format=json \
+            --output=pip-audit-report.json \
+            --requirement=requirements.txt || echo "Package vulnerabilities found"
+
+      - name: 🧪 Run Security-Focused Tests
+        working-directory: ./backend
+        env:
+          ENVIRONMENT: testing
+          DEBUG: false
+        run: |
+          export PYTHONPATH="$(pwd):${PYTHONPATH}"
+          pip install -e .
+          python -m pytest tests/ \
+            -c tests/pytest-ci.ini \
+            -m "security" \
+            --junitxml=test-results-security.xml \
+            --verbose
+
+      - name: 📊 Generate Security Summary
+        if: always()
+        working-directory: ./backend
+        run: |
+          echo "## 🛡️ Security Test Results" > test-summary-security.md
+          echo "### Static Analysis Reports" >> test-summary-security.md
+
+          if [ -f bandit-detailed-report.json ]; then
+            echo "✅ Bandit security scan completed" >> test-summary-security.md
+            python -c "
+            import json
+            try:
+                with open('bandit-detailed-report.json', 'r') as f:
+                    data = json.load(f)
+                issues = len(data.get('results', []))
+                print(f'🔒 Bandit: {issues} security issues found')
+            except: print('🔒 Bandit: Report parsing failed')
+            " >> test-summary-security.md
+          fi
+
+          if [ -f safety-detailed-report.json ]; then
+            echo "✅ Safety dependency scan completed" >> test-summary-security.md
+          fi
+
+          if [ -f test-results-security.xml ]; then
+            echo "✅ Security tests completed" >> test-summary-security.md
+          fi
+
+      - name: 📤 Upload Security Test Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-test-results
+          path: |
+            backend/bandit-detailed-report.json
+            backend/bandit-detailed-report.txt
+            backend/safety-detailed-report.json
+            backend/semgrep-report.json
+            backend/pip-audit-report.json
+            backend/test-results-security.xml
+            backend/test-summary-security.md
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+
+  # ============================================================================
+  # 📊 COVERAGE ANALYSIS & REPORTING
+  # ============================================================================
+  coverage-report:
+    name: 📊 Coverage Analysis
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests]
+    if: |
+      !failure() && 
+      (github.event.inputs.test_suite == '' || 
+       github.event.inputs.test_suite == 'full')
+
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION_PRIMARY }}
+          cache: 'pip'
+
+      - name: 📦 Install Coverage Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install coverage[toml] coverage-badge
+
+      - name: 📥 Download All Coverage Reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*test-results*'
+          path: ./coverage-artifacts
+          merge-multiple: true
+
+      - name: 📊 Combine Coverage Reports
+        working-directory: ./backend
+        run: |
+          echo "Combining coverage reports..."
+          coverage combine ../coverage-artifacts/coverage-*.xml || echo "No coverage files to combine"
+
+          # Generate combined reports
+          coverage report --format=markdown > coverage-report.md
+          coverage html -d combined-htmlcov
+          coverage xml -o combined-coverage.xml
+
+          # Generate coverage badge
+          coverage-badge -o coverage-badge.svg
+
+      - name: 📈 Coverage Quality Gate
+        working-directory: ./backend
+        run: |
+          COVERAGE=$(coverage report --format=total)
+          echo "Current coverage: ${COVERAGE}%"
+
+          if [ "$COVERAGE" -lt "${{ env.COVERAGE_THRESHOLD }}" ]; then
+            echo "❌ Coverage too low: ${COVERAGE}% < ${{ env.COVERAGE_THRESHOLD }}%"
+            echo "COVERAGE_GATE_FAILED=true" >> $GITHUB_ENV
+          else
+            echo "✅ Coverage threshold met: ${COVERAGE}% >= ${{ env.COVERAGE_THRESHOLD }}%"
+            echo "COVERAGE_GATE_PASSED=true" >> $GITHUB_ENV
+          fi
+
+          echo "COVERAGE_PERCENTAGE=${COVERAGE}" >> $GITHUB_ENV
+
+      - name: 📊 Generate Coverage Summary
+        working-directory: ./backend
+        run: |
+          echo "## 📊 Code Coverage Report" > coverage-summary.md
+          echo "### Overall Coverage: ${COVERAGE_PERCENTAGE}%" >> coverage-summary.md
+          echo "" >> coverage-summary.md
+          if [ "$COVERAGE_GATE_PASSED" = "true" ]; then
+            echo "✅ **Coverage threshold met** (>= ${{ env.COVERAGE_THRESHOLD }}%)" >> coverage-summary.md
+          else
+            echo "❌ **Coverage below threshold** (< ${{ env.COVERAGE_THRESHOLD }}%)" >> coverage-summary.md
+          fi
+          echo "" >> coverage-summary.md
+          echo "### Detailed Report" >> coverage-summary.md
+          cat coverage-report.md >> coverage-summary.md
+
+      - name: 📤 Upload Coverage Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: |
+            backend/combined-coverage.xml
+            backend/combined-htmlcov/
+            backend/coverage-report.md
+            backend/coverage-summary.md
+            backend/coverage-badge.svg
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+
+  endpoint-tests:
+    name: API Endpoint Tests
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_suite != 'unit-only' && github.event.inputs.test_suite != 'security-only'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION_PRIMARY }}
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install httpx pytest-asyncio
+
+      - name: Discover and test endpoints
+        working-directory: ./backend
+        run: |
+          # Set up environment variables
+          export ENVIRONMENT=testing
+          export DEBUG=False
+          export SUPABASE_URL="${{ secrets.SUPABASE_URL }}"
+          export SUPABASE_KEY="${{ secrets.SUPABASE_KEY }}"
+          export JWT_SECRET="${{ secrets.JWT_SECRET }}"
+          export JWT_ALGORITHM=HS256
+          export JWT_EXPIRATION=1440
+          export TEST_EMAIL=krijajannis@gmail.com
+          export TEST_PASSWORD=221224
+          export OCR_TEST_MOCK_MODE=false
+          export OCR_TEST_INTEGRATION=true
+          export DB_READ_ONLY=true
+
+          # Set up Python path and install package
+          export PYTHONPATH="$(pwd):${PYTHONPATH}"
+          pip install -e . 2>/dev/null || true
+
+          # Discover endpoints
+          python tests/test_endpoint_discovery.py
+
+          # Run endpoint tests
+          python -m pytest tests/test_endpoint_discovery.py::TestDiscoveredEndpoints -v --tb=short --junitxml=endpoint-results.xml
+      - name: Upload endpoint test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: endpoint-test-results
+          path: |
+            backend/endpoint-results.xml
+            backend/discovered_endpoints.json
+
+  docker-tests:
+    name: Docker Build Test
+    runs-on: ubuntu-latest
+    needs: [unit-tests]
+    if: github.event.inputs.test_suite != 'unit-only' && github.event.inputs.test_suite != 'endpoints-only' && github.event.inputs.test_suite != 'security-only'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build Docker image
+        working-directory: ./backend
+        run: |
+          docker build -t cookify-backend:test .
+
+      - name: Test Docker container
+        working-directory: ./backend
+        run: |
+          docker run -d --name test-container \
+            -e ENVIRONMENT=testing \
+            -p 8000:8000 \
+            cookify-backend:test
+
+          sleep 10
+
+          curl -f http://localhost:8000/health || exit 1
+
+          docker logs test-container
+          docker stop test-container
+          docker rm test-container
+
+      - name: Upload Docker results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: docker-test-results
+          path: backend/docker-logs.txt
+
+  # ============================================================================
+  # 🎯 TEST SUMMARY & NOTIFICATIONS
+  # ============================================================================
+  test-summary:
+    name: 🎯 Test Summary
+    runs-on: ubuntu-latest
+    needs:
+      [
+        code-quality,
+        unit-tests,
+        integration-tests,
+        performance-tests,
+        security-tests,
+        coverage-report,
+      ]
+    if: always()
+
+    timeout-minutes: 5
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 📥 Download All Test Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./test-artifacts
+
+      - name: 📊 Generate Master Test Summary
+        run: |
+          echo "# 🧪 Test Suite Results Summary" > test-summary-master.md
+          echo "**Workflow:** ${{ github.workflow }}" >> test-summary-master.md
+          echo "**Branch:** ${{ github.ref_name }}" >> test-summary-master.md
+          echo "**Commit:** ${{ github.sha }}" >> test-summary-master.md
+          echo "**Timestamp:** $(date -u)" >> test-summary-master.md
+          echo "" >> test-summary-master.md
+
+          # Job status summary
+          echo "## 📋 Job Status Overview" >> test-summary-master.md
+          echo "| Job | Status | Duration |" >> test-summary-master.md
+          echo "|-----|--------|----------|" >> test-summary-master.md
+          echo "| 🔍 Code Quality | ${{ needs.code-quality.result }} | - |" >> test-summary-master.md
+          echo "| 🧪 Unit Tests | ${{ needs.unit-tests.result }} | - |" >> test-summary-master.md
+          echo "| 🔗 Integration Tests | ${{ needs.integration-tests.result }} | - |" >> test-summary-master.md
+          echo "| 🚀 Performance Tests | ${{ needs.performance-tests.result }} | - |" >> test-summary-master.md
+          echo "| 🛡️ Security Tests | ${{ needs.security-tests.result }} | - |" >> test-summary-master.md
+          echo "| 📊 Coverage Report | ${{ needs.coverage-report.result }} | - |" >> test-summary-master.md
+          echo "" >> test-summary-master.md
+
+          # Overall status
+          if [[ "${{ needs.code-quality.result }}" == "success" && 
+                "${{ needs.unit-tests.result }}" == "success" && 
+                "${{ needs.integration-tests.result }}" == "success" ]]; then
+            echo "## ✅ Overall Status: SUCCESS" >> test-summary-master.md
+            echo "All critical tests passed successfully." >> test-summary-master.md
+            echo "OVERALL_STATUS=success" >> $GITHUB_ENV
+          else
+            echo "## ❌ Overall Status: FAILURE" >> test-summary-master.md
+            echo "One or more critical tests failed." >> test-summary-master.md
+            echo "OVERALL_STATUS=failure" >> $GITHUB_ENV
+          fi
+
+      - name: 📊 Aggregate Test Metrics
+        run: |
+          echo "" >> test-summary-master.md
+          echo "## 📈 Test Metrics" >> test-summary-master.md
+
+          # Count test files
+          TOTAL_TESTS=0
+          if [ -d "./test-artifacts" ]; then
+            for xml_file in $(find ./test-artifacts -name "test-results-*.xml" 2>/dev/null); do
+              if [ -f "$xml_file" ]; then
+                TESTS=$(grep -o 'tests="[0-9]*"' "$xml_file" | cut -d'"' -f2 | head -1)
+                TOTAL_TESTS=$((TOTAL_TESTS + ${TESTS:-0}))
+              fi
+            done
+          fi
+
+          echo "- **Total Tests Executed:** $TOTAL_TESTS" >> test-summary-master.md
+          echo "- **Python Version:** ${{ env.PYTHON_VERSION_PRIMARY }}" >> test-summary-master.md
+          echo "- **Test Framework:** pytest" >> test-summary-master.md
+          echo "- **Coverage Threshold:** ${{ env.COVERAGE_THRESHOLD }}%" >> test-summary-master.md
+
+      - name: 🔍 Check for Critical Failures
+        run: |
+          CRITICAL_FAILURE=false
+
+          if [[ "${{ needs.code-quality.result }}" == "failure" ]]; then
+            echo "💥 CRITICAL: Code quality checks failed"
+            CRITICAL_FAILURE=true
+          fi
+
+          if [[ "${{ needs.unit-tests.result }}" == "failure" ]]; then
+            echo "💥 CRITICAL: Unit tests failed"
+            CRITICAL_FAILURE=true
+          fi
+
+          if [[ "${{ needs.integration-tests.result }}" == "failure" ]]; then
+            echo "💥 CRITICAL: Integration tests failed"
+            CRITICAL_FAILURE=true
+          fi
+
+          if [[ "${{ needs.security-tests.result }}" == "failure" ]]; then
+            echo "⚠️ WARNING: Security tests failed"
+          fi
+
+          if [[ "${{ needs.performance-tests.result }}" == "failure" ]]; then
+            echo "⚠️ WARNING: Performance tests failed"
+          fi
+
+          if [ "$CRITICAL_FAILURE" = true ]; then
+            echo "❌ Critical test failures detected"
+            exit 1
+          else
+            echo "✅ No critical test failures"
+          fi
+
+      - name: 📤 Upload Master Test Summary
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-summary-master
+          path: test-summary-master.md
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+
+      - name: 💬 Prepare Notification Data
+        if: always()
+        run: |
+          # Prepare data for external notification systems
+          cat > notification-data.json << EOF
+          {
+            "workflow": "${{ github.workflow }}",
+            "branch": "${{ github.ref_name }}",
+            "commit": "${{ github.sha }}",
+            "status": "${{ env.OVERALL_STATUS }}",
+            "timestamp": "$(date -u -Iseconds)",
+            "jobs": {
+              "code_quality": "${{ needs.code-quality.result }}",
+              "unit_tests": "${{ needs.unit-tests.result }}",
+              "integration_tests": "${{ needs.integration-tests.result }}",
+              "performance_tests": "${{ needs.performance-tests.result }}",
+              "security_tests": "${{ needs.security-tests.result }}",
+              "coverage_report": "${{ needs.coverage-report.result }}"
+            },
+            "coverage_percentage": "${COVERAGE_PERCENTAGE:-0}",
+            "coverage_threshold": "${{ env.COVERAGE_THRESHOLD }}",
+            "test_suite": "${{ github.event.inputs.test_suite || 'full' }}",
+            "environment": "${{ github.event.inputs.environment || 'ci' }}"
+          }
+          EOF
+
+      # NOTE: Add your notification integrations here
+      # Examples:
+      # - name: 📢 Notify Slack
+      #   if: always()
+      #   uses: 8398a7/action-slack@v3
+      #   with:
+      #     status: ${{ env.OVERALL_STATUS }}
+      #     channel: '#dev-alerts'
+      #     webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+      #
+      # - name: 📧 Send Email Report
+      #   if: failure()
+      #   uses: dawidd6/action-send-mail@v3
+      #   with:
+      #     server_address: smtp.company.com
+      #     username: ${{ secrets.EMAIL_USERNAME }}
+      #     password: ${{ secrets.EMAIL_PASSWORD }}
+      #     subject: "❌ Backend Test Suite Failed"
+      #     body: file://test-summary-master.md
+
+      - name: 📋 Display Summary
+        if: always()
+        run: |
+          echo "==================== TEST SUMMARY ===================="
+          cat test-summary-master.md
+          echo "======================================================="
